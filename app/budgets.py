@@ -13,7 +13,7 @@
   budget lines (`splits`); what the splits don't cover is uncategorized. Income splits
   add extra budget to a line for that month. Transfers don't touch budgets.
 """
-from .money import ApiError, GENERIC_ERROR, next_month
+from .money import ApiError, GENERIC_ERROR, current_month, next_month
 
 FIRST_MONTH = "0000-01"  # start month for budgets that have always applied
 
@@ -242,6 +242,9 @@ def month_data(conn, month, exclude=None):
             "budget_spent": total_spent - outside,  # spent on budgets
             "carried_in": sum(l["carried_in"] for l in all_lines),
         },
-        # Money taken from savings isn't unspent budget, so it never adds to the rest.
-        "leftover": {"unspent": unspent, "saved": saved, "rest": max(0, unspent - max(0, saved))},
+        # What's left of the budgets. Until the month ends it can all still be spent, whatever
+        # was moved to savings. Afterwards, money moved to savings counts as that leftover;
+        # money taken from savings isn't unspent budget, so it never adds to it.
+        "leftover": {"unspent": unspent, "saved": saved,
+                     "rest": max(0, unspent - max(0, saved)) if month < current_month() else unspent},
     }

@@ -6,9 +6,9 @@ month doesn't need is savings. A shortfall beyond that has to come from savings.
 
 The projection starts from all money in the bank and savings today (assuming the rest of
 this month's budget is spent). Each coming month adds expected income (plans) and
-subtracts its budgets and planned expenses. Savings = what's left after next month's
-budget is set aside in the bank; free to spend = savings above the buffer, in that month
-and every later one. The buffer is a number of months of budget, or a fixed amount.
+subtracts its budgets and planned expenses. "Savings + spare" = savings plus what's left
+in the bank after next month's budget is set aside; free to spend = that amount above
+the buffer, in that month and every later one. The buffer is a number of months of budget, or a fixed amount.
 """
 from .accounts import expected_balance, setting, starting_point
 from .budgets import budget_total, month_data

@@ -48,7 +48,7 @@ export async function renderOutlook() {
 
   const cell = (v, cls = "") => `<td class="${cls}">${v === undefined ? "—" : money(v)}</td>`;
   $("#outlook-table").innerHTML = `
-    <thead><tr><th>Month</th><th>Income</th><th>Budget</th><th>Planned</th><th>Result</th><th>Savings</th><th>Free to spend</th></tr></thead>
+    <thead><tr><th>Month</th><th>Income</th><th>Budget</th><th>Planned</th><th>Result</th><th title="Your savings, plus what's left in your bank after next month's budget">Savings + spare</th><th>Free to spend</th></tr></thead>
     <tbody>${rows.map((r) => `<tr class="${r.now ? "now" : ""} ${r.month === projection.low_month ? "low" : ""}">
       <td>${monthName(r.month, "short")}${r.now ? ` <span class="muted">now</span>` : ""}</td>
       ${cell(r.income)}${cell(r.budget)}${r.planned ? cell(r.planned) : "<td></td>"}
@@ -58,11 +58,11 @@ export async function renderOutlook() {
   const months = rows.map((r) => r.month);
   const savings = rows.map((r) => r.savings), buffers = rows.map((r) => r.buffer);
   lineChart($("#outlook-chart"), months, [
-    { name: "Savings", values: savings, cls: "line", against: buffers },
+    { name: "Savings + spare", values: savings, cls: "line", against: buffers },
     { name: "Buffer", values: buffers, cls: "line dashed", dots: false },
   ], {
     includeZero: true,
-    tooltip: (i) => `<b>${monthName(months[i])}</b><span>Savings: ${money(savings[i])}</span><span>Buffer: ${money(buffers[i])}</span>`,
+    tooltip: (i) => `<b>${monthName(months[i])}</b><span>Savings + spare: ${money(savings[i])}</span><span>Buffer: ${money(buffers[i])}</span>`,
   });
 }
 
