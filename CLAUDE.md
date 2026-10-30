@@ -16,7 +16,8 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 ## Layout
 
 - `desktop.py`: the Mac app. `server.py`: development entry point.
-- `packaging/`: `build.sh` builds `dist/Budget.app` and `dist/Budget.dmg`; bump `VERSION` in `Budget.spec`.
+- `packaging/`: `build.sh` builds `dist/Budget.app` and `dist/Budget.dmg`. The version is `VERSION` in
+  `app/__init__.py`; raise it when a release's features change.
 - `app/web.py`: HTTP server. Routes `/api/<resource>[/<id>]` to `app/api.py` `ROUTES`,
   everything else to `static/`. Sends `Cache-Control: no-cache`.
 - `app/db.py`: schema and **migrations**. The schema version is SQLite's `user_version`.
@@ -55,6 +56,11 @@ The owner uses the app from `/Applications`, which doesn't change by itself. Aft
 change to the app (`app/`, `static/`, `desktop.py`, `packaging/`), run `packaging/install.sh`: it
 builds, replaces the installed copy and reopens it if it was open. Do this when the work is done
 and tested, not for each small step, and say so if it couldn't be done. Data isn't affected.
+
+## Keeping the preview current
+
+The preview's server doesn't reload code. After changing anything in `app/` or `server.py`, restart
+it before reporting the work; otherwise the page can call routes the running server doesn't know.
 
 ## Keeping the README current
 

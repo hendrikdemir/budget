@@ -110,9 +110,9 @@ Everything stays on your Mac. Budget makes a backup automatically once a day and
 
 **Moving to a new Mac**
 
-1. On your old Mac, open Budget and choose ◐ **Settings → Export data**. Save the file.
+1. On your old Mac, open Budget, click the gear icon to open **Settings**, and choose **Export data**. Save the file.
 2. Move the file to your new Mac, for example with AirDrop.
-3. Install Budget on your new Mac, and choose ◐ **Settings → Import data**.
+3. Install Budget on your new Mac, open **Settings**, and choose **Import data**.
 
 The export file holds all your financial data and isn't encrypted, so keep it somewhere safe and delete it when you no longer need it.
 

@@ -1,5 +1,8 @@
 # PyInstaller recipe for Budget.app. Built by packaging/build.sh.
-VERSION = "1.0.0"
+import sys
+
+sys.path.insert(0, f"{SPECPATH}/..")
+from app import VERSION
 
 a = Analysis(["../desktop.py"], pathex=[".."], datas=[("../static", "static")], excludes=["tkinter"])
 pyz = PYZ(a.pure)

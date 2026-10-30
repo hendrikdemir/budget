@@ -20,7 +20,9 @@ export function applySettings() {
 
 export async function loadSettings(currencyChanged) {
   onCurrencyChange = currencyChanged;
-  state.settings = await api("/api/settings");
+  const [settings, { version }] = await Promise.all([api("/api/settings"), api("/api/version")]);
+  state.settings = settings;
+  $("#app-version").textContent = `Budget ${version}`;
   applySettings();
 }
 

@@ -1,6 +1,6 @@
 """HTTP API handlers. Each takes (conn, id, body, query) and returns JSON-able data.
 Amounts in requests and responses are whole cents."""
-from . import accounts, backup, budgets, outlook
+from . import VERSION, accounts, backup, budgets, outlook
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
@@ -314,6 +314,11 @@ def import_status(conn, _, __, ___):
 
 # ---- Settings ----
 
+def get_version(conn, _, __, ___):
+    return {"version": VERSION}
+
+
+
 def get_settings(conn, _, __, ___):
     rows = conn.execute("SELECT key, value FROM settings").fetchall()
     return {**DEFAULT_SETTINGS, **{r["key"]: r["value"] for r in rows if r["key"] in DEFAULT_SETTINGS}}
@@ -364,6 +369,7 @@ ROUTES = {
     ("POST", "backup-restore", False): restore_backup,
     ("POST", "backup-undo", False): undo_import,
     ("GET", "backup-status", False): import_status,
+    ("GET", "version", False): get_version,
     ("GET", "settings", False): get_settings,
     ("POST", "settings", False): save_settings,
 }

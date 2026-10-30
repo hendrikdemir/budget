@@ -8,3 +8,5 @@ Modules:
 - outlook:  "ready for next month?" and the savings projection
 - api:      HTTP API handlers and routes
 """
+
+VERSION = "1.1.0"  # shown in Settings and used for the Mac app
