@@ -82,7 +82,10 @@ function currentParts() {
 // Show amounts only when splitting, hint at what's left, and preview each budget afterwards.
 function updateSplits() {
   $("#splits").classList.toggle("single", !splitMode);
-  $("#add-split").textContent = splitMode ? "+ Add another part" : kind === "income" ? "+ Divide over budgets" : "+ Split across budgets";
+  // Only when it changes: this also runs when a field loses focus, which happens during
+  // a mouse press, and Safari cancels a click on a button whose text was just replaced.
+  const label = splitMode ? "+ Add another part" : kind === "income" ? "+ Divide over budgets" : "+ Split across budgets";
+  if ($("#add-split").textContent !== label) $("#add-split").textContent = label;
   const total = parseAmount(form.amount.value) || 0;
   const rest = total - splitRows().reduce((sum, r) => sum + (parseAmount(r.querySelector(".split-amount").value) || 0), 0);
   splitRows().forEach((r) => (r.querySelector(".split-amount").placeholder = rest > 0 ? `Rest ${inputAmount(rest)}` : "Amount"));

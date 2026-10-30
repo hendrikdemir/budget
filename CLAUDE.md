@@ -48,6 +48,10 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 
 ## Checking changes
 
+The Mac app uses WebKit, which behaves differently from Chrome: test real mouse clicks there (not
+`element.click()`). For example, WebKit cancels a click on a button whose text changed during the
+mouse press. `packaging/make_screenshots.py` shows how to drive WebKit with Playwright.
+
 There are no automated tests. After a change, run the app and check the affected screens
 in the browser (light and dark, desktop and mobile width). Test the built app too when
 changing `desktop.py` or packaging, with `BUDGET_DATA_DIR` pointing to a copy of the data. For changes to calculations,
