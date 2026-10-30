@@ -496,3 +496,4 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, summary:focus-v
 button:focus:not(:focus-visible) { outline: none; }
 #settings .dialog-head { margin-bottom: 4px; }
 #settings .dialog-foot { margin-top: 8px; }
+#outlook-chart-card .section-head { flex-wrap: wrap; }

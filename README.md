@@ -79,7 +79,9 @@ Follow the development of your savings through the year, month by month.
 
 <img src="docs/screenshots/outlook.png" alt="The Outlook: projected savings for the next twelve months">
 
-Add your expected income and planned costs, like a holiday or a new laptop, and Budget projects your savings for the next 12 months. It keeps one month's budget as a safety buffer and shows how much you can **freely spend** without dipping below it in any month ahead.
+Add your expected income and planned costs, like a holiday or a new laptop, and Budget projects your savings for the next 12 months. It keeps a safety buffer in your savings and shows how much you can **freely spend** without dipping below it in any month ahead. You choose the buffer: a number of months of budget, or a fixed amount.
+
+<img src="docs/screenshots/buffer.png" width="420" alt="Choosing the savings buffer: months of budget or a fixed amount">
 
 ### Make it yours
 

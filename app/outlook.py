@@ -7,10 +7,10 @@ month doesn't need is savings. A shortfall beyond that has to come from savings.
 The projection starts from all money in the bank and savings today (assuming the rest of
 this month's budget is spent). Each coming month adds expected income (plans) and
 subtracts its budgets and planned expenses. Savings = what's left after next month's
-budget is set aside in the bank; free to spend = savings above a buffer of one month's
-budget, in that month and every later one.
+budget is set aside in the bank; free to spend = savings above the buffer, in that month
+and every later one. The buffer is a number of months of budget, or a fixed amount.
 """
-from .accounts import expected_balance, starting_point
+from .accounts import expected_balance, setting, starting_point
 from .budgets import budget_total, month_data
 from .money import current_month, month_end, next_month, today
 
@@ -86,6 +86,12 @@ def planned_in(all_plans, kind, month):
 
 # ---- Projection ----
 
+def buffer_setting(conn):
+    return {"mode": setting(conn, "buffer_mode") or "months",
+            "months": float(setting(conn, "buffer_months") or 1),
+            "amount": int(setting(conn, "buffer_amount") or 0)}
+
+
 def projection(conn):
     bank, savings = (expected_balance(conn, a, today()) for a in ("bank", "savings"))
     if bank is None or savings is None or None in (starting_point(conn, "bank")[0], starting_point(conn, "savings")[0]):
@@ -99,6 +105,8 @@ def projection(conn):
     budget_of = {m: budget_total(conn, m) for m in months}
     prepaid_next = prepaid(month_data(conn, following))  # next month's bills already paid
     still_to_pay = lambda m: budget_of[m] - (prepaid_next if m == following else 0)
+    buffer = buffer_setting(conn)
+    buffer_for = lambda m: buffer["amount"] if buffer["mode"] == "amount" else round(budget_of[m] * buffer["months"])
 
     total = bank + savings - month_data(conn, now)["leftover"]["rest"]
     rows = []
@@ -111,7 +119,7 @@ def projection(conn):
             total += row["result"]
         after = next_month(month)
         row["savings"] = total - still_to_pay(after)
-        row["buffer"] = budget_of[after]
+        row["buffer"] = buffer_for(after)
         row["above"] = row["savings"] - row["buffer"]  # savings above the buffer this month
         rows.append(row)
 
@@ -123,5 +131,5 @@ def projection(conn):
         row["free"] = max(0, lowest)
     low = min(rows, key=lambda r: r["above"])  # the first of the lowest points
     first_below = next((r["month"] for r in rows if r["above"] < 0), None)
-    return {"visible": True, "savings_today": savings, "rows": rows,
+    return {"visible": True, "savings_today": savings, "rows": rows, "buffer": buffer,
             "low_month": low["month"], "low_above": low["above"], "first_below": first_below}

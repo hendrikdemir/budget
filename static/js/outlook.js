@@ -6,6 +6,7 @@ import { currencySymbol, currentMonth, escapeHtml, inputAmount, money, monthName
 import { $, api, confirmDialog, fieldError, toast } from "./ui.js";
 
 let plans = [];
+let buffer = { mode: "months", months: 1, amount: 0 }; // how much should stay in savings
 
 export async function renderOutlook() {
   const [projection, allPlans] = await Promise.all([api("/api/projection"), api("/api/plans")]);
@@ -18,6 +19,8 @@ export async function renderOutlook() {
     return;
   }
   const { rows } = projection;
+  buffer = projection.buffer;
+  $("#buffer-label").textContent = `Buffer: ${bufferText()}`;
   const lowName = monthName(projection.low_month);
   const below = projection.low_above < 0;
   $("#outlook-summary").innerHTML = `
@@ -27,7 +30,7 @@ export async function renderOutlook() {
       <span class="label">${below ? "Below your buffer" : "Free to spend"}</span>
       <span class="tile-value">${money(below ? -projection.low_above : rows[0].free)}</span>
       <span class="muted">${below
-        ? `Your savings drop below one month's budget from ${monthName(projection.first_below)}${projection.first_below !== projection.low_month
+        ? `Your savings drop below your buffer from ${monthName(projection.first_below)}${projection.first_below !== projection.low_month
           ? `, down to ${money(-projection.low_above)} below it in ${lowName}` : ""}.`
         : `Lowest point in the next year is ${lowName}, so this much can go without dipping below your buffer.`}</span>
     </div>`;
@@ -42,15 +45,59 @@ export async function renderOutlook() {
     </tr>`).join("")}</tbody>`;
 
   const months = rows.map((r) => r.month);
-  const savings = rows.map((r) => r.savings), buffer = rows.map((r) => r.buffer);
+  const savings = rows.map((r) => r.savings), buffers = rows.map((r) => r.buffer);
   lineChart($("#outlook-chart"), months, [
-    { name: "Savings", values: savings, cls: "line", against: buffer },
-    { name: "Buffer", values: buffer, cls: "line dashed", dots: false },
+    { name: "Savings", values: savings, cls: "line", against: buffers },
+    { name: "Buffer", values: buffers, cls: "line dashed", dots: false },
   ], {
     includeZero: true,
-    tooltip: (i) => `<b>${monthName(months[i])}</b><span>Savings: ${money(savings[i])}</span><span>Buffer: ${money(buffer[i])}</span>`,
+    tooltip: (i) => `<b>${monthName(months[i])}</b><span>Savings: ${money(savings[i])}</span><span>Buffer: ${money(buffers[i])}</span>`,
   });
 }
+
+// ---- Savings buffer ----
+function bufferText() {
+  if (buffer.mode === "amount") return money(buffer.amount);
+  if (buffer.months === 1) return "one month's budget";
+  return `${buffer.months.toLocaleString()} months of budget`;
+}
+
+const bufferForm = $("#buffer-form");
+let bufferMode = "months";
+function renderBufferMode() {
+  document.querySelectorAll("#buffer-mode button").forEach((b) => b.classList.toggle("active", b.dataset.mode === bufferMode));
+  $("#buffer-months-field").hidden = bufferMode !== "months";
+  $("#buffer-amount-field").hidden = bufferMode !== "amount";
+}
+$("#buffer-edit").onclick = () => {
+  bufferMode = buffer.mode;
+  bufferForm.months.value = buffer.months.toLocaleString();
+  bufferForm.amount.value = inputAmount(buffer.amount);
+  fieldError(bufferForm, "months", "");
+  fieldError(bufferForm, "amount", "");
+  $("#buffer-dialog .currency").textContent = currencySymbol();
+  renderBufferMode();
+  $("#buffer-dialog").showModal();
+  bufferForm[bufferMode].select();
+};
+$("#buffer-mode").onclick = (e) => {
+  if (!e.target.dataset.mode) return;
+  bufferMode = e.target.dataset.mode;
+  renderBufferMode();
+  bufferForm[bufferMode].select();
+};
+bufferForm.oninput = (e) => fieldError(bufferForm, e.target.name, "");
+bufferForm.onsubmit = async (e) => {
+  e.preventDefault();
+  const value = parseAmount(bufferForm[bufferMode].value); // months are parsed like amounts: "1,5" -> 150
+  if (!(value >= 0)) {
+    return fieldError(bufferForm, bufferMode, bufferMode === "months" ? "Enter a number of months, like 1,5." : "Enter an amount, like 2500,00.");
+  }
+  await api("/api/buffer", { method: "PUT", body: bufferMode === "months" ? { mode: "months", months: value / 100 } : { mode: "amount", amount: value } });
+  $("#buffer-dialog").close();
+  toast("Buffer updated");
+  renderOutlook();
+};
 
 // ---- Plans (expected income and planned expenses) ----
 function planPeriod(p) {

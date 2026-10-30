@@ -114,7 +114,8 @@
       <div class="section-head">
         <h3>Savings outlook</h3>
         <span class="spacer"></span>
-        <span class="legend"><i class="swatch-line good"></i>Savings above <i class="swatch-line bad"></i>below buffer <i class="swatch-line dashed"></i>Buffer: one month's budget</span>
+        <span class="legend"><i class="swatch-line good"></i>Savings above <i class="swatch-line bad"></i>below buffer <i class="swatch-line dashed"></i><span id="buffer-label"></span></span>
+        <button id="buffer-edit" class="link-btn">Change buffer</button>
       </div>
       <div id="outlook-chart" class="hist-plot"></div>
     </section>
@@ -122,7 +123,7 @@
     <section class="card">
       <div class="section-head"><h3>Month by month</h3></div>
       <div class="table-wrap"><table id="outlook-table" class="outlook-table"></table></div>
-      <p class="muted hist-note">Savings: what's left after next month's budget is set aside in your bank. Free to spend: what you can take out that month without your savings dropping below the buffer of one month's budget then or in any later month. Assumes every budget is fully spent.</p>
+      <p class="muted hist-note">Savings: what's left after next month's budget is set aside in your bank. Free to spend: what you can take out that month without your savings dropping below your buffer then or in any later month. Assumes every budget is fully spent.</p>
     </section>
 
     <section class="card">
@@ -144,6 +145,36 @@
       <ul id="plans-expense" class="plan-list"></ul>
     </section>
   </main>
+
+  <dialog id="buffer-dialog">
+    <form id="buffer-form" novalidate>
+      <div class="dialog-head">
+        <h2>Savings buffer</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+      <p class="muted hint">How much should always stay in your savings? Anything above this counts as free to spend.</p>
+      <div class="segmented kind-switch" id="buffer-mode">
+        <button type="button" data-mode="months">Months of budget</button>
+        <button type="button" data-mode="amount">Fixed amount</button>
+      </div>
+      <div class="fields">
+        <label class="field wide" id="buffer-months-field">
+          <span class="label">Number of months <span class="req" aria-label="required">*</span></span>
+          <input name="months" inputmode="decimal" placeholder="1">
+          <span class="error" data-error="months"></span>
+        </label>
+        <label class="field wide" id="buffer-amount-field">
+          <span class="label">Amount <span class="req" aria-label="required">*</span></span>
+          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0,00"></span>
+          <span class="error" data-error="amount"></span>
+        </label>
+      </div>
+      <div class="dialog-foot">
+        <button type="button" class="ghost-btn" data-close>Cancel</button>
+        <button class="primary-btn">Save</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="plan-dialog">
     <form id="plan-form" novalidate>

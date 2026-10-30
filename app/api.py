@@ -274,6 +274,22 @@ def get_projection(conn, _, __, ___):
     return outlook.projection(conn)
 
 
+def set_buffer(conn, _, body, __):
+    """The savings buffer: a number of months of budget, or a fixed amount."""
+    if body.get("mode") == "amount":
+        values = {"buffer_mode": "amount", "buffer_amount": str(cents(body.get("amount"), allow_zero=True))}
+    else:
+        months = body.get("months")
+        if isinstance(months, bool) or not isinstance(months, (int, float)) or not 0 <= months <= 120:
+            raise ApiError("Enter a number of months, like 1,5.")
+        values = {"buffer_mode": "months", "buffer_months": str(months)}
+    conn.executemany(
+        "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        values.items(),
+    )
+    return {"ok": True}
+
+
 # ---- Settings ----
 
 def get_settings(conn, _, __, ___):
@@ -320,6 +336,7 @@ ROUTES = {
     ("POST", "plan-changes", False): add_plan_change,
     ("DELETE", "plan-changes", True): delete_plan_change,
     ("GET", "projection", False): get_projection,
+    ("PUT", "buffer", False): set_buffer,
     ("GET", "settings", False): get_settings,
     ("POST", "settings", False): save_settings,
 }

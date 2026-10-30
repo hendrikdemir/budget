@@ -173,6 +173,9 @@ def capture(url):
         page.wait_for_selector("#outlook-chart svg")
         page.wait_for_timeout(500)
         shot(page, "outlook")
+        page.click("#buffer-edit")
+        page.wait_for_timeout(300)
+        page.locator("#buffer-dialog").screenshot(path=OUT / "buffer.png")
         page.context.close()
 
         # Appearance.
