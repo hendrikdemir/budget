@@ -97,8 +97,8 @@ def capture(url):
         page.locator("#buffer-dialog").screenshot(path=OUT / "buffer.png")
         page.context.close()
 
-        # Appearance.
-        page = page_for("light", height=700)
+        # Settings.
+        page = page_for("light", height=880)
         page.click("#settings-btn")
         page.click('.swatch[data-color="#10b981"]')
         page.wait_for_timeout(300)

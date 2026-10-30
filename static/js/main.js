@@ -1,4 +1,5 @@
 // Starts the page: settings, the current page (overview or #outlook) and keyboard shortcuts.
+import "./data.js";
 import { renderOutlook } from "./outlook.js";
 import { load } from "./overview.js";
 import { loadSettings } from "./settings.js";

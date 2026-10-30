@@ -497,3 +497,8 @@ button:focus:not(:focus-visible) { outline: none; }
 #settings .dialog-head { margin-bottom: 4px; }
 #settings .dialog-foot { margin-top: 8px; }
 #outlook-chart-card .section-head { flex-wrap: wrap; }
+
+/* ---- Your data (in Settings) ---- */
+.data-hint { margin: -6px 0 0; font-size: 13px; }
+.data-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.data-actions .ghost-btn { display: inline-flex; align-items: center; text-decoration: none; color: inherit; }

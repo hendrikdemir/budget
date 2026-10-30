@@ -1,6 +1,6 @@
 """HTTP API handlers. Each takes (conn, id, body, query) and returns JSON-able data.
 Amounts in requests and responses are whole cents."""
-from . import accounts, budgets, outlook
+from . import accounts, backup, budgets, outlook
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
@@ -290,6 +290,28 @@ def set_buffer(conn, _, body, __):
     return {"ok": True}
 
 
+# ---- Export and import ----
+
+def export_data(conn, _, __, ___):
+    return backup.export_file()  # a (file name, contents) pair: sent as a download
+
+
+def check_backup(conn, _, body, __):
+    return backup.check(body)
+
+
+def restore_backup(conn, _, body, __):
+    return backup.restore(body)
+
+
+def undo_import(conn, _, __, ___):
+    return backup.undo()
+
+
+def import_status(conn, _, __, ___):
+    return backup.status()
+
+
 # ---- Settings ----
 
 def get_settings(conn, _, __, ___):
@@ -337,6 +359,11 @@ ROUTES = {
     ("DELETE", "plan-changes", True): delete_plan_change,
     ("GET", "projection", False): get_projection,
     ("PUT", "buffer", False): set_buffer,
+    ("GET", "export", False): export_data,
+    ("POST", "backup-check", False): check_backup,
+    ("POST", "backup-restore", False): restore_backup,
+    ("POST", "backup-undo", False): undo_import,
+    ("GET", "backup-status", False): import_status,
     ("GET", "settings", False): get_settings,
     ("POST", "settings", False): save_settings,
 }

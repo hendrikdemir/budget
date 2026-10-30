@@ -44,6 +44,7 @@ def main():
 
     webview.create_window("Budget", f"http://127.0.0.1:{server.server_address[1]}/",
                           width=1040, height=860, min_size=(420, 600))
+    webview.settings["ALLOW_DOWNLOADS"] = True  # for Export data
     webview.start(private_mode=False, storage_path=str(data_dir / "window"))  # returns when the window closes
     server.shutdown()
 

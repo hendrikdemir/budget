@@ -5,10 +5,11 @@ export const $ = (sel) => document.querySelector(sel);
 export async function api(path, options = {}) {
   let res, data;
   try {
+    const file = options.body instanceof ArrayBuffer; // an imported file is sent as it is
     res = await fetch(path, {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": file ? "application/octet-stream" : "application/json" },
       ...options,
-      body: options.body && JSON.stringify(options.body),
+      body: file ? options.body : options.body && JSON.stringify(options.body),
     });
     data = await res.json();
   } catch {

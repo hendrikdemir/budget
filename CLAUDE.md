@@ -25,6 +25,8 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   computes a month's budget lines, totals and leftover.
 - `app/accounts.py`: expected balances (starting point + transactions by paid date).
 - `app/outlook.py`: `month_outlook()` ("ready for next month?") and `projection()`.
+- `app/backup.py`: export and import. Bump nothing here for schema changes: a backup's version is
+  its `user_version`, and imports run the normal migrations.
 - `app/api.py`: request handlers; validation helpers are in `app/money.py`.
 - `static/js/`: ES modules. `main.js` starts the page; `overview.js`, `transaction.js`,
   `budget-editor.js`, `accounts.js`, `outlook.js`, `settings.js` each own a part of the UI;

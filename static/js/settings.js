@@ -3,6 +3,8 @@ import { PRESETS, state } from "./state.js";
 import { $, api } from "./ui.js";
 
 let onCurrencyChange = () => {};
+let onOpen = () => {};
+export const whenSettingsOpen = (action) => (onOpen = action);
 
 export function applySettings() {
   const { settings } = state;
@@ -34,5 +36,8 @@ $("#swatches").onclick = (e) => e.target.dataset.color && update({ accent: e.tar
 $("#accent-picker").oninput = (e) => update({ accent: e.target.value });
 $("#theme-options").onclick = (e) => e.target.dataset.theme && update({ theme: e.target.dataset.theme });
 $("#currency-options").onclick = (e) => e.target.dataset.currency && update({ currency: e.target.dataset.currency });
-$("#settings-btn").onclick = () => $("#settings").showModal();
+$("#settings-btn").onclick = () => {
+  $("#settings").showModal();
+  onOpen();
+};
 matchMedia("(prefers-color-scheme: dark)").onchange = applySettings;

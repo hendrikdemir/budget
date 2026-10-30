@@ -35,6 +35,20 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_download(self, name, data):
+        self.send_response(200)
+        self.send_header("Content-Type", "application/octet-stream")
+        self.send_header("Content-Disposition", f'attachment; filename="{name}"')
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def read_body(self):
+        length = int(self.headers.get("Content-Length", 0))
+        if self.headers.get("Content-Type") == "application/octet-stream":  # an imported file
+            return self.rfile.read(length)
+        return json.loads(self.rfile.read(length) or b"{}") if length else {}
+
     def handle_api(self, method):
         url = urlparse(self.path)
         parts = url.path.strip("/").split("/")[1:]  # drop "api"
@@ -45,10 +59,13 @@ class Handler(SimpleHTTPRequestHandler):
             if method != "GET":
                 db.daily_backup()  # before the first change of the day
             record_id = int(parts[1]) if len(parts) > 1 else None
-            length = int(self.headers.get("Content-Length", 0))
-            body = json.loads(self.rfile.read(length) or b"{}") if length else {}
+            body = self.read_body()
             with db.connect() as conn:
-                self.send_json(handler(conn, record_id, body, parse_qs(url.query)))
+                result = handler(conn, record_id, body, parse_qs(url.query))
+            if isinstance(result, tuple):
+                self.send_download(*result)
+            else:
+                self.send_json(result)
         except ApiError as e:
             self.send_json({"error": str(e)}, e.status)
         except ValueError:

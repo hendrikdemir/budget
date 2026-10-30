@@ -85,9 +85,13 @@ Add your expected income and planned costs, like a holiday or a new laptop, and 
 
 ### Make it yours
 
-<img src="docs/screenshots/appearance.png" width="420" alt="Appearance settings with accent colors, theme and currency">
+<img src="docs/screenshots/appearance.png" width="420" alt="Settings with accent colors, theme, currency, and exporting or importing your data">
 
 Choose an accent color, follow your Mac's light or dark mode, and pick your currency.
+
+### Take your data with you
+
+Export everything to a single file, to keep your own copy or to move to a new Mac. Importing is made to be safe: Budget checks the file first, shows what's in it and what it replaces, and keeps a safety copy so you can undo the import.
 
 ## Installing
 
@@ -102,7 +106,15 @@ Budget currently runs on Macs with Apple Silicon.
 
 ## Your data
 
-Everything stays on your Mac, in `~/Library/Application Support/nl.hendrikdemir.budget`. Budget makes a backup automatically once a day and keeps the last 14 days in the `backups` folder there. To restore one, quit Budget and copy it over `budget.db`.
+Everything stays on your Mac. Budget makes a backup automatically once a day and keeps the last 14 days, in `~/Library/Application Support/nl.hendrikdemir.budget/backups`.
+
+**Moving to a new Mac**
+
+1. On your old Mac, open Budget and choose ◐ **Settings → Export data**. Save the file.
+2. Move the file to your new Mac, for example with AirDrop.
+3. Install Budget on your new Mac, and choose ◐ **Settings → Import data**.
+
+The export file holds all your financial data and isn't encrypted, so keep it somewhere safe and delete it when you no longer need it.
 
 ## For developers
 
@@ -140,6 +152,6 @@ Update the screenshots, using made-up data:
 | --- | --- |
 | `desktop.py` | The Mac app: starts the server and opens the window |
 | `server.py` | Starts the server for development |
-| `app/` | Server side: database, budgets, balances, outlook and API |
+| `app/` | Server side: database, budgets, balances, outlook, backups and API |
 | `static/` | The page: HTML, CSS and JavaScript modules |
 | `packaging/` | App build, icon and screenshots |

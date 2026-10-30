@@ -14,7 +14,7 @@
       <a href="#outlook" data-view="outlook">Outlook</a>
     </nav>
     <div class="actions">
-      <button id="settings-btn" class="icon-btn" aria-label="Appearance settings">◐</button>
+      <button id="settings-btn" class="icon-btn" aria-label="Settings" title="Settings">◐</button>
     </div>
   </header>
 
@@ -316,7 +316,7 @@
   <dialog id="settings">
     <form method="dialog">
       <div class="dialog-head">
-        <h2>Appearance</h2>
+        <h2>Settings</h2>
         <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
       </div>
       <span class="label">Accent color</span>
@@ -335,6 +335,14 @@
         <button type="button" data-currency="GBP">GBP</button>
         <button type="button" data-currency="CHF">CHF</button>
       </div>
+      <span class="label">Your data</span>
+      <p class="muted data-hint">Export your data to keep a copy or to move to another Mac. On the other Mac, install Budget and choose Import data.</p>
+      <div class="data-actions">
+        <a id="export-btn" class="ghost-btn" href="/api/export" download>Export data</a>
+        <button type="button" id="import-btn" class="ghost-btn">Import data</button>
+        <button type="button" id="undo-import" class="link-btn" hidden>Undo last import</button>
+      </div>
+      <input type="file" id="import-file" accept=".budget" hidden>
       <div class="dialog-foot"><button class="primary-btn">Done</button></div>
     </form>
   </dialog>
