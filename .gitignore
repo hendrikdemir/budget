@@ -1,0 +1,8 @@
+budget.db
+__pycache__/
+.DS_Store
+budget-backup-2026-10-27.db
+backups/
+build/
+dist/
+.venv-build/
