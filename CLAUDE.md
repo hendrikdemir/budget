@@ -46,6 +46,16 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 - Styles: CSS custom properties in `static/style.css`, light and dark themes, accent
   color from settings. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
 
+## Keeping the README current
+
+Every change to the app also includes a check of `README.md`, as part of finishing the work:
+
+- Update the text when a feature, label, install step, requirement or file path it mentions changes.
+- If a change is visible in a screenshot, regenerate them with `packaging/make_screenshots.py`
+  (made-up data only, never real data) and look at the results. If it adds a screen or flow worth
+  showing, add it to the script and the README.
+- If the README needs no change, say so when reporting the work.
+
 ## Checking changes
 
 The Mac app uses WebKit, which behaves differently from Chrome: test real mouse clicks there (not
