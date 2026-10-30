@@ -17,7 +17,7 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 
 - `desktop.py`: the Mac app. `server.py`: development entry point.
 - `packaging/`: `build.sh` builds `dist/Budget.app` and `dist/Budget.dmg`. The version is `VERSION` in
-  `app/__init__.py`; raise it when a release's features change.
+  `app/__init__.py`. It stays 1.0.0 until the first release; only raise it for a new release.
 - `app/web.py`: HTTP server. Routes `/api/<resource>[/<id>]` to `app/api.py` `ROUTES`,
   everything else to `static/`. Sends `Cache-Control: no-cache`.
 - `app/db.py`: schema and **migrations**. The schema version is SQLite's `user_version`.
