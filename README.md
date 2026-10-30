@@ -1,59 +1,135 @@
+<div align="center">
+
+<img src="packaging/icon.png" width="120" alt="Budget app icon">
+
 # Budget
 
-A personal budget app that runs on your own computer. Track spending and income against
-monthly budgets, check your bank and savings balances, and see how your savings will
-develop over the coming year.
+**A calm, private budget app for your Mac.**
 
-## Installing it
+Plan every euro, see what's left at a glance, and know whether your savings will hold up in the year ahead.
 
-Open `Budget.dmg` and drag Budget to Applications. Then start it like any other app. It
-opens in its own window; closing the window quits it. Nothing else needs to be installed.
+No account. No subscription. No cloud. Your data stays on your Mac.
 
-Budget is not signed with an Apple Developer account yet. On another Mac, the first start
-is blocked: open System Settings > Privacy & Security and choose "Open Anyway". The
-current build runs on Apple Silicon Macs only.
+</div>
 
-## Your data
+<br>
 
-- Everything stays on your Mac, in `~/Library/Application Support/nl.hendrikdemir.budget`
-  (`budget.db`).
-- A copy is made automatically in its `backups` folder once a day (the last 14 days are
-  kept). To restore one, quit Budget and copy it over `budget.db`.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/overview-dark.png">
+  <img src="docs/screenshots/overview-light.png" alt="The Budget overview: spending this month, whether you're ready for next month, account balances and budgets">
+</picture>
+
+<p align="center"><sub>All screenshots show the real app with made-up data.</sub></p>
 
 ## What it does
 
-- **Overview** per month: what's spent against your budgets, spending outside any budget,
-  whether your bank balance covers next month's budget ("Ready for November?"), and all
-  transactions with search and filters.
-- **Budgets** per category, optionally split into items. Budgets can change from a month
-  onward without affecting earlier months; unspent budget can carry over to next month.
-- **Transactions**: expenses, income and transfers to/from savings. An expense can be
-  split over several budgets; income can add to a budget.
-- **Bank and savings balances**: set a starting point, check against your bank, and see
-  the development per month.
-- **Outlook**: a 12-month projection of your savings from expected income, budgets and
-  planned expenses, and how much you can freely spend while keeping one month's budget
-  as a buffer.
+### See your month at a glance
+
+Your spending, what's left in each budget, and anything spent outside your budgets, all on one page. Budgets go red only when you've overspent, so the page stays calm until something needs your attention.
+
+**Ready for next month?** Budget compares your bank balance with what next month needs and tells you exactly how much is short or spare, with one click to move the difference to or from your savings.
+
+### Budgets that fit real life
+
+<img src="docs/screenshots/budgets.png" alt="The budget list with categories, items and remaining amounts">
+
+- **Categories and items**, such as Home › Rent, Energy and Internet, or a single budget like Fun money.
+- **Budgets that change over time.** Raise the rent from next month and earlier months stay exactly as they were.
+- **Carry leftovers over** to next month, by default or case by case, and see how much came along.
+
+### Add a transaction and see the effect first
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/transaction.png" alt="Adding an expense split across two budgets, with a preview that one goes over"></td>
+<td>
+
+- **Split** one purchase across several budgets.
+- **See the effect before you save:** a preview shows what's left in each budget, in red if it would go over.
+- **Income** can top up a budget. Sold something online? Add it to your Fun money.
+- **Bills paid in advance** can count for one month and leave your bank in another.
+- **Quick entry:** known payees suggest the budget you used last time, and pressing <kbd>N</kbd> or <kbd>I</kbd> opens a new expense or income.
+
+</td>
+</tr>
+</table>
+
+### Find anything
+
+<img src="docs/screenshots/transactions.png" alt="Searching the transaction list">
+
+Transactions are grouped per day. Search by payee, note, budget or amount, filter by type, and search across all months. Click a budget to see only its transactions, or select several to delete them at once.
+
+### Keep your balances honest
+
+<table>
+<tr>
+<td>
+
+Set a starting balance for your bank account and savings, and Budget keeps track from there. Enter what your bank shows at any time: it tells you whether everything matches, or how much is off.
+
+Follow the development of your savings through the year, month by month.
+
+</td>
+<td width="50%"><img src="docs/screenshots/savings.png" alt="The savings account with its development chart"></td>
+</tr>
+</table>
+
+### Look ahead with the Outlook
+
+<img src="docs/screenshots/outlook.png" alt="The Outlook: projected savings for the next twelve months">
+
+Add your expected income and planned costs, like a holiday or a new laptop, and Budget projects your savings for the next 12 months. It keeps one month's budget as a safety buffer and shows how much you can **freely spend** without dipping below it in any month ahead.
+
+### Make it yours
+
+<img src="docs/screenshots/appearance.png" width="420" alt="Appearance settings with accent colors, theme and currency">
+
+Choose an accent color, follow your Mac's light or dark mode, and pick your currency.
+
+## Installing
+
+1. Download `Budget.dmg` from the [Releases](../../releases) page.
+2. Open it and drag **Budget** to **Applications**.
+3. Open Budget. Nothing else needs to be installed.
+
+> [!NOTE]
+> Budget isn't signed with an Apple Developer account yet, so macOS blocks the first start. Open **System Settings → Privacy & Security** and choose **Open Anyway**. You only need to do this once.
+
+Budget currently runs on Macs with Apple Silicon.
+
+## Your data
+
+Everything stays on your Mac, in `~/Library/Application Support/nl.hendrikdemir.budget`. Budget makes a backup automatically once a day and keeps the last 14 days in the `backups` folder there. To restore one, quit Budget and copy it over `budget.db`.
 
 ## For developers
 
-Run from source, in the browser, with separate data in this folder (`budget.db`, `backups/`):
+Budget is a small Python and JavaScript app. It uses SQLite and only the Python standard library, with no web build step.
+
+Run it from source in your browser, with separate data in this folder:
 
 ```bash
 python3 server.py
 ```
 
-Then open http://localhost:8000. To build `dist/Budget.app` and `dist/Budget.dmg`:
+Then open http://localhost:8000.
+
+Build `dist/Budget.app` and `dist/Budget.dmg`:
 
 ```bash
 packaging/build.sh
 ```
 
-- `desktop.py` — the Mac app: starts the server and opens the window.
-- `server.py` — starts the server for development.
-- `packaging/` — build script, app recipe and icon.
-- `app/` — the server side (Python standard library only):
-  `db.py` (schema, migrations, backups), `money.py` (validation), `budgets.py` (budgets
-  and month totals), `accounts.py` (balances), `outlook.py` (next month and projection),
-  `api.py` (the HTTP API), `web.py` (the web server).
-- `static/` — the page: `index.html`, `style.css` and `js/` (plain ES modules, no build step).
+Update the screenshots, using made-up data:
+
+```bash
+.venv-build/bin/python packaging/make_screenshots.py
+```
+
+| Path | Contents |
+| --- | --- |
+| `desktop.py` | The Mac app: starts the server and opens the window |
+| `server.py` | Starts the server for development |
+| `app/` | Server side: database, budgets, balances, outlook and API |
+| `static/` | The page: HTML, CSS and JavaScript modules |
+| `packaging/` | App build, icon and screenshots |
