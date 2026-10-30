@@ -507,3 +507,5 @@ button:focus:not(:focus-visible) { outline: none; }
 .app-version { font-size: 12px; }
 
 .outlook-notice { grid-column: 1 / -1; margin-top: 0; }
+
+.outlook-table tr.now td.neg { color: var(--danger); }

@@ -115,7 +115,14 @@ def projection(conn):
     rows = []
     for k, month in enumerate(months[:HORIZON + 1]):
         row = {"month": month, "now": k == 0}
-        if k > 0:
+        if k == 0:
+            # What this month costs if the rest of its budgets is spent; "planned" is what
+            # was spent outside them.
+            totals = current["totals"]
+            left = sum(max(0, l["available"] - l["spent"]) for g in current["groups"] for l in g["lines"] if l["budget"] is not None)
+            row.update(income=totals["income"], budget=totals["budget"], planned=totals["outside"],
+                       result=totals["income"] - totals["spent"] - left)
+        else:
             row.update(income=planned_in(all_plans, "income", month),
                        budget=needs["budget"] if month == following else budget_of[month],
                        planned=planned_in(all_plans, "expense", month))

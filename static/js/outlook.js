@@ -48,7 +48,7 @@ export async function renderOutlook() {
     <thead><tr><th>Month</th><th>Income</th><th>Budget</th><th>Planned</th><th>Result</th><th>Savings</th><th>Free to spend</th></tr></thead>
     <tbody>${rows.map((r) => `<tr class="${r.now ? "now" : ""} ${r.month === projection.low_month ? "low" : ""}">
       <td>${monthName(r.month, "short")}${r.now ? ` <span class="muted">now</span>` : ""}</td>
-      ${cell(r.income)}${cell(r.budget)}${r.planned ? cell(r.planned) : `<td>${r.now ? "—" : ""}</td>`}
+      ${cell(r.income)}${cell(r.budget)}${r.planned ? cell(r.planned) : "<td></td>"}
       ${cell(r.result, r.result < 0 ? "neg" : "")}${cell(r.savings, r.above < 0 ? "neg" : "")}${cell(r.free, r.free === 0 ? "muted" : "")}
     </tr>`).join("")}</tbody>`;
 
