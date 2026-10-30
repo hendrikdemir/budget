@@ -2,10 +2,13 @@
 // and the plans it's based on: expected income and planned extra expenses.
 import { lineChart } from "./chart.js";
 import { monthPicker } from "./controls.js";
-import { currencySymbol, currentMonth, escapeHtml, inputAmount, money, monthName, monthOnly, parseAmount, shiftMonth } from "./format.js";
+import { currencySymbol, currentMonth, escapeHtml, inputAmount, isoDate, money, monthName, monthOnly, parseAmount, shiftMonth } from "./format.js";
+import { openTransaction } from "./transaction.js";
 import { $, api, confirmDialog, fieldError, toast } from "./ui.js";
 
 let plans = [];
+// Stay current when a transaction is added from this page.
+document.addEventListener("data-changed", () => $("#outlook-view").hidden || renderOutlook());
 let buffer = { mode: "months", months: 1, amount: 0 }; // how much should stay in savings
 
 export async function renderOutlook() {
@@ -33,7 +36,12 @@ export async function renderOutlook() {
         ? `Your savings drop below your buffer from ${monthName(projection.first_below)}${projection.first_below !== projection.low_month
           ? `, down to ${money(-projection.low_above)} below it in ${lowName}` : ""}.`
         : `Lowest point in the next year is ${lowName}, so this much can go without dipping below your buffer.`}</span>
-    </div>`;
+    </div>${fromSavingsNotice(projection.next_month)}`;
+  if (projection.next_month.short_if_spent > 0) {
+    $("#outlook-take").onclick = () => openTransaction(null, "withdraw", {
+      amount: projection.next_month.short_if_spent, date: isoDate(new Date()), description: `For ${monthName(projection.next_month.month)}`,
+    });
+  }
 
   const cell = (v, cls = "") => `<td class="${cls}">${v === undefined ? "—" : money(v)}</td>`;
   $("#outlook-table").innerHTML = `
@@ -53,6 +61,21 @@ export async function renderOutlook() {
     includeZero: true,
     tooltip: (i) => `<b>${monthName(months[i])}</b><span>Savings: ${money(savings[i])}</span><span>Buffer: ${money(buffers[i])}</span>`,
   });
+}
+
+// When the bank won't hold next month's budget, the rest has to come from savings. The
+// amounts are the same as in "Ready for next month?" on the overview.
+function fromSavingsNotice({ month, short, short_if_spent: ifSpent }) {
+  if (ifSpent <= 0) return "";
+  const name = monthOnly(month, "long"), thisMonth = monthOnly(shiftMonth(month, -1), "long");
+  const alternative = ifSpent === short ? "" : short > 0
+    ? ` It's ${money(short)} if you don't spend the rest of ${thisMonth}'s budget.`
+    : ` You don't need this if you don't spend the rest of ${thisMonth}'s budget.`;
+  return `<div class="result-gap short outlook-notice">
+    <div><b>${money(ifSpent)} needed from savings for ${name}</b>
+      <span class="muted">Your bank account doesn't hold enough for ${name}'s budget.${alternative}</span></div>
+    <button class="primary-btn" id="outlook-take">Take from savings</button>
+  </div>`;
 }
 
 // ---- Savings buffer ----

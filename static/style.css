@@ -505,3 +505,5 @@ button:focus:not(:focus-visible) { outline: none; }
 
 .icon-btn svg { display: block; margin: auto; }
 .app-version { font-size: 12px; }
+
+.outlook-notice { grid-column: 1 / -1; margin-top: 0; }

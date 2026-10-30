@@ -28,6 +28,7 @@ export async function load() {
   render();
   renderResult();
   loadBalances();
+  document.dispatchEvent(new Event("data-changed"));
 }
 
 export function setMonth(ym) {

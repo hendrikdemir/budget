@@ -103,17 +103,21 @@ def projection(conn):
     for _ in range(HORIZON + 1):
         months.append(next_month(months[-1]))
     budget_of = {m: budget_total(conn, m) for m in months}
-    prepaid_next = prepaid(month_data(conn, following))  # next month's bills already paid
-    still_to_pay = lambda m: budget_of[m] - (prepaid_next if m == following else 0)
+    # Next month: its budget plus what's carried into it, minus bills already paid. Carried
+    # money is assumed to be spent then; it isn't savings.
+    needs = next_month_needs(conn, now)
+    still_to_pay = lambda m: needs["needed"] if m == following else budget_of[m]
     buffer = buffer_setting(conn)
     buffer_for = lambda m: buffer["amount"] if buffer["mode"] == "amount" else round(budget_of[m] * buffer["months"])
 
-    total = bank + savings - month_data(conn, now)["leftover"]["rest"]
+    current = month_data(conn, now)
+    total = bank + savings - current["leftover"]["rest"]
     rows = []
     for k, month in enumerate(months[:HORIZON + 1]):
         row = {"month": month, "now": k == 0}
         if k > 0:
-            row.update(income=planned_in(all_plans, "income", month), budget=budget_of[month],
+            row.update(income=planned_in(all_plans, "income", month),
+                       budget=needs["budget"] if month == following else budget_of[month],
                        planned=planned_in(all_plans, "expense", month))
             row["result"] = row["income"] - still_to_pay(month) - row["planned"]
             total += row["result"]
@@ -131,5 +135,7 @@ def projection(conn):
         row["free"] = max(0, lowest)
     low = min(rows, key=lambda r: r["above"])  # the first of the lowest points
     first_below = next((r["month"] for r in rows if r["above"] < 0), None)
+    ready = month_outlook(conn, now, current)  # the same answer as on the overview
     return {"visible": True, "savings_today": savings, "rows": rows, "buffer": buffer,
+            "next_month": {"month": following, "short": ready["short"], "short_if_spent": ready["short_if_spent"]},
             "low_month": low["month"], "low_above": low["above"], "first_below": first_below}

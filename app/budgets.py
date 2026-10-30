@@ -242,5 +242,6 @@ def month_data(conn, month, exclude=None):
             "budget_spent": total_spent - outside,  # spent on budgets
             "carried_in": sum(l["carried_in"] for l in all_lines),
         },
-        "leftover": {"unspent": unspent, "saved": saved, "rest": max(0, unspent - saved)},
+        # Money taken from savings isn't unspent budget, so it never adds to the rest.
+        "leftover": {"unspent": unspent, "saved": saved, "rest": max(0, unspent - max(0, saved))},
     }
