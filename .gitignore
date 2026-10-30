@@ -6,3 +6,4 @@ backups/
 build/
 dist/
 .venv-build/
+.demo-data/

@@ -9,7 +9,8 @@ the server on 127.0.0.1 and shows the page in a window (pywebview, so Safari's W
 Its data is in `~/Library/Application Support/nl.hendrikdemir.budget`.
 
 `python3 server.py` runs the same app in a browser on port 8000, with separate data in this
-folder (`budget.db`, `backups/`). The app itself needs only the Python standard library;
+folder (`budget.db`, `backups/`). With `--demo` it uses a made-up household in `.demo-data/`
+(`app/demo.py`), which is what the preview in `.claude/launch.json` shows. The app itself needs only the Python standard library;
 pywebview and PyInstaller are used for the Mac app. There is no web build step.
 
 ## Layout

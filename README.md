@@ -116,6 +116,8 @@ python3 server.py
 
 Then open http://localhost:8000.
 
+Add `--demo` to try it with a made-up household, kept in `.demo-data/`.
+
 Build `dist/Budget.app` and `dist/Budget.dmg`:
 
 ```bash
