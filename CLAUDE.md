@@ -46,6 +46,13 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 - Styles: CSS custom properties in `static/style.css`, light and dark themes, accent
   color from settings. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
 
+## Keeping the installed app current
+
+The owner uses the app from `/Applications`, which doesn't change by itself. After any finished
+change to the app (`app/`, `static/`, `desktop.py`, `packaging/`), run `packaging/install.sh`: it
+builds, replaces the installed copy and reopens it if it was open. Do this when the work is done
+and tested, not for each small step, and say so if it couldn't be done. Data isn't affected.
+
 ## Keeping the README current
 
 Every change to the app also includes a check of `README.md`, as part of finishing the work:

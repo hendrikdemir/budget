@@ -122,6 +122,12 @@ Build `dist/Budget.app` and `dist/Budget.dmg`:
 packaging/build.sh
 ```
 
+Build and replace the copy in Applications (your data isn't affected):
+
+```bash
+packaging/install.sh
+```
+
 Update the screenshots, using made-up data:
 
 ```bash
