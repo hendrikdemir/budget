@@ -509,3 +509,5 @@ button:focus:not(:focus-visible) { outline: none; }
 .outlook-notice { grid-column: 1 / -1; margin-top: 0; }
 
 .outlook-table tr.now td.neg { color: var(--danger); }
+
+@media (min-width: 641px) { .outlook-summary.two-tiles { grid-template-columns: 1fr 2.6fr; } }

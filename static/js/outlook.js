@@ -26,9 +26,12 @@ export async function renderOutlook() {
   $("#buffer-label").textContent = `Buffer: ${bufferText()}`;
   const lowName = monthName(projection.low_month);
   const below = projection.low_above < 0;
+  // Only when savings are needed for next month does it explain anything to show them go down.
+  const fromSavings = projection.next_month.short_if_spent > 0;
+  $("#outlook-summary").classList.toggle("two-tiles", !fromSavings);
   $("#outlook-summary").innerHTML = `
     <div class="tile"><span class="label">Savings today</span><span class="tile-value">${money(projection.savings_today)}</span></div>
-    <div class="tile"><span class="label">After ${monthOnly(rows[1].month, "long")}'s budget</span><span class="tile-value">${money(rows[0].savings)}</span></div>
+    ${fromSavings ? `<div class="tile"><span class="label">After ${monthOnly(rows[1].month, "long")}'s budget</span><span class="tile-value">${money(rows[0].savings)}</span></div>` : ""}
     <div class="tile ${below ? "short" : "ok"}">
       <span class="label">${below ? "Below your buffer" : "Free to spend"}</span>
       <span class="tile-value">${money(below ? -projection.low_above : rows[0].free)}</span>
