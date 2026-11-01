@@ -4,8 +4,8 @@ import { money, monthOnly } from "./format.js";
 
 // series: [{ name, values (cents, null = no value), cls, dots = true, against }]
 //   against: values of another series; the line is drawn green above it and red below.
-// options: height, ticks (number of steps), includeZero, tooltip(i) -> html, label(i) -> x-axis text
-export function lineChart(el, months, series, { height = 220, ticks: steps = 4, includeZero = false, tooltip, label = (i) => monthOnly(months[i]) } = {}) {
+// options: height, ticks (number of steps), includeZero, tooltip(i) -> html
+export function lineChart(el, months, series, { height = 220, ticks: steps = 4, includeZero = false, tooltip } = {}) {
   const W = el.clientWidth || 600, H = height, pad = { l: 60, r: 12, t: 12, b: 24 };
   const all = series.flatMap((s) => s.values).filter((v) => v !== null);
   if (!all.length) return (el.innerHTML = "");
@@ -25,7 +25,7 @@ export function lineChart(el, months, series, { height = 220, ticks: steps = 4, 
   el.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="${series.map((s) => s.name).join(" and ")} per month">
     ${ticks.map((v) => `<line class="grid ${v === 0 ? "zero" : ""}" x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}"/>
       <text class="axis" x="${pad.l - 8}" y="${y(v) + 4}" text-anchor="end">${money(v, { whole: true })}</text>`).join("")}
-    ${months.map((_, i) => `<text class="axis" x="${x(i)}" y="${H - 6}" text-anchor="middle">${label(i)}</text>`).join("")}
+    ${months.map((m, i) => `<text class="axis" x="${x(i)}" y="${H - 6}" text-anchor="middle">${monthOnly(m)}</text>`).join("")}
     <line class="crosshair" x1="0" x2="0" y1="${pad.t}" y2="${H - pad.b}" hidden/>
     ${series.map((s) => {
       const d = path(s.values);

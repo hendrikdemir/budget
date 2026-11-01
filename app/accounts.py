@@ -62,8 +62,7 @@ def balance(conn, account):
 
 def history(conn, account, year):
     """Expected balance at the end of each month of `year` (today for the current
-    month; nothing for future months). In the year tracking started, the starting point
-    comes first, in the month before it began."""
+    month; nothing for future months)."""
     now = today()
     months = []
     for m in range(1, 13):
@@ -72,8 +71,4 @@ def history(conn, account, year):
             break
         end = (date(year + m // 12, m % 12 + 1, 1) - timedelta(days=1)).isoformat()
         months.append({"month": first.isoformat()[:7], "balance": expected_balance(conn, account, min(end, now))})
-    start, start_date = starting_point(conn, account)
-    if start is not None and start_date[:4] == str(year) and start_date <= now:
-        before = (date.fromisoformat(start_date).replace(day=1) - timedelta(days=1)).isoformat()[:7]
-        months = [{"month": before, "balance": start, "start": True}] + [m for m in months if m["month"] > before]
     return {"account": account, "year": year, "months": months}
