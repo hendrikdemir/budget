@@ -1,39 +1,39 @@
-/* The look: light text on frosted glass over a calm gradient from blue to teal. Blue and
-   teal mean steady and growing; red stays free to mean one thing, over budget. Text sits on
-   --surface, so keep the gradient deep enough to stay readable. */
+/* The look: light text on frosted glass over shades of one deep blue, #001d3d. Red stays
+   free to mean one thing, over budget. Text sits on --surface, so keep the gradient deep
+   enough to stay readable. */
 :root {
-  --grad-a: #2f5fa8;
-  --grad-b: #2a6a9c;
-  --grad-c: #1f8a85;
-  --surface: rgba(11, 38, 82, 0.3);
-  --raised: #2c5f92;
-  --dialog: linear-gradient(160deg, #2c5a9c, #237a80);
+  --grad-a: #0a3f78;
+  --grad-b: #003566;
+  --grad-c: #2a6db0;
+  --surface: rgba(0, 29, 61, 0.34);
+  --raised: #14477f;
+  --dialog: linear-gradient(160deg, #0a3a70, #1b5a99);
   --text: #ffffff;
   --muted: rgba(255, 255, 255, 0.82);
   --border: rgba(255, 255, 255, 0.24);
   --input: rgba(255, 255, 255, 0.12);
   --accent: #ffffff;
   --accent-soft: rgba(255, 255, 255, 0.14);
-  --ink: #16304f;
+  --ink: #001d3d;
   --danger: #ffd6d6;
   --danger-solid: #ff6b6b;
   --danger-on-accent: #ffa8a8;
   --good: #b4f3da;
-  --shadow: 0 18px 44px rgba(9, 34, 66, 0.36);
+  --shadow: 0 18px 44px rgba(0, 16, 36, 0.4);
   --radius: 26px;
   color-scheme: dark;
 }
 :root[data-theme="dark"] {
-  --grad-a: #0f1c3a;
-  --grad-b: #11263f;
-  --grad-c: #0f4a4a;
-  --surface: rgba(255, 255, 255, 0.07);
-  --raised: #1d3a55;
-  --dialog: linear-gradient(160deg, #16294a, #134246);
+  --grad-a: #000f22;
+  --grad-b: #001d3d;
+  --grad-c: #00386e;
+  --surface: rgba(255, 255, 255, 0.06);
+  --raised: #0c2d52;
+  --dialog: linear-gradient(160deg, #00132b, #002a52);
   --muted: rgba(255, 255, 255, 0.72);
   --border: rgba(255, 255, 255, 0.15);
   --input: rgba(255, 255, 255, 0.08);
-  --shadow: 0 18px 44px rgba(2, 8, 20, 0.55);
+  --shadow: 0 18px 44px rgba(0, 6, 16, 0.6);
 }
 
 * { box-sizing: border-box; }
@@ -578,11 +578,11 @@ input[type="checkbox"] {
   border: 1.5px solid var(--muted); border-radius: 6px; background: var(--input); cursor: pointer;
 }
 input[type="checkbox"]:checked {
-  border-color: #fff; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%2316304f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat;
+  border-color: #fff; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23001d3d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat;
 }
 
 dialog { background: var(--dialog); border-color: var(--border); }
-dialog::backdrop { background: rgba(8, 26, 50, 0.42); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+dialog::backdrop { background: rgba(0, 14, 32, 0.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 dialog h2 { font-weight: 400; font-size: 20px; }
 .popover { border-radius: 18px; }
 .month-grid .selected, .cal-grid .selected, .opt.active { background: #fff; color: var(--ink) !important; }
