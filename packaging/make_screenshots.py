@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 from playwright.sync_api import sync_playwright
 
-from app import db
+from app import db, outlook
 from app.demo import seed
 from app.web import make_server
 
@@ -112,6 +112,7 @@ def main():
         db.use_data_dir(Path(folder))
         db.migrate()
         seed()
+        outlook.READY_DAYS = 31  # show "ready for next month?" whatever today's date is
         server = make_server(0)
         threading.Thread(target=server.serve_forever, daemon=True).start()
         capture(f"http://127.0.0.1:{server.server_address[1]}/")

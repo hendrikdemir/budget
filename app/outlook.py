@@ -4,7 +4,8 @@ Next month's budget (minus what's already paid in advance) should be in the bank
 1st. Unspent budget that isn't carried over covers next month first; only what next
 month doesn't need is savings. A shortfall beyond that has to come from savings. During
 a month, the income its plans still expect counts too: it isn't in the bank yet, so a
-shortfall is only a forecast until the income is in.
+shortfall is only a forecast until the income is in. The overview only brings it up in a
+month's last week; before that it's too early to say.
 
 The projection starts from all money in the bank and savings today plus the income still
 expected this month (assuming the rest of this month's budget is spent). Each coming month adds expected income (plans) and
@@ -12,11 +13,14 @@ subtracts its budgets and planned expenses. "Savings + spare" = savings plus wha
 in the bank after next month's budget is set aside; free to spend = that amount above
 the buffer, in that month and every later one. The buffer is a number of months of budget, or a fixed amount.
 """
+from datetime import date, timedelta
+
 from .accounts import expected_balance, setting, starting_point
 from .budgets import budget_total, month_data
 from .money import current_month, month_end, next_month, today
 
 HORIZON = 12  # months ahead
+READY_DAYS = 7  # the overview asks "ready for next month?" in a month's last week
 
 
 def prepaid(data):
@@ -45,7 +49,9 @@ def month_outlook(conn, month, data):
     now = current_month()
     when = "past" if month < now else "current" if month == now else "future"
     rest = data["leftover"]["rest"]
+    last_week = date.fromisoformat(month_end(month)) - timedelta(days=READY_DAYS - 1)
     result = {"month": month, "next": next_month(month), "end": month_end(month), "when": when,
+              "too_early": when == "current" and today() < last_week.isoformat(),
               **data["leftover"], **next_month_needs(conn, month), "balance": None}
     if when == "future":
         return result

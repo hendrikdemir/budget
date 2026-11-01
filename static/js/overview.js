@@ -78,8 +78,8 @@ function renderResult() {
     `<div class="result-row ${cls}"><span>${label}${note ? ` <span class="muted">${note}</span>` : ""}</span><span>${value}</span></div>`;
   const thisName = monthOnly(o.month, "long"), nextName = monthOnly(o.next, "long");
   $("#result-title").textContent = `Ready for ${nextName}?`;
-  // Only for the current and past months: the bank balance of future months isn't known yet.
-  $(".result-card").hidden = o.when === "future";
+  // Not for future months, whose bank balance isn't known yet, or too early in this month.
+  $(".result-card").hidden = o.when === "future" || o.too_early;
   if (o.balance === null) {
     $("#result-rows").innerHTML = `<p class="muted result-hint">Set up your bank account balance below to see whether you're ready for ${nextName}.</p>`;
     return;
