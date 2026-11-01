@@ -40,7 +40,7 @@ export async function renderOutlook() {
           ? `, down to ${money(-projection.low_above)} below it in ${lowName}` : ""}.`
         : `Lowest point in the next year is ${lowName}, so this much can go without dipping below your buffer.`}</span>
     </div>${fromSavingsNotice(projection.next_month)}`;
-  if (projection.next_month.short_if_spent > 0) {
+  if ($("#outlook-take")) {
     $("#outlook-take").onclick = () => openTransaction(null, "withdraw", {
       amount: projection.next_month.short_if_spent, date: isoDate(new Date()), description: `For ${monthName(projection.next_month.month)}`,
     });
@@ -68,12 +68,16 @@ export async function renderOutlook() {
 
 // When the bank won't hold next month's budget, the rest has to come from savings. The
 // amounts are the same as in "Ready for next month?" on the overview.
-function fromSavingsNotice({ month, short, short_if_spent: ifSpent }) {
+function fromSavingsNotice({ month, short, short_if_spent: ifSpent, awaiting_income: awaiting }) {
   if (ifSpent <= 0) return "";
   const name = monthOnly(month, "long"), thisMonth = monthOnly(shiftMonth(month, -1), "long");
   const alternative = ifSpent === short ? "" : short > 0
     ? ` It's ${money(short)} if you don't spend the rest of ${thisMonth}'s budget.`
     : ` You don't need this if you don't spend the rest of ${thisMonth}'s budget.`;
+  if (awaiting) return `<div class="result-gap ok outlook-notice">
+    <div><b>Expecting ${money(ifSpent)} needed from savings for ${name}</b>
+      <span class="muted">You can take it from your savings once your income is in.${alternative}</span></div>
+  </div>`;
   return `<div class="result-gap short outlook-notice">
     <div><b>${money(ifSpent)} needed from savings for ${name}</b>
       <span class="muted">Your bank account doesn't hold enough for ${name}'s budget.${alternative}</span></div>

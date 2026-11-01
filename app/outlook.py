@@ -2,10 +2,12 @@
 
 Next month's budget (minus what's already paid in advance) should be in the bank on the
 1st. Unspent budget that isn't carried over covers next month first; only what next
-month doesn't need is savings. A shortfall beyond that has to come from savings.
+month doesn't need is savings. A shortfall beyond that has to come from savings. During
+a month, the income its plans still expect counts too: it isn't in the bank yet, so a
+shortfall is only a forecast until the income is in.
 
-The projection starts from all money in the bank and savings today (assuming the rest of
-this month's budget is spent). Each coming month adds expected income (plans) and
+The projection starts from all money in the bank and savings today plus the income still
+expected this month (assuming the rest of this month's budget is spent). Each coming month adds expected income (plans) and
 subtracts its budgets and planned expenses. "Savings + spare" = savings plus what's left
 in the bank after next month's budget is set aside; free to spend = that amount above
 the buffer, in that month and every later one. The buffer is a number of months of budget, or a fixed amount.
@@ -32,6 +34,11 @@ def next_month_needs(conn, month):
     return {"budget": budget, "prepaid": paid, "needed": budget - paid}
 
 
+def income_to_come(conn, month, data):
+    """Income a month's plans still expect, beyond what `data` (from month_data) already has."""
+    return max(0, planned_in(plans(conn), "income", month) - data["totals"]["income"])
+
+
 def month_outlook(conn, month, data):
     """Whether the bank will hold next month's budget on the 1st, for `month` with its
     `data` (from month_data)."""
@@ -45,14 +52,18 @@ def month_outlook(conn, month, data):
     balance = expected_balance(conn, "bank", month_end(month) if when == "past" else today())
     if balance is None:
         return result
-    needed, without_rest = result["needed"], balance - rest  # the balance includes the unspent budget
+    expected = income_to_come(conn, month, data) if when == "current" else 0
+    available = balance + expected
+    needed, without_rest = result["needed"], available - rest  # the balance includes the unspent budget
     result.update(
         balance=balance,
+        expected_income=expected,
+        no_income_yet=when == "current" and not expected and not data["totals"]["income"],
         keep_for_next=min(rest, max(0, needed - without_rest)),  # part of the leftover next month needs
-        saveable=max(0, min(rest, balance - needed)),           # part of the leftover that can be saved
-        short=max(0, needed - balance),                         # still missing with the leftover kept
+        saveable=max(0, min(rest, available - needed)),         # part of the leftover that can be saved
+        short=max(0, needed - available),                       # still missing with the leftover kept
         short_if_spent=max(0, needed - without_rest),           # missing if the rest of the budget is spent
-        spare=max(0, balance - needed),                         # everything beyond what next month needs
+        spare=max(0, available - needed),                       # everything beyond what next month needs
     )
     return result
 
@@ -111,7 +122,8 @@ def projection(conn):
     buffer_for = lambda m: buffer["amount"] if buffer["mode"] == "amount" else round(budget_of[m] * buffer["months"])
 
     current = month_data(conn, now)
-    total = bank + savings - current["leftover"]["rest"]
+    to_come = income_to_come(conn, now, current)
+    total = bank + savings - current["leftover"]["rest"] + to_come
     rows = []
     for k, month in enumerate(months[:HORIZON + 1]):
         row = {"month": month, "now": k == 0}
@@ -120,8 +132,8 @@ def projection(conn):
             # was spent outside them.
             totals = current["totals"]
             left = sum(max(0, l["available"] - l["spent"]) for g in current["groups"] for l in g["lines"] if l["budget"] is not None)
-            row.update(income=totals["income"], budget=totals["budget"], planned=totals["outside"],
-                       result=totals["income"] - totals["spent"] - left)
+            row.update(income=totals["income"] + to_come, budget=totals["budget"], planned=totals["outside"],
+                       result=totals["income"] + to_come - totals["spent"] - left)
         else:
             row.update(income=planned_in(all_plans, "income", month),
                        budget=needs["budget"] if month == following else budget_of[month],
@@ -144,5 +156,6 @@ def projection(conn):
     first_below = next((r["month"] for r in rows if r["above"] < 0), None)
     ready = month_outlook(conn, now, current)  # the same answer as on the overview
     return {"visible": True, "savings_today": savings, "rows": rows, "buffer": buffer,
-            "next_month": {"month": following, "short": ready["short"], "short_if_spent": ready["short_if_spent"]},
+            "next_month": {"month": following, "short": ready["short"], "short_if_spent": ready["short_if_spent"],
+                           "awaiting_income": bool(ready["expected_income"] or ready["no_income_yet"])},
             "low_month": low["month"], "low_above": low["above"], "first_below": first_below}

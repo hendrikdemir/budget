@@ -84,9 +84,11 @@ function renderResult() {
     $("#result-rows").innerHTML = `<p class="muted result-hint">Set up your bank account balance below to see whether you're ready for ${nextName}.</p>`;
     return;
   }
+  const awaiting = o.expected_income > 0 || o.no_income_yet;
   const rows = [row(o.when === "past" ? `Bank balance on ${shortDate(o.end)}` : "Bank balance today", money(o.balance))];
+  if (o.expected_income) rows.push(row("Income still expected", money(o.expected_income), "", `${thisName} · from your Outlook plans`));
   if (o.rest > 0) {
-    const split = o.keep_for_next && o.saveable ? `${money(o.keep_for_next)} for ${nextName}, ${money(o.saveable)} for savings`
+    const split = awaiting ? "can still be spent" : o.keep_for_next && o.saveable ? `${money(o.keep_for_next)} for ${nextName}, ${money(o.saveable)} for savings`
       : o.keep_for_next ? `all needed for ${nextName}` : "can go to savings";
     rows.push(row(`Unspent ${thisName} budget`, money(o.rest), "", `not carried over · ${split}`));
   }
@@ -94,9 +96,17 @@ function renderResult() {
     o.prepaid ? `${money(o.budget)} budget − ${money(o.prepaid)} already paid` : `${nextName} budget`));
 
   // The outcome: short (take from savings), only enough if the leftover isn't spent, or spare.
+  // While this month's income is still to come it's a forecast, so there's nothing to move yet.
   const stillSpendable = o.when === "current" && o.short_if_spent > o.short;
+  const orIfSpent = stillSpendable ? ` Or ${money(o.short_if_spent)} if you spend the rest of ${thisName}'s budget.` : "";
   let title, note = "", action = null;
-  if (o.short > 0) {
+  if (o.short > 0 && o.no_income_yet) {
+    title = `${money(o.short)} short for ${nextName} so far`;
+    note = `No income yet this month. Add your expected income in the Outlook to include it here.${orIfSpent}`;
+  } else if (o.short > 0 && awaiting) {
+    title = `Expecting ${money(o.short)} short for ${nextName}`;
+    note = `You can take it from your savings once your income is in.${orIfSpent}`;
+  } else if (o.short > 0) {
     title = `${money(o.short)} short for ${nextName}`;
     note = stillSpendable
       ? `Or ${money(o.short_if_spent)} if you spend the rest of ${thisName}'s budget. Move it from your savings.`
@@ -105,6 +115,9 @@ function renderResult() {
   } else if (stillSpendable) {
     title = `Enough for ${nextName}, if you don't spend more`;
     note = `Spending the rest of ${thisName}'s budget would leave ${money(o.short_if_spent)} short. Unspent budget stays for ${nextName} instead of going to savings.`;
+  } else if (awaiting) {
+    title = `On track for ${nextName}`;
+    note = "You'll have enough once your income is in.";
   } else if (o.spare > 0) {
     title = `${money(o.spare)} more than ${nextName} needs`;
     note = "You can move this to your savings.";
@@ -112,7 +125,7 @@ function renderResult() {
   } else {
     title = `Exactly enough for ${nextName}`;
   }
-  rows.push(`<div class="result-gap ${o.short > 0 ? "short" : "ok"}">
+  rows.push(`<div class="result-gap ${o.short > 0 && !awaiting ? "short" : "ok"}">
     <div><b>${title}</b>${note ? `<span class="muted">${note}</span>` : ""}</div>
     ${action ? `<button class="${action.cls}" id="result-action">${action.label}</button>` : ""}
   </div>`);

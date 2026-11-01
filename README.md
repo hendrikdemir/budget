@@ -27,7 +27,7 @@ No account. No subscription. No cloud. Your data stays on your Mac.
 
 Your spending, what's left in each budget, and anything spent outside your budgets, all on one page. Budgets go red only when you've overspent, so the page stays calm until something needs your attention.
 
-**Ready for next month?** Budget compares your bank balance with what next month needs and tells you exactly how much is short or spare, with one click to move the difference to or from your savings.
+**Ready for next month?** Budget compares your bank balance, plus the income you still expect this month, with what next month needs and tells you exactly how much is short or spare. Once your income is in, one click moves the difference to or from your savings.
 
 ### Budgets that fit real life
 
