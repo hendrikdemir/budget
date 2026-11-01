@@ -69,14 +69,19 @@ function renderDialog() {
     </li>`).join("");
 }
 
-// End-of-month balance through a year. Months before tracking started (or still to come) stay empty.
+// End-of-month balance through a year, from the starting point on. Months still to come stay empty.
 async function renderHistory() {
   const data = await api(`/api/balance-history?account=${account}&year=${historyYear}`);
   $("#hist-year").textContent = historyYear;
   $("#hist-next").disabled = historyYear >= new Date().getFullYear();
   // Nothing to show before the year tracking started.
   $("#hist-prev").disabled = historyYear <= Number((balances[account].start_date || String(historyYear)).slice(0, 4));
-  const months = Array.from({ length: 12 }, (_, i) => `${historyYear}-${String(i + 1).padStart(2, "0")}`);
+  // The axis begins at the starting point, which sits in the month before it began (maybe last December).
+  const startMonth = data.months.find((d) => d.start)?.month;
+  const months = Array.from({ length: 12 }, (_, i) => `${historyYear}-${String(i + 1).padStart(2, "0")}`)
+    .filter((m) => !startMonth || m > startMonth);
+  if (startMonth) months.unshift(startMonth);
+  const startDate = shortDate(balances[account].start_date);
   const values = months.map((m) => data.months.find((d) => d.month === m)?.balance ?? null);
   const tracked = values.map((v, i) => ({ v, i })).filter((p) => p.v !== null);
   if (!tracked.length) {
@@ -87,17 +92,20 @@ async function renderHistory() {
   }
   lineChart($("#hist-plot"), months, [{ name: `${ACCOUNTS[account]} balance`, values, cls: "line" }], {
     height: 170, ticks: 3,
+    label: (i) => (months[i] === startMonth ? "Start" : monthOnly(months[i])),
     tooltip: (i) => {
+      if (months[i] === startMonth) return `<b>Starting point</b><span>${money(values[i])}</span><span class="muted">At the start of ${startDate}</span>`;
       const before = values[i - 1] ?? null;
       return `<b>${monthName(months[i])}</b><span>${money(values[i])}</span>${before === null ? ""
-        : `<span class="muted">${values[i] >= before ? "+" : "−"}${money(Math.abs(values[i] - before))} vs ${monthOnly(months[i - 1])}</span>`}`;
+        : `<span class="muted">${values[i] >= before ? "+" : "−"}${money(Math.abs(values[i] - before))} vs ${months[i - 1] === startMonth ? "the start" : monthOnly(months[i - 1])}</span>`}`;
     },
   });
   const first = tracked[0], last = tracked.at(-1), change = last.v - first.v;
-  $("#hist-change").textContent = tracked.length > 1 ? `${change >= 0 ? "+" : "−"}${money(Math.abs(change))} since ${monthOnly(months[first.i])}` : "";
+  $("#hist-change").textContent = tracked.length > 1 ? `${change >= 0 ? "+" : "−"}${money(Math.abs(change))} since ${months[first.i] === startMonth ? startDate : monthOnly(months[first.i])}` : "";
   $("#hist-change").className = `hist-change ${change < 0 ? "down" : ""}`;
   $("#hist-note").textContent = tracked.length === 1
-    ? `Tracked since ${shortDate(balances[account].start_date)} — the line grows as months pass.` : "Balance at the end of each month (today for the current month).";
+    ? `Tracked since ${startDate} — the line grows as months pass.`
+    : `Balance at the end of each month (today for the current month)${startMonth ? ", after your starting point" : ""}.`;
 }
 $("#hist-prev").onclick = () => { historyYear--; renderHistory(); };
 $("#hist-next").onclick = () => { historyYear++; renderHistory(); };
