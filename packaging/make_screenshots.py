@@ -101,6 +101,7 @@ def capture(url):
         page = page_for("light", height=880)
         page.click("#settings-btn")
         page.wait_for_timeout(300)
+        page.evaluate("document.activeElement.blur()")
         page.locator("#settings").screenshot(path=OUT / "appearance.png")
         page.context.close()
         browser.close()

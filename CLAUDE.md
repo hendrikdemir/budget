@@ -48,7 +48,8 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 - UI text is English; month names come from the browser locale and are capitalized
   via `capitalize()`. Errors shown to the user are friendly and say what to do.
 - Styles: CSS custom properties in `static/style.css`, light and dark themes,
-  one fixed palette: shades of #001d3d, with red only for being over budget. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
+  one fixed palette: warm paper and ink with petrol, a petrol and peach glow behind frosted
+  cards, and red only for being over budget. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
 
 ## Keeping the installed app current
 

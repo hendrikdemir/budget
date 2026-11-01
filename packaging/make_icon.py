@@ -17,7 +17,7 @@ size = S * SCALE
 gradient = Image.new("RGB", (1, 256))
 for y in range(256):
     t = y / 255
-    gradient.putpixel((0, y), (0, round(53 - 24 * t), round(102 - 41 * t)))
+    gradient.putpixel((0, y), (round(19 - 8 * t), round(122 - 22 * t), round(128 - 21 * t)))
 gradient = gradient.resize((size, size))
 
 mask = Image.new("L", (size, size), 0)
@@ -27,7 +27,7 @@ icon.paste(gradient, (0, 0), mask)
 
 # Three rising bars with a coin-like dot: money growing.
 draw = ImageDraw.Draw(icon)
-white = (255, 255, 255, 255)
+white = (255, 234, 219, 255)
 for x, top in ((262, 560), (452, 440), (642, 320)):
     rounded(draw, (x, top, x + 120, 740), 40, white)
 icon = icon.resize((S, S), Image.LANCZOS)
