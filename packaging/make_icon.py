@@ -17,7 +17,7 @@ size = S * SCALE
 gradient = Image.new("RGB", (1, 256))
 for y in range(256):
     t = y / 255
-    gradient.putpixel((0, y), (round(129 - 50 * t), round(140 - 70 * t), round(248 - 19 * t)))
+    gradient.putpixel((0, y), (round(47 - 16 * t), round(95 + 43 * t), round(168 - 35 * t)))
 gradient = gradient.resize((size, size))
 
 mask = Image.new("L", (size, size), 0)

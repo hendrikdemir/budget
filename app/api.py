@@ -4,7 +4,7 @@ from . import VERSION, accounts, backup, budgets, outlook
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
-DEFAULT_SETTINGS = {"accent": "#6366f1", "theme": "system", "currency": "EUR"}
+DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR"}
 
 
 def first(query, name, default=""):

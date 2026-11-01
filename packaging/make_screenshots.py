@@ -100,7 +100,6 @@ def capture(url):
         # Settings.
         page = page_for("light", height=880)
         page.click("#settings-btn")
-        page.click('.swatch[data-color="#10b981"]')
         page.wait_for_timeout(300)
         page.locator("#settings").screenshot(path=OUT / "appearance.png")
         page.context.close()

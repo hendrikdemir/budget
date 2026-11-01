@@ -85,9 +85,9 @@ Add your expected income and planned costs, like a holiday or a new laptop, and 
 
 ### Make it yours
 
-<img src="docs/screenshots/appearance.png" width="420" alt="Settings with accent colors, theme, currency, and exporting or importing your data">
+<img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency, and exporting or importing your data">
 
-Choose an accent color, follow your Mac's light or dark mode, and pick your currency.
+Follow your Mac's light or dark mode, or choose one yourself, and pick your currency.
 
 ### Take your data with you
 

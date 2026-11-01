@@ -1,10 +1,8 @@
 // Shared state of the page. Modules read and update it; the overview re-renders from it.
 const now = new Date();
 
-export const PRESETS = ["#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6", "#334155"];
-
 export const state = {
-  settings: { accent: PRESETS[0], theme: "system", currency: "EUR" },
+  settings: { theme: "system", currency: "EUR" },
   month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`, // the month being viewed
   // Everything about the viewed month, from GET /api/month: categories, transactions,
   // groups (budget lines per category), totals, leftover and outlook.
