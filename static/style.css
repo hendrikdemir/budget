@@ -598,6 +598,9 @@ dialog h2 { font-weight: 400; font-size: 20px; }
 .popover { border-radius: 18px; }
 .month-grid .today, .cal-grid .today { font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
 .hist-tip { border-radius: 12px; }
+.hist-tip .tip-layer { display: flex; justify-content: space-between; gap: 16px; padding-left: 10px; color: var(--muted); }
+.hist-tip .tip-layer b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+.hist-tip .tip-bad { color: var(--danger); }
 
 .hist-plot .dot { stroke: none; }
 .hist-plot .dot.good { fill: var(--good); }

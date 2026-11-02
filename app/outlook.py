@@ -9,9 +9,10 @@ month's last week; before that it's too early to say.
 
 The projection starts from all money in the bank and savings today plus the income still
 expected this month (assuming the rest of this month's budget is spent). Each coming month adds expected income (plans) and
-subtracts its budgets and planned expenses. "Savings + spare" = savings plus what's left
-in the bank after next month's budget is set aside; free to spend = that amount above
-the buffer, in that month and every later one. The buffer is a number of months of budget, or a fixed amount.
+subtracts its budgets and planned expenses. Expected savings = the savings once the month is
+settled: what's left in the bank after next month's budget is set aside goes to savings (or a
+shortfall comes from it). Free to spend = what's above the buffer in that month and every later
+one; needed later = what's above the buffer now but needed for a dip in a later month. The buffer is a number of months of budget, or a fixed amount.
 """
 from datetime import date, timedelta
 
@@ -158,6 +159,7 @@ def projection(conn):
     for row in reversed(rows):
         lowest = row["above"] if lowest is None else min(lowest, row["above"])
         row["free"] = max(0, lowest)
+        row["later"] = max(0, row["above"]) - row["free"]
     low = min(rows, key=lambda r: r["above"])  # the first of the lowest points
     first_below = next((r["month"] for r in rows if r["above"] < 0), None)
     ready = month_outlook(conn, now, current)  # the same answer as on the overview
