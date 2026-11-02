@@ -1,5 +1,7 @@
 """HTTP API handlers. Each takes (conn, id, body, query) and returns JSON-able data.
 Amounts in requests and responses are whole cents."""
+import re
+
 from . import VERSION, accounts, backup, budgets, outlook
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
@@ -326,6 +328,8 @@ def get_settings(conn, _, __, ___):
 
 def save_settings(conn, _, body, __):
     data = {k: str(v) for k, v in body.items() if k in DEFAULT_SETTINGS}
+    if "currency" in data and not re.fullmatch(r"[A-Z]{3}", data["currency"]):
+        raise ApiError("Choose a currency from the list.")
     conn.executemany(
         "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
         data.items(),

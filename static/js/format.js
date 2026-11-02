@@ -21,20 +21,21 @@ export function monthEnd(ym) {
   return isoDate(new Date(y, m, 0));
 }
 
-// Month names start with a capital, like the rest of the (English) interface, also when
-// the browser's language writes them in lowercase (e.g. Dutch).
+// Month and day names are English, like the rest of the interface; numbers and amounts
+// follow the browser's language (e.g. "1.234,56" in Dutch).
+export const DATE_LOCALE = "en-GB";
 export const capitalize = (text) => text.replace(/^./, (c) => c.toUpperCase());
 export function monthName(ym, style = "long") {
   const [y, m] = ym.split("-").map(Number);
-  return capitalize(new Date(y, m - 1).toLocaleDateString(undefined, { month: style, year: "numeric" }));
+  return capitalize(new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style, year: "numeric" }));
 }
-// Just the month: "Oktober" (long) or "Okt" (short).
+// Just the month: "October" (long) or "Oct" (short).
 export function monthOnly(ym, style = "short") {
   const [y, m] = ym.split("-").map(Number);
-  return capitalize(new Date(y, m - 1).toLocaleDateString(undefined, { month: style }));
+  return capitalize(new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style }));
 }
-// "29 Okt" style dates.
-export const shortDate = (iso) => new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" })
+// "29 Oct" style dates.
+export const shortDate = (iso) => new Intl.DateTimeFormat(DATE_LOCALE, { day: "numeric", month: "short" })
   .formatToParts(new Date(iso + "T00:00")).map((p) => (p.type === "month" ? capitalize(p.value) : p.value)).join("");
 
 // Cents as money, e.g. 123456 -> "€ 1.234,56".

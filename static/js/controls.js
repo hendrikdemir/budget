@@ -1,6 +1,6 @@
 // Custom form controls (month picker, date picker, combobox) that look the same in
 // every browser. They share one popover at a time, positioned under their anchor.
-import { currentMonth, escapeHtml, isoDate, monthName, monthOnly, pad, shiftMonth } from "./format.js";
+import { DATE_LOCALE, currentMonth, escapeHtml, isoDate, monthName, monthOnly, pad, shiftMonth } from "./format.js";
 
 const popovers = {
   current: null, // { anchor, panel }
@@ -91,7 +91,7 @@ export function datePicker(button, input, { onChange } = {}) {
   const label = () => {
     const d = new Date(input.value + "T00:00");
     const sameYear = d.getFullYear() === new Date().getFullYear();
-    button.textContent = d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "long", ...(sameYear ? {} : { year: "numeric" }) });
+    button.textContent = d.toLocaleDateString(DATE_LOCALE, { weekday: "short", day: "numeric", month: "long", ...(sameYear ? {} : { year: "numeric" }) });
   };
   const render = () => {
     const [y, m] = view.split("-").map(Number);
@@ -99,7 +99,7 @@ export function datePicker(button, input, { onChange } = {}) {
     const days = new Date(y, m, 0).getDate();
     const today = isoDate(new Date());
     const weekdays = Array.from({ length: 7 }, (_, i) =>
-      `<span>${new Date(2024, 0, 1 + i).toLocaleDateString(undefined, { weekday: "narrow" })}</span>`).join("");
+      `<span>${new Date(2024, 0, 1 + i).toLocaleDateString(DATE_LOCALE, { weekday: "narrow" })}</span>`).join("");
     const cells = Array.from({ length: offset }, () => "<span></span>").join("") +
       Array.from({ length: days }, (_, i) => {
         const iso = `${view}-${pad(i + 1)}`;

@@ -3,9 +3,7 @@
 import { loadBalances } from "./accounts.js";
 import { openManager } from "./budget-editor.js";
 import { monthPicker } from "./controls.js";
-import {
-  currentMonth, escapeHtml, isoDate, money, monthName, monthOnly, parseAmount, plural, shiftMonth, shortDate,
-} from "./format.js";
+import { DATE_LOCALE, currentMonth, escapeHtml, isoDate, money, monthName, monthOnly, parseAmount, plural, shiftMonth, shortDate } from "./format.js";
 import { isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
 import { openTransaction } from "./transaction.js";
 import { $, api, confirmDialog, toast } from "./ui.js";
@@ -78,8 +76,8 @@ function renderResult() {
     `<div class="result-row ${cls}"><span>${label}${note ? ` <span class="muted">${note}</span>` : ""}</span><span>${value}</span></div>`;
   const thisName = monthOnly(o.month, "long"), nextName = monthOnly(o.next, "long");
   $("#result-title").textContent = `Ready for ${nextName}?`;
-  // Not for future months, whose bank balance isn't known yet, or too early in this month.
-  $(".result-card").hidden = o.when === "future" || o.too_early;
+  // Only for the month you're in, in its last week: earlier it's too early to say.
+  $(".result-card").hidden = o.when !== "current" || o.too_early;
   if (o.balance === null) {
     $("#result-rows").innerHTML = `<p class="muted result-hint">Set up your bank account balance below to see whether you're ready for ${nextName}.</p>`;
     return;
@@ -276,7 +274,7 @@ function dayLabel(iso) {
   if (iso === isoDate(now)) return "Today";
   if (iso === isoDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))) return "Yesterday";
   const d = new Date(iso + "T00:00");
-  return d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", ...(d.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }) });
+  return d.toLocaleDateString(DATE_LOCALE, { weekday: "long", day: "numeric", month: "long", ...(d.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }) });
 }
 
 function transactionRow(t) {
