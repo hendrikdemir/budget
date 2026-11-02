@@ -201,7 +201,7 @@ function applyKind() {
   $("#expense-title").textContent = editing ? `Edit ${noun}` : `New ${noun}`;
   $("#expense-submit").textContent = editing ? "Save changes" : `Add ${noun}`;
   $("#payee-label").textContent = income ? "Received from" : "Paid to";
-  form.payee.placeholder = income ? "e.g. Employer, Marktplaats" : "e.g. Albert Heijn";
+  form.payee.placeholder = income ? "e.g. Employer" : "e.g. Supermarket";
   $("#budget-label").textContent = income ? "Add to budget" : "Budget";
   splitRows().forEach((r) => (r.querySelector(".split-line").placeholder = nonePlaceholder()));
   clearError("payee");
