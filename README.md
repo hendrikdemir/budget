@@ -154,6 +154,12 @@ Build and replace the copy in Applications (your data isn't affected):
 packaging/install.sh
 ```
 
+Run the tests:
+
+```bash
+python3 -m unittest
+```
+
 Update the screenshots, using made-up data:
 
 ```bash
@@ -167,3 +173,4 @@ Update the screenshots, using made-up data:
 | `app/` | Server side: database, budgets, balances, outlook, bank imports, backups and API |
 | `static/` | The page: HTML, CSS and JavaScript modules |
 | `packaging/` | App build, icon and screenshots |
+| `tests/` | Tests for the calculations, bank imports and the server |

@@ -20,6 +20,8 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   `app/__init__.py`. It stays 1.0.0 until the first release; only raise it for a new release.
 - `app/web.py`: HTTP server. Routes `/api/<resource>[/<id>]` to `app/api.py` `ROUTES`,
   everything else to `static/`. Sends `Cache-Control: no-cache`.
+  It only answers the app's own page (checks Host, Origin and Content-Type), so websites open
+  in a browser can't use it; keep that when adding routes or request types.
 - `app/db.py`: schema and **migrations**. The schema version is SQLite's `user_version`.
   To change the schema, append a function to `MIGRATIONS` (never edit an old one).
 - `app/budgets.py`: budget history, carry-over, transactions, and `month_data()`, which
@@ -81,7 +83,10 @@ The Mac app uses WebKit, which behaves differently from Chrome: test real mouse 
 `element.click()`). For example, WebKit cancels a click on a button whose text changed during the
 mouse press. `packaging/make_screenshots.py` shows how to drive WebKit with Playwright.
 
-There are no automated tests. After a change, run the app and check the affected screens
+Run the tests with `python3 -m unittest` (standard library only, about 2 seconds). They live in
+`tests/` and cover budgets, the outlook, bank imports and the server's protection, with made-up
+data and a fixed "today" (`tests/base.py`). Add a test when changing a calculation or adding a
+bank reader. The tests don't cover the page itself: after a change, also run the app and check the affected screens
 in the browser (light and dark, desktop and mobile width). Test the built app too when
 changing `desktop.py` or packaging, with `BUDGET_DATA_DIR` pointing to a copy of the data. For changes to calculations,
 compare the numbers shown before and after the change on real data.
