@@ -47,8 +47,9 @@ export async function renderOutlook() {
   }
 
   const cell = (v, cls = "") => `<td class="${cls}">${v === undefined ? "—" : money(v)}</td>`;
+  const head = (label) => COLUMN_TIPS[label] ? `<th tabindex="0" data-tip="${COLUMN_TIPS[label]}">${label}</th>` : `<th>${label}</th>`;
   $("#outlook-table").innerHTML = `
-    <thead><tr><th>Month</th><th>Income</th><th>Budget</th><th>Planned</th><th>Result</th><th title="Your savings once each month's leftover is moved to savings (or taken from it when your bank account falls short)">Expected savings</th><th>Free to spend</th></tr></thead>
+    <thead><tr>${["Month", "Income", "Budget", "Planned", "Result", "Expected savings", "Free to spend"].map(head).join("")}</tr></thead>
     <tbody>${rows.map((r) => `<tr class="${r.now ? "now" : ""} ${r.month === projection.low_month ? "low" : ""}">
       <td>${monthName(r.month, "short")}${r.now ? ` <span class="muted">now</span>` : ""}</td>
       ${cell(r.income)}${cell(r.budget)}${r.planned ? cell(r.planned) : "<td></td>"}
@@ -79,6 +80,31 @@ export async function renderOutlook() {
       ${i === low ? `<span class="muted">Lowest point: ${below ? `${money(-projection.low_above)} below` : `${money(projection.low_above)} above`} your buffer</span>` : ""}`,
   });
 }
+
+// What each column of the month-by-month table means, shown when hovering its header.
+const COLUMN_TIPS = {
+  Income: "Expected income from your plans. For the current month: what came in so far, plus what's still expected.",
+  Budget: "The month's budget. Next month's includes leftover carried over, minus bills already paid.",
+  Planned: "Planned costs outside your budgets. For the current month: what was spent outside your budgets.",
+  Result: "Income minus budget and planned costs: what the month adds to your savings, or takes from it. Assumes every budget is fully spent.",
+  "Expected savings": "Your savings once each month's leftover is moved to savings (or taken from it when your bank account falls short).",
+  "Free to spend": "What you can take out that month without your savings dropping below your buffer, then or in any later month.",
+};
+const columnTip = document.body.appendChild(Object.assign(document.createElement("div"), { className: "col-tip", hidden: true }));
+// The table scrolls sideways, which would clip a tooltip inside it, so this one floats over the page.
+function showColumnTip(th) {
+  columnTip.textContent = th.dataset.tip;
+  columnTip.hidden = false;
+  const box = th.getBoundingClientRect();
+  columnTip.style.left = `${Math.max(8, Math.min(box.right - columnTip.offsetWidth, innerWidth - columnTip.offsetWidth - 8))}px`;
+  columnTip.style.top = `${box.bottom + 6}px`;
+}
+const hideColumnTip = () => (columnTip.hidden = true);
+$("#outlook-table").addEventListener("mouseover", (e) => e.target.closest("th[data-tip]") && showColumnTip(e.target.closest("th[data-tip]")));
+$("#outlook-table").addEventListener("mouseout", (e) => e.target.closest("th[data-tip]") && hideColumnTip());
+$("#outlook-table").addEventListener("focusin", (e) => e.target.matches("th[data-tip]") && showColumnTip(e.target));
+$("#outlook-table").addEventListener("focusout", hideColumnTip);
+addEventListener("scroll", hideColumnTip, { passive: true });
 
 // When the bank won't hold next month's budget, the rest has to come from savings. The
 // amounts are the same as in "Ready for next month?" on the overview.

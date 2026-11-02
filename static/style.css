@@ -601,6 +601,13 @@ dialog h2 { font-weight: 400; font-size: 20px; }
 .hist-tip .tip-layer { display: flex; justify-content: space-between; gap: 16px; padding-left: 10px; color: var(--muted); }
 .hist-tip .tip-layer b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
 .hist-tip .tip-bad { color: var(--danger); }
+.outlook-table th[data-tip] { cursor: help; text-decoration: underline dotted var(--muted); text-underline-offset: 4px; }
+.outlook-table th[data-tip]:focus-visible { outline-offset: 2px; }
+.col-tip {
+  position: fixed; z-index: 30; max-width: 260px; pointer-events: none;
+  background: var(--raised); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
+  padding: 8px 12px; font-size: 12px; line-height: 1.45; color: var(--text);
+}
 
 .hist-plot .dot { stroke: none; }
 .hist-plot .dot.good { fill: var(--good); }
