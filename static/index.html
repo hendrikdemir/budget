@@ -32,7 +32,7 @@
     </nav>
 
     <section class="card total-card">
-      <span class="label">Spent in <span id="month-label"></span></span>
+      <span class="label" id="total-label"></span>
       <span id="total" class="total"></span>
       <div class="total-bar" id="total-bar" aria-hidden="true">
         <span class="seg in"></span><span class="seg out"></span><i class="budget-mark"></i>
@@ -40,6 +40,7 @@
       <span id="total-sub"></span>
       <span id="total-over" class="total-over" hidden></span>
       <span id="total-income" class="total-income" hidden></span>
+      <div id="total-review" class="total-review" hidden></div>
     </section>
 
     <section class="card result-card">
@@ -79,7 +80,9 @@
         <span id="filter" class="filter-chip" hidden></span>
         <span class="spacer"></span>
         <span id="count" class="muted"></span>
+        <button id="bank-import-btn" class="link-btn" title="Add transactions from a file your bank exported">Import</button>
         <button id="select-btn" class="link-btn">Select</button>
+        <input type="file" id="bank-file" accept=".csv,text/csv" hidden>
       </div>
       <div class="tx-filters">
         <label class="search">
@@ -411,6 +414,20 @@
         <button value="ok" class="primary-btn">OK</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="bank-dialog" class="xwide">
+    <div class="dialog-head">
+      <h2 id="bank-title">Review transactions</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+    </div>
+    <p id="bank-hint" class="muted bank-hint"></p>
+    <ul id="bank-list" class="bank-list"></ul>
+    <p id="bank-error" class="error"></p>
+    <div class="dialog-foot">
+      <button type="button" class="ghost-btn" data-close>Cancel</button>
+      <button type="button" class="primary-btn" id="bank-add">Add</button>
+    </div>
   </dialog>
 
   <div id="toast" class="toast" hidden></div>

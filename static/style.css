@@ -203,6 +203,25 @@ dialog {
 }
 dialog.wide { width: min(580px, calc(100vw - 32px)); }
 dialog.small { width: min(380px, calc(100vw - 32px)); }
+dialog.xwide { width: min(760px, calc(100vw - 32px)); }
+.bank-hint { margin: -8px 0 12px; font-size: 13px; }
+.bank-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.bank-row { display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 16px; background: var(--input); }
+.bank-row.skipped { opacity: 0.5; }
+.bank-include { padding-top: 2px; cursor: pointer; }
+.bank-main { display: grid; gap: 8px; min-width: 0; }
+.bank-top { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: baseline; font-size: 14px; }
+.bank-kind { font-size: 12px; color: var(--muted); }
+.bank-amount { font-weight: 500; font-variant-numeric: tabular-nums; }
+.bank-fields { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; }
+.bank-fields.transfer { grid-template-columns: 1fr; }
+.bank-fields input { height: 36px; font-size: 14px; }
+.bank-fields input.invalid { border-color: var(--danger); }
+.bank-dup { margin: 0; font-size: 12px; color: var(--muted); }
+/* Long lists: keep the buttons in reach at the bottom of the dialog. */
+#bank-dialog .dialog-foot { position: sticky; bottom: -24px; margin: 12px -24px -24px; padding: 14px 24px 24px; background: var(--dialog); border-top: 1px solid var(--border); }
+.dialog-head { gap: 12px; }
+@media (max-width: 640px) { .bank-fields { grid-template-columns: 1fr; } }
 #confirm-dialog h2 { font-size: 17px; }
 #confirm-dialog p { margin: 8px 0 0; font-size: 14px; }
 .kind-switch { margin-bottom: 16px; }
@@ -565,6 +584,16 @@ input, .input-like { border-radius: 14px; }
 .total-card .bar, .total-card .total-bar { background: rgba(255, 255, 255, 0.24); }
 .total-card .total-bar .seg.in { background: #fff; }
 .total-card .budget-mark { background: #fff; }
+.total-review { display: grid; gap: 14px; margin-top: 10px; }
+.review-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
+.review-stat { display: grid; gap: 2px; align-content: start; }
+.review-stat .label { color: rgba(255, 255, 255, 0.8); }
+.review-stat b { font-size: 20px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.review-stat .of { font-size: 12px; color: rgba(255, 255, 255, 0.8); }
+.review-notes { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; color: rgba(255, 255, 255, 0.86); }
+.review-notes li::before { content: "·"; margin-right: 8px; }
+.review-notes b { color: #fff; font-weight: 500; }
+@media (max-width: 640px) { .review-stat b { font-size: 16px; } }
 .total { font-size: 60px; font-weight: 300; letter-spacing: -0.04em; line-height: 1.15; }
 .total-card .label, #total-sub, .total-income, .total-over { color: rgba(255, 255, 255, 0.86); }
 .total-bar { height: 5px; background: var(--track); }
@@ -641,3 +670,4 @@ dialog h2 { font-weight: 400; font-size: 20px; }
 :root[data-theme="dark"] input[type="checkbox"]:checked, :root[data-theme="dark"] .expense.selected .check {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%2306201f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
+.primary-btn:disabled { opacity: 0.45; cursor: default; }

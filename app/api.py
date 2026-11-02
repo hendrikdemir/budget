@@ -2,7 +2,7 @@
 Amounts in requests and responses are whole cents."""
 import re
 
-from . import VERSION, accounts, backup, budgets, outlook
+from . import VERSION, accounts, backup, bank_import, budgets, outlook
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
@@ -92,6 +92,28 @@ def list_payees(conn, _, __, ___):
         line = f"i{r['item_id']}" if r["item_id"] else f"c{r['category_id']}" if r["category_id"] else None
         payees.setdefault((r["payee"], r["kind"]), line)
     return [{"name": name, "kind": kind, "line": line} for (name, kind), line in payees.items()]
+
+
+# ---- Importing from a bank ----
+
+def bank_import_preview(conn, _, body, __):
+    """The transactions in an exported bank file, with suggestions, to review. Nothing is added yet."""
+    return bank_import.preview(conn, body, list_payees(conn, None, None, None))
+
+
+def bank_import_add(conn, _, body, __):
+    """Add the reviewed transactions, all or none. Each may name one budget line for its full amount."""
+    items = body.get("transactions") or []
+    for t in items:
+        line = t.get("line") or ""
+        splits = []
+        if re.fullmatch(r"[ic]\d+", line) and t.get("kind") in ("expense", "income"):
+            splits = [{"item_id" if line[0] == "i" else "category_id": int(line[1:]), "amount": t.get("amount")}]
+        try:
+            save_transaction(conn, None, {**t, "splits": splits}, None)
+        except ApiError as e:
+            raise ApiError(f"{t.get('payee') or 'The savings transfer'} on {t.get('date')}: {e} Nothing was added yet.")
+    return {"added": len(items)}
 
 
 # ---- Categories, items and budgets ----
@@ -346,6 +368,8 @@ ROUTES = {
     ("DELETE", "transactions", True): delete_transaction,
     ("POST", "transactions-delete", False): delete_transactions,
     ("GET", "payees", False): list_payees,
+    ("POST", "bank-import-preview", False): bank_import_preview,
+    ("POST", "bank-import", False): bank_import_add,
     ("POST", "categories", False): create_category,
     ("PUT", "categories", True): rename_category,
     ("DELETE", "categories", True): remove_category,

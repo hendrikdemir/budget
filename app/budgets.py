@@ -241,6 +241,9 @@ def month_data(conn, month, exclude=None):
             "outside": outside,                     # spent outside any budget
             "budget_spent": total_spent - outside,  # spent on budgets
             "carried_in": sum(l["carried_in"] for l in all_lines),
+            # Unused budget that goes on to next month.
+            "carried_out": sum(max(0, l["available"] - l["spent"]) for l in all_lines if l["budget"] is not None and l["carry"]),
+            "net": moved("income") - total_spent,   # income minus spending
         },
         # What's left of the budgets. Until the month ends it can all still be spent, whatever
         # was moved to savings. Afterwards, money moved to savings counts as that leftover;

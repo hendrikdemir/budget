@@ -18,7 +18,6 @@ export function monthData(ym, exclude = null) {
 
 export async function load() {
   $("#month-btn").textContent = monthName(state.month);
-  $("#month-label").textContent = monthName(state.month);
   $("#today-btn").hidden = state.month === currentMonth();
   monthCache.clear();
   [state.data, state.payees] = await Promise.all([monthData(state.month), api("/api/payees")]);
@@ -42,7 +41,13 @@ export function render() {
 }
 
 // ---- Top card: spent, budgets, and spending outside budgets ----
+// A finished month gets a review of how it went instead.
 function renderTotals() {
+  const past = state.month < currentMonth();
+  $("#total-label").textContent = past ? `${monthName(state.month)} in review` : `Spent in ${monthName(state.month)}`;
+  ["#total-bar", "#total-sub"].forEach((s) => ($(s).hidden = false));
+  $("#total-review").hidden = !past;
+  if (past) return renderReview();
   const { spent, income, budget, outside, budget_spent: budgetSpent } = state.data.totals;
   const over = budgetSpent > budget;
   const leftOrOver = over ? `${money(budgetSpent - budget)} over` : `${money(budget - budgetSpent)} left`;
@@ -67,6 +72,27 @@ function renderTotals() {
   bar.querySelector(".out").style.width = `${(outside / scale) * 100}%`;
   bar.querySelector(".budget-mark").style.left = `${(budget / scale) * 100}%`;
   bar.querySelector(".budget-mark").hidden = spent <= budget;
+}
+
+function renderReview() {
+  const { spent, income, budget, outside, budget_spent: budgetSpent, carried_out: carried, net } = state.data.totals;
+  const { unspent, saved } = state.data.leftover;
+  const nextName = monthOnly(shiftMonth(state.month, 1), "long");
+  $("#total").textContent = `${net < 0 ? "−" : "+"}${money(Math.abs(net))}`;
+  $("#total-sub").textContent = net < 0 ? "More spent than earned" : "Left after income and spending";
+  ["#total-bar", "#total-over", "#total-income"].forEach((s) => ($(s).hidden = true));
+  const stat = (label, value, of = "") => `<div class="review-stat"><span class="label">${label}</span><b>${value}</b>${of ? `<span class="of">${of}</span>` : ""}</div>`;
+  const over = state.data.groups.flatMap((g) => g.lines.filter((l) => l.budget !== null && l.spent > l.available).map((l) => l.name || g.name));
+  const notes = [
+    outside && `<b>${money(outside)}</b> spent outside your budgets`,
+    over.length && `<b>${plural(over.length, "budget")}</b> went over: ${escapeHtml(over.join(", "))}`,
+    (unspent || carried) && `<b>${money(unspent + carried)}</b> of your budgets wasn't used${carried ? `: ${money(carried)} carried over to ${nextName}` : ""}`,
+    saved > 0 && `<b>${money(saved)}</b> moved to savings`,
+    saved < 0 && `<b>${money(-saved)}</b> taken from savings`,
+  ].filter(Boolean);
+  $("#total-review").innerHTML = `
+    <div class="review-stats">${stat("Income", money(income))}${stat("Spent", money(spent))}${stat("Budgets used", money(budgetSpent), `of ${money(budget)}`)}</div>
+    ${notes.length ? `<ul class="review-notes">${notes.map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}`;
 }
 
 // ---- "Ready for next month?" ----
