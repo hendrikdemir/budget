@@ -8,6 +8,7 @@
   --glow-b: rgba(247, 168, 124, 0.5);
   --hero: linear-gradient(125deg, #0b646b, #0f7379 60%, #23898c);
   --raised: #fffbf7;
+  --halo: #fff8f2;
   --dialog: #fff8f2;
   --text: #191919;
   --muted: #665b55;
@@ -33,6 +34,7 @@
   --glow-b: rgba(150, 82, 52, 0.34);
   --hero: linear-gradient(125deg, #084b51, #0b5f66 60%, #15777b);
   --raised: #2f2b29;
+  --halo: #231f1e;
   --dialog: #262322;
   --text: #f7ece4;
   --muted: #cdbeb4;
@@ -604,6 +606,18 @@ dialog h2 { font-weight: 400; font-size: 20px; }
 .swatch-line.bad { border-color: var(--danger-solid); }
 .swatch-line.good { border-top-color: var(--good); }
 .swatch-line.bad { border-top-color: var(--danger-solid); }
+.hist-plot .month-bar { fill: var(--accent); opacity: 0.55; }
+.hist-plot .month-bar.neg { fill: var(--danger-solid); opacity: 0.8; }
+.hist-plot .bars-zero { stroke: var(--border); stroke-width: 1; }
+.hist-plot .marker .gap { stroke: var(--accent); stroke-width: 2; }
+.hist-plot .marker .low { fill: none; stroke: var(--accent); stroke-width: 2; }
+.hist-plot .marker .gap-label { fill: var(--accent); font-size: 12px; font-weight: 500; paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
+.hist-plot .marker.bad .gap, .hist-plot .marker.bad .low { stroke: var(--danger-solid); }
+.hist-plot .marker.bad .gap-label { fill: var(--danger); }
+.legend { flex-wrap: wrap; column-gap: 14px; row-gap: 4px; }
+.legend > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.legend > span > i:first-child { margin-left: 0; }
+.swatch-bar { display: inline-block; width: 7px; height: 10px; border-radius: 2px; background: var(--accent); opacity: 0.55; margin-left: 8px; }
 .outlook-table tr.low td { background: var(--accent-soft); }
 
 @media (max-width: 640px) {

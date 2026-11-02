@@ -55,14 +55,24 @@ export async function renderOutlook() {
       ${cell(r.result, r.result < 0 ? "neg" : "")}${cell(r.savings, r.above < 0 ? "neg" : "")}${cell(r.free, r.free === 0 ? "muted" : "")}
     </tr>`).join("")}</tbody>`;
 
+  // The chart shows where "free to spend" comes from: the gap between the line and the buffer
+  // at its lowest point. The bars show what each month adds or takes.
   const months = rows.map((r) => r.month);
   const savings = rows.map((r) => r.savings), buffers = rows.map((r) => r.buffer);
+  const low = months.indexOf(projection.low_month);
+  const signed = (v) => `${v < 0 ? "−" : "+"}${money(Math.abs(v))}`;
   lineChart($("#outlook-chart"), months, [
     { name: "Savings + spare", values: savings, cls: "line", against: buffers },
     { name: "Buffer", values: buffers, cls: "line dashed", dots: false },
   ], {
     includeZero: true,
-    tooltip: (i) => `<b>${monthName(months[i])}</b><span>Savings + spare: ${money(savings[i])}</span><span>Buffer: ${money(buffers[i])}</span>`,
+    marker: { i: low, from: savings[low], to: buffers[low], cls: below ? "bad" : "",
+      label: below ? `${money(-projection.low_above)} below buffer` : `Free to spend ${money(rows[0].free)}` },
+    bars: { values: rows.map((r) => r.result), label: "Month" },
+    tooltip: (i) => `<b>${monthName(months[i])}</b>
+      <span>${signed(rows[i].result)} ${i === 0 ? "this month, if the rest of the budget is spent" : "this month"}</span>
+      <span>Savings + spare: ${money(savings[i])}</span><span>Buffer: ${money(buffers[i])}</span>
+      ${i === low ? `<span class="muted">Lowest point: ${below ? `${money(-projection.low_above)} below` : `${money(projection.low_above)} above`} your buffer</span>` : ""}`,
   });
 }
 
