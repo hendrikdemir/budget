@@ -7,6 +7,7 @@ folder. Never touches real data. Needs Playwright with WebKit in the build envir
 import sys
 import tempfile
 import threading
+from datetime import date, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -97,6 +98,22 @@ def capture(url):
         page.locator("#buffer-dialog").screenshot(path=OUT / "buffer.png")
         page.context.close()
 
+        # A finished month in review.
+        page = page_for("light", height=900)
+        page.click('[aria-label="Previous month"]')
+        page.wait_for_timeout(500)
+        page.locator(".total-card").screenshot(path=OUT / "review.png")
+        page.context.close()
+
+        # Reviewing a (made-up) bank export before importing it.
+        page = page_for("dark", height=1100)
+        page.set_input_files("#bank-file", bank_export())
+        page.wait_for_selector("#bank-dialog[open]")
+        page.evaluate("document.activeElement.blur()")
+        page.wait_for_timeout(400)
+        page.locator("#bank-dialog").screenshot(path=OUT / "import.png")
+        page.context.close()
+
         # Settings.
         page = page_for("light", height=880)
         page.click("#settings-btn")
@@ -105,6 +122,28 @@ def capture(url):
         page.locator("#settings").screenshot(path=OUT / "appearance.png")
         page.context.close()
         browser.close()
+
+
+def bank_export():
+    """A made-up ING export: a card payment at a known shop, the rent that's already in the
+    demo data, a transfer to savings, and a payment to someone new."""
+    with db.connect() as conn:
+        rent = conn.execute("SELECT date, amount_cents FROM expenses WHERE payee = 'Oakwood Rentals' ORDER BY date DESC").fetchone()
+    day = date.today() - timedelta(days=1)
+    ing = lambda d: d.strftime("%Y%m%d")
+    euros = lambda c: f"{c // 100},{c % 100:02d}"
+    rows = [
+        (ing(date.today()), "BCK*FRESH MARKET 0412 NLD", "", "BA", "Af", "23,40", "Betaalautomaat",
+         f"Kaartnr: 1234 56** **** 7890 Datum: {day:%d-%m-%Y} Tijd: 17:42 Apple Pay"),
+        (ing(date.fromisoformat(rent["date"])), "Oakwood Rentals", "NL00BANK0123456789", "GT", "Af", euros(rent["amount_cents"]),
+         "Online bankieren", "Naam: Oakwood Rentals Omschrijving: Rent IBAN: NL00BANK0123456789"),
+        (ing(day), "Oranje Spaarrekening", "", "GT", "Af", "150,00", "Online bankieren", "Naar Oranje spaarrekening A12345678"),
+        (ing(day), "Studio Lumen", "NL00BANK0987654321", "IW", "Af", "64,00", "iDEAL", "Naam: Studio Lumen Omschrijving: Photo prints IBAN: NL00BANK0987654321"),
+    ]
+    header = ["Datum", "Naam / Omschrijving", "Rekening", "Tegenrekening", "Code", "Af Bij", "Bedrag (EUR)", "Mutatiesoort", "Mededelingen"]
+    lines = [header] + [[r[0], r[1], "NL00INGB0000000000", *r[2:]] for r in rows]
+    return {"name": "export.csv", "mimeType": "text/csv",
+            "buffer": "\n".join(",".join(f'"{v}"' for v in line) for line in lines).encode()}
 
 
 def main():

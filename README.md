@@ -27,6 +27,10 @@ No account. No subscription. No cloud. Your data stays on your Mac.
 
 Your spending, what's left in each budget, and anything spent outside your budgets, all on one page. Budgets go red only when you've overspent, so the page stays calm until something needs your attention.
 
+**Look back on a finished month.** Go back to an earlier month and the top card shows how it went: income, spending, the result, budgets that went over, and what was carried over or saved.
+
+<img src="docs/screenshots/review.png" width="560" alt="A finished month in review: the result, income, spending and what happened to the leftovers">
+
 **Ready for next month?** In the last week of the month, Budget compares your bank balance, plus the income you still expect this month, with what next month needs and tells you exactly how much is short or spare. Once your income is in, one click moves the difference to or from your savings.
 
 ### Budgets that fit real life
@@ -53,6 +57,14 @@ Your spending, what's left in each budget, and anything spent outside your budge
 </td>
 </tr>
 </table>
+
+### Import from your bank
+
+<img src="docs/screenshots/import.png" alt="Reviewing transactions imported from a bank export, with suggested budgets and a likely duplicate unchecked">
+
+Export your transactions from your bank as CSV and choose **Import** above your transactions. Budget fills in every transaction: the date you paid and the day it left your bank, the payee, the note, and savings transfers. Payees you've paid before get the name and budget you used last time. You review each one before anything is added, and transactions that look like they're already in Budget are unchecked, so nothing is added twice.
+
+Budget reads exports from ING (Netherlands) for now. Each bank has its own small reader, so more banks can be added.
 
 ### Find anything
 
@@ -87,7 +99,7 @@ Add your expected income and planned costs, like a holiday or a new laptop, and 
 
 <img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency, and exporting or importing your data">
 
-Follow your Mac's light or dark mode, or choose one yourself, and pick your currency.
+Follow your Mac's light or dark mode, or choose one yourself, and pick your currency from every currency in the world.
 
 ### Take your data with you
 
@@ -152,6 +164,6 @@ Update the screenshots, using made-up data:
 | --- | --- |
 | `desktop.py` | The Mac app: starts the server and opens the window |
 | `server.py` | Starts the server for development |
-| `app/` | Server side: database, budgets, balances, outlook, backups and API |
+| `app/` | Server side: database, budgets, balances, outlook, bank imports, backups and API |
 | `static/` | The page: HTML, CSS and JavaScript modules |
 | `packaging/` | App build, icon and screenshots |

@@ -23,7 +23,8 @@ function open({ bank, transactions, lines }) {
   const duplicates = transactions.filter((t) => t.duplicate).length;
   $("#bank-title").textContent = `Review ${plural(transactions.length, "transaction")} from ${bank}`;
   $("#bank-hint").textContent = "Check each one and choose a budget where you like. Uncheck any you don't want to add." +
-    (duplicates ? ` ${plural(duplicates, "transaction")} seem to be in Budget already, so ${duplicates === 1 ? "it's" : "they're"} unchecked.` : "");
+    (duplicates === 1 ? " 1 transaction seems to be in Budget already, so it's unchecked."
+      : duplicates ? ` ${duplicates} transactions seem to be in Budget already, so they're unchecked.` : "");
   $("#bank-list").innerHTML = transactions.map((t, i) => {
     const transfer = t.kind === "save" || t.kind === "withdraw";
     const sign = t.kind === "income" || t.kind === "withdraw" ? "+ " : "";

@@ -26,11 +26,13 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   computes a month's budget lines, totals and leftover.
 - `app/accounts.py`: expected balances (starting point + transactions by paid date).
 - `app/outlook.py`: `month_outlook()` ("ready for next month?") and `projection()`.
+- `app/bank_import.py`: reading bank exports (CSV) for review. One reader per bank in
+  `READERS` (ING for now); `preview()` adds payee, budget and duplicate suggestions.
 - `app/backup.py`: export and import. Bump nothing here for schema changes: a backup's version is
   its `user_version`, and imports run the normal migrations.
 - `app/api.py`: request handlers; validation helpers are in `app/money.py`.
 - `static/js/`: ES modules. `main.js` starts the page; `overview.js`, `transaction.js`,
-  `budget-editor.js`, `accounts.js`, `outlook.js`, `settings.js` each own a part of the UI;
+  `budget-editor.js`, `accounts.js`, `outlook.js`, `settings.js`, `bank-import.js` each own a part of the UI;
   `format.js`, `ui.js`, `controls.js`, `chart.js`, `state.js` are shared helpers.
 
 ## Conventions
@@ -45,18 +47,17 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   Transactions are stored in the `expenses` table with `kind` expense/income/save/withdraw.
 - History-based data (budgets, plan amounts) changes "from a month onward"; earlier
   months must never change.
-- UI text is English; month names come from the browser locale and are capitalized
-  via `capitalize()`. Errors shown to the user are friendly and say what to do.
+- UI text is English, including month and day names (`DATE_LOCALE` in `format.js`); numbers
+  and amounts follow the browser's locale. Errors shown to the user are friendly and say what to do.
 - Styles: CSS custom properties in `static/style.css`, light and dark themes,
   one fixed palette: warm paper and ink with petrol, a petrol and peach glow behind frosted
   cards, and red only for being over budget. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
 
 ## Keeping the installed app current
 
-The owner uses the app from `/Applications`, which doesn't change by itself. After any finished
-change to the app (`app/`, `static/`, `desktop.py`, `packaging/`), run `packaging/install.sh`: it
-builds, replaces the installed copy and reopens it if it was open. Do this when the work is done
-and tested, not for each small step, and say so if it couldn't be done. Data isn't affected.
+The owner uses the app from `/Applications`, which doesn't change by itself. `packaging/install.sh`
+builds, replaces the installed copy and reopens it if it was open; data isn't affected. Run it only
+when the owner asks; until then, remind them at the end of each change that the installed app is behind.
 
 ## Keeping the preview current
 
@@ -65,7 +66,8 @@ it before reporting the work; otherwise the page can call routes the running ser
 
 ## Keeping the README current
 
-Every change to the app also includes a check of `README.md`, as part of finishing the work:
+Update `README.md` and the screenshots only when the owner asks; until then, remind them at the end of
+each change what's out of date. When updating:
 
 - Update the text when a feature, label, install step, requirement or file path it mentions changes.
 - If a change is visible in a screenshot, regenerate them with `packaging/make_screenshots.py`
