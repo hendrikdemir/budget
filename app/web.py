@@ -13,6 +13,8 @@ from .money import ApiError, GENERIC_ERROR
 
 # In the packaged Mac app, files are unpacked into sys._MEIPASS.
 STATIC = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent)) / "static"
+LOCAL = {"127.0.0.1", "localhost", "::1"}
+BODY_TYPES = {"application/json", "application/octet-stream"}  # what the page sends; both need CORS approval
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -43,6 +45,18 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def from_this_app(self, method):
+        """Only the app's own page may use this server. It listens on this computer only, but
+        on a known port, so a website open in a browser could otherwise send it requests (for
+        example to delete data), or read it by pointing its own domain at 127.0.0.1."""
+        host = urlparse(f"//{self.headers.get('Host', '')}").hostname
+        origin = self.headers.get("Origin")
+        if host not in LOCAL or (origin and urlparse(origin).hostname not in LOCAL):
+            return False
+        # A website may only send other content types without asking first.
+        content_type = (self.headers.get("Content-Type") or "").split(";")[0].strip()
+        return method == "GET" or content_type in BODY_TYPES or not int(self.headers.get("Content-Length", 0))
+
     def read_body(self):
         length = int(self.headers.get("Content-Length", 0))
         if self.headers.get("Content-Type") == "application/octet-stream":  # an imported file
@@ -50,6 +64,8 @@ class Handler(SimpleHTTPRequestHandler):
         return json.loads(self.rfile.read(length) or b"{}") if length else {}
 
     def handle_api(self, method):
+        if not self.from_this_app(method):
+            return self.send_json({"error": "Only the Budget app itself can do this."}, 403)
         url = urlparse(self.path)
         parts = url.path.strip("/").split("/")[1:]  # drop "api"
         handler = ROUTES.get((method, parts[0] if parts else "", len(parts) > 1))
@@ -82,6 +98,8 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path.startswith("/api/"):
             return self.handle_api("GET")
+        if not self.from_this_app("GET"):
+            return self.send_error(403)
         super().do_GET()
 
     def do_POST(self):
