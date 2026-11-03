@@ -2,6 +2,7 @@
 
 An export is a copy of the SQLite database, with the extension .budget. An import first
 checks the file thoroughly, then keeps a safety copy of the current data so it can be undone.
+Deleting all data keeps a safety copy the same way.
 """
 import sqlite3
 import tempfile
@@ -13,6 +14,7 @@ from .money import ApiError
 
 MAX_SIZE = 200 * 1024 * 1024
 KEEP_SAFETY_COPIES = 5
+KEEP_SETTINGS = ("theme", "currency")  # how Budget looks stays when all data is deleted
 REQUIRED_TABLES = {"categories", "items", "budgets", "expenses", "splits", "settings"}
 NOT_A_BACKUP = "This isn't a Budget backup. Choose a file that ends in .budget, made with Export data."
 DAMAGED = "This backup file is damaged, so it can't be imported. Your data hasn't changed. Try exporting it again."
@@ -88,7 +90,21 @@ def _replace_data_with(path):
 
 
 def _safety_copies():
-    return sorted(db.BACKUP_DIR.glob("before-import-*.db"))
+    """Copies of the data from before an import or a delete, oldest first."""
+    return sorted(db.BACKUP_DIR.glob("before-*.db"), key=lambda p: p.name.split("-", 2)[-1])
+
+
+def _keep_safety_copy(reason):
+    db.BACKUP_DIR.mkdir(exist_ok=True)
+    safety = db.BACKUP_DIR / f"before-{reason}-{datetime.now():%Y-%m-%d-%H%M%S}.db"
+    source, copy = db.connect(), sqlite3.connect(safety)
+    try:
+        source.backup(copy)
+    finally:
+        copy.close()
+        source.close()
+    for old in _safety_copies()[:-KEEP_SAFETY_COPIES]:
+        old.unlink()
 
 
 def check(data):
@@ -101,17 +117,8 @@ def restore(data):
     """Replaces all data with a backup, after keeping a safety copy of the current data."""
     def run(path):
         inspect(path)
-        db.BACKUP_DIR.mkdir(exist_ok=True)
-        safety = db.BACKUP_DIR / f"before-import-{datetime.now():%Y-%m-%d-%H%M%S}.db"
-        source, copy = db.connect(), sqlite3.connect(safety)
-        try:
-            source.backup(copy)
-        finally:
-            copy.close()
-            source.close()
+        _keep_safety_copy("import")
         _replace_data_with(path)
-        for old in _safety_copies()[:-KEEP_SAFETY_COPIES]:
-            old.unlink()
         return inspect_current()
     return _with_temp_file(data, run)
 
@@ -124,17 +131,36 @@ def inspect_current():
         conn.close()
 
 
+def clear():
+    """Deletes all transactions, budgets, plans and balances, keeping how Budget looks.
+    A safety copy is kept first, so it can be undone."""
+    _keep_safety_copy("delete")
+    conn = db.connect()
+    try:
+        conn.execute("PRAGMA foreign_keys = OFF")  # everything goes, so the order doesn't matter
+        with conn:
+            tables = [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")]
+            for table in tables:
+                if table == "settings":
+                    conn.execute(f"DELETE FROM settings WHERE key NOT IN ({','.join('?' * len(KEEP_SETTINGS))})", KEEP_SETTINGS)
+                else:
+                    conn.execute(f'DELETE FROM "{table}"')
+    finally:
+        conn.close()
+    return inspect_current()
+
+
 def status():
-    """Whether the last import can be undone."""
+    """Whether the last import or delete can be undone, and which it was."""
     copies = _safety_copies()
-    return {"can_undo": bool(copies)}
+    return {"can_undo": bool(copies), "last": copies[-1].name.split("-")[1] if copies else None}
 
 
 def undo():
-    """Puts back the data from before the last import."""
+    """Puts back the data from before the last import or delete."""
     copies = _safety_copies()
     if not copies:
-        raise ApiError("There's no import to undo.")
+        raise ApiError("There's nothing to undo.")
     _replace_data_with(copies[-1])
     copies[-1].unlink()
     return inspect_current()

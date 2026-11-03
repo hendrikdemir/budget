@@ -10,7 +10,9 @@ const describe = (s) => {
 };
 
 async function refreshUndo() {
-  $("#undo-import").hidden = !(await api("/api/backup-status")).can_undo;
+  const { can_undo: canUndo, last } = await api("/api/backup-status");
+  $("#undo-import").hidden = !canUndo;
+  $("#undo-import").textContent = last === "delete" ? "Undo deleting your data" : "Undo last import";
 }
 whenSettingsOpen(refreshUndo);
 
@@ -48,4 +50,23 @@ $("#undo-import").onclick = async () => {
   if (!ok) return;
   const restored = await api("/api/backup-undo", { method: "POST" });
   await done("Import undone", `Budget now has ${describe(restored)}.`);
+};
+
+// Deleting all data: only after an export, or after saying explicitly that no copy is needed.
+const clearReady = () => ($("#clear-confirm").disabled = $("#clear-exported").hidden && !$("#clear-skip").checked);
+$("#clear-btn").onclick = () => {
+  $("#clear-exported").hidden = true;
+  $("#clear-skip").checked = false;
+  clearReady();
+  $("#clear-dialog").showModal();
+};
+$("#clear-export").onclick = () => {
+  $("#clear-exported").hidden = false;
+  clearReady();
+};
+$("#clear-skip").onchange = clearReady;
+$("#clear-confirm").onclick = async () => {
+  await api("/api/clear-data", { method: "POST", body: { confirm: true } });
+  $("#clear-dialog").close();
+  await done("Your data is deleted", "Budget is empty now. Changed your mind? Choose Undo in Settings to bring it all back.");
 };

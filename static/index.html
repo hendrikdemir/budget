@@ -370,6 +370,7 @@
         <button type="button" id="import-btn" class="ghost-btn">Import data</button>
         <button type="button" id="undo-import" class="link-btn" hidden>Undo last import</button>
       </div>
+      <button type="button" id="clear-btn" class="link-btn danger-text clear-link">Delete all data…</button>
       <input type="file" id="import-file" accept=".budget" hidden>
       <div class="dialog-foot">
         <span id="app-version" class="app-version muted"></span>
@@ -432,6 +433,24 @@
         <button value="ok" class="primary-btn">OK</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="clear-dialog" class="small">
+    <div class="dialog-head">
+      <h2>Delete all your data?</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+    </div>
+    <p class="clear-text">This deletes every transaction, budget, plan and balance in Budget. Your theme and currency stay.</p>
+    <div class="clear-step">
+      <div><b>First, export a copy</b><span class="muted">So you can bring it all back later with Import data.</span></div>
+      <a id="clear-export" class="ghost-btn" href="/api/export" download>Export data</a>
+    </div>
+    <p id="clear-exported" class="clear-done" hidden>✓ Exported. Check that the file is saved before you continue.</p>
+    <label class="clear-skip"><input type="checkbox" id="clear-skip"> Delete without exporting. I don't need a copy.</label>
+    <div class="dialog-foot">
+      <button type="button" class="ghost-btn" data-close>Cancel</button>
+      <button type="button" class="danger-btn" id="clear-confirm" disabled>Delete all data</button>
+    </div>
   </dialog>
 
   <dialog id="bank-dialog" class="xwide">

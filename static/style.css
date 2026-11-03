@@ -357,6 +357,15 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .data-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .data-actions .ghost-btn { display: inline-flex; align-items: center; text-decoration: none; color: inherit; }
 .app-version { font-size: 12px; }
+.clear-link, .clear-link:hover { color: var(--danger); }
+.clear-link { justify-self: start; margin-top: -4px; padding: 0; font-size: 13px; }
+.clear-text { margin: 0 0 14px; font-size: 14px; }
+.clear-step { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--input); border: 1px solid var(--border); }
+.clear-step > div { display: grid; gap: 2px; font-size: 14px; }
+.clear-step .muted { font-size: 12px; }
+.clear-step .ghost-btn { display: inline-flex; align-items: center; text-decoration: none; color: inherit; flex: none; }
+.clear-done { margin: 8px 0 0; font-size: 13px; color: var(--accent); }
+.clear-skip { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 13px; color: var(--muted); cursor: pointer; }
 
 /* Budgets editor */
 #manager-body { display: grid; gap: 16px; margin-bottom: 16px; }

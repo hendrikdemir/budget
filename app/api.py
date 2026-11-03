@@ -328,6 +328,13 @@ def restore_backup(conn, _, body, __):
     return backup.restore(body)
 
 
+def clear_data(conn, _, body, __):
+    """Deletes all data. The page must say it means it: after an export, or with exporting skipped."""
+    if body.get("confirm") is not True:
+        raise ApiError(GENERIC_ERROR)
+    return backup.clear()
+
+
 def undo_import(conn, _, __, ___):
     return backup.undo()
 
@@ -396,6 +403,7 @@ ROUTES = {
     ("POST", "backup-check", False): check_backup,
     ("POST", "backup-restore", False): restore_backup,
     ("POST", "backup-undo", False): undo_import,
+    ("POST", "clear-data", False): clear_data,
     ("GET", "backup-status", False): import_status,
     ("GET", "version", False): get_version,
     ("GET", "settings", False): get_settings,
