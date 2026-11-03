@@ -25,16 +25,11 @@ export async function api(path, options = {}) {
   return data;
 }
 
-// A short message at the bottom. It's a popover, so it shows above an open dialog too. A
-// thin line along its bottom runs out while it's shown, so it's clearly temporary.
-export function toast(message, seconds = 3) {
+// A short message at the bottom. It's a popover, so it shows above an open dialog too.
+export function toast(message, seconds = 2.2) {
   const el = $("#toast");
   el.textContent = message;
-  el.style.setProperty("--toast-time", `${seconds}s`);
   if (el.matches(":popover-open")) el.hidePopover();
-  el.classList.remove("running");
-  void el.offsetWidth; // restart the line
-  el.classList.add("running");
   el.showPopover(); // shown last, so on top of any dialog
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => el.hidePopover(), seconds * 1000);
