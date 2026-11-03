@@ -25,14 +25,23 @@ export async function api(path, options = {}) {
   return data;
 }
 
-// A short message at the bottom. It's a popover, so it shows above an open dialog too.
+// A short message at the bottom. Where popovers are supported it's one, so it shows above an
+// open dialog too. It's also hidden with `hidden`, so older WebKit (which ignores the popover
+// attribute and would show an empty pill) only shows it while there's a message.
+const popovers = typeof HTMLElement.prototype.showPopover === "function";
 export function toast(message, seconds = 2.2) {
   const el = $("#toast");
   el.textContent = message;
-  if (el.matches(":popover-open")) el.hidePopover();
-  el.showPopover(); // shown last, so on top of any dialog
+  el.hidden = false;
+  if (popovers) {
+    if (el.matches(":popover-open")) el.hidePopover();
+    el.showPopover(); // shown last, so on top of any dialog
+  }
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => el.hidePopover(), seconds * 1000);
+  toast.timer = setTimeout(() => {
+    el.hidden = true;
+    if (popovers && el.matches(":popover-open")) el.hidePopover();
+  }, seconds * 1000);
 }
 
 // Confirm / alert modals in the app's own style (instead of the browser's popups).
