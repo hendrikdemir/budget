@@ -90,7 +90,7 @@ Set a starting balance for your bank account and savings, and Budget keeps track
 
 <img src="docs/screenshots/history.png" alt="The History page: a year's income, spending and result, with the bank and savings balance per month">
 
-The History page shows a year at a glance: what came in, what went out and what was left, and how your bank account and savings developed, month by month.
+The History page shows a year at a glance: what came in, what went out and what was left, and how your bank account and savings developed, month by month. It starts at your starting point, so months before you began keeping track aren't shown.
 
 ### Look ahead with the Outlook
 
