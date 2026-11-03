@@ -11,6 +11,7 @@
     <h1>Budget</h1>
     <nav class="tabs" aria-label="Pages">
       <a href="#" data-view="overview">Overview</a>
+      <a href="#history" data-view="history">History</a>
       <a href="#outlook" data-view="outlook">Outlook</a>
     </nav>
     <div class="actions">
@@ -27,8 +28,8 @@
       </div>
       <button id="today-btn" class="ghost-btn" hidden>This month</button>
       <span class="spacer"></span>
-      <button id="income-btn" class="ghost-btn" title="Add income (I)">+ Income</button>
-      <button id="add-btn" class="primary-btn" title="Add expense (N)">+ Expense</button>
+      <button id="income-btn" class="ghost-btn" title="Add income (press I)">+ Income <kbd aria-hidden="true">I</kbd></button>
+      <button id="add-btn" class="primary-btn" title="Add expense (press N)">+ Expense <kbd aria-hidden="true">N</kbd></button>
     </nav>
 
     <section class="card total-card">
@@ -107,6 +108,34 @@
       </div>
       <ul id="expenses" class="day-list"></ul>
       <p id="empty" class="muted empty" hidden>No spending recorded this month.</p>
+    </section>
+  </main>
+
+  <main id="history-view" hidden>
+    <nav class="toolbar">
+      <div class="month-switch">
+        <button id="history-prev" class="pop-nav" aria-label="Previous year">‹</button>
+        <b id="history-year" class="month-btn year-label"></b>
+        <button id="history-next" class="pop-nav" aria-label="Next year">›</button>
+      </div>
+    </nav>
+    <section class="card history-summary" id="history-summary"></section>
+    <section class="card">
+      <div class="section-head">
+        <h3>Balances</h3>
+        <span class="spacer"></span>
+        <span class="legend">
+          <span><i class="swatch-line"></i>Savings</span>
+          <span><i class="swatch-line bank"></i>Bank account</span>
+          <span><i class="swatch-bar"></i>Result per month</span>
+        </span>
+      </div>
+      <div id="history-chart" class="hist-plot"></div>
+      <p id="history-chart-empty" class="muted" hidden>Set a starting point for your bank account or savings on the overview to see their balances here.</p>
+    </section>
+    <section class="card">
+      <div class="section-head"><h3>Month by month</h3></div>
+      <div class="table-wrap"><table id="history-table" class="outlook-table"></table></div>
     </section>
   </main>
 
@@ -355,18 +384,6 @@
       <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </div>
     <div id="balance-summary" class="balance-summary"></div>
-    <div id="history" class="history" hidden>
-      <div class="history-head">
-        <span class="label">Development</span>
-        <span id="hist-change" class="hist-change"></span>
-        <span class="spacer"></span>
-        <button type="button" class="pop-nav" id="hist-prev" aria-label="Previous year">‹</button>
-        <b id="hist-year"></b>
-        <button type="button" class="pop-nav" id="hist-next" aria-label="Next year">›</button>
-      </div>
-      <div id="hist-plot" class="hist-plot"></div>
-      <p id="hist-note" class="muted hist-note"></p>
-    </div>
     <form id="check-form" novalidate>
       <p class="muted hint">Enter what your bank shows, to see whether all your transactions are registered.</p>
       <div class="fields">

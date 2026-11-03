@@ -220,8 +220,8 @@ def get_balance(conn, _, __, query):
     return accounts.balance(conn, accounts.clean_account(first(query, "account", "bank")))
 
 
-def balance_history(conn, _, __, query):
-    return accounts.history(conn, accounts.clean_account(first(query, "account", "bank")), int(first(query, "year")))
+def year_history(conn, _, __, query):
+    return accounts.year_history(conn, int(first(query, "year")))
 
 
 def set_balance_start(conn, _, body, __):
@@ -381,7 +381,7 @@ ROUTES = {
     ("PUT", "rollover", False): choose_rollover,
     ("GET", "balance", False): get_balance,
     ("PUT", "balance", False): set_balance_start,
-    ("GET", "balance-history", False): balance_history,
+    ("GET", "history", False): year_history,
     ("POST", "balance-checks", False): add_balance_check,
     ("DELETE", "balance-checks", True): delete_balance_check,
     ("GET", "plans", False): list_plans,

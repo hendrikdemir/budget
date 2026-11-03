@@ -112,6 +112,11 @@ input[type="checkbox"]:checked { border-color: var(--accent); background: var(--
   height: 38px; padding: 0 18px; font-weight: 500; cursor: pointer; white-space: nowrap;
 }
 .primary-btn:hover { filter: brightness(1.08); }
+/* A keyboard shortcut shown in its button. */
+kbd {
+  display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border: 1px solid currentColor; border-radius: 6px;
+  font-family: inherit; font-size: 11px; font-weight: 500; line-height: 16px; text-align: center; opacity: 0.6; vertical-align: 1px;
+}
 .primary-btn:disabled { opacity: 0.45; cursor: default; }
 .danger-btn { background: var(--danger-solid); color: #fff; border: 0; border-radius: 999px; height: 38px; padding: 0 16px; font-weight: 500; cursor: pointer; }
 .danger-btn:disabled { opacity: 0.4; cursor: default; }
@@ -237,7 +242,7 @@ h1::before { content: ""; display: inline-block; width: 10px; height: 10px; bord
 .bl-row:hover .carry, .carry:focus-visible, .carry.on { opacity: 1; }
 .carry:hover { color: var(--accent); }
 .carry.on { color: var(--accent); font-weight: 500; }
-@media (hover: none) { .carry { opacity: 1; } }
+@media (hover: none) { .carry { opacity: 1; } kbd { display: none; } }
 
 /* ---- Account balances ---- */
 .account-row {
@@ -370,7 +375,7 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .add-item input { background: transparent; border-style: dashed; }
 #add-category .icon-btn, .add-item .icon-btn { width: 28px; min-width: 28px; height: 28px; display: grid; place-items: center; justify-self: center; }
 /* Budget history chips (in the editor) */
-.history { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 4px 16px; }
+.history { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px 16px; }
 .mgr-head .history { margin-left: 0; }
 .hchip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 4px 1px 10px; }
 .hchip.current { color: var(--accent); border-color: var(--accent); }
@@ -391,14 +396,6 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .start-section { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
 .start-section summary { cursor: pointer; font-weight: 500; font-size: 14px; color: var(--muted); }
 .start-section[open] summary { color: var(--text); margin-bottom: 8px; }
-/* The balance development chart (in the same dialog, also class "history") */
-.history { margin-bottom: 16px; }
-.history-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.history-head b { font-size: 13px; font-variant-numeric: tabular-nums; }
-.history-head .pop-nav:disabled { opacity: 0.3; cursor: default; }
-.hist-change { font-size: 12px; font-weight: 500; color: var(--accent); }
-.hist-change.down { color: var(--danger); }
-.hist-note { font-size: 12px; margin: 4px 0 0; }
 
 /* Importing from a bank */
 .bank-hint { margin: -8px 0 12px; font-size: 13px; }
@@ -464,6 +461,8 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .hist-plot .dot { fill: var(--accent); stroke: none; }
 .hist-plot .dot.good { fill: var(--good); }
 .hist-plot .dot.bad { fill: var(--danger-solid); }
+.hist-plot .line.bank { stroke: var(--muted); stroke-width: 1.5; }
+.hist-plot .dot.bank { fill: var(--muted); }
 .hist-plot .hit { fill: transparent; cursor: default; }
 .hist-plot .crosshair { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
 .hist-plot .month-bar { fill: var(--accent); opacity: 0.55; }
@@ -487,6 +486,7 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .swatch-line { display: inline-block; width: 16px; height: 0; border-top: 2px solid var(--accent); margin-left: 8px; }
 .swatch-line.dashed { border-top: 2px dashed var(--muted); }
 .swatch-line.good { border-color: var(--good); }
+.swatch-line.bank { border-color: var(--muted); }
 .swatch-line.bad { border-color: var(--danger-solid); margin-left: 2px; }
 .swatch-bar { display: inline-block; width: 7px; height: 10px; border-radius: 2px; background: var(--accent); opacity: 0.55; margin-left: 8px; }
 .legend > span > i:first-child { margin-left: 0; }
@@ -529,6 +529,13 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .change-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
 @media (min-width: 641px) { .outlook-summary.two-tiles { grid-template-columns: 1fr 2.6fr; } }
 
+/* ---- History ---- */
+.history-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.history-summary .tile-value { font-size: 28px; }
+.year-label { cursor: default; font-weight: 500; text-align: center; }
+.year-label:hover { background: none; color: inherit; }
+.month-switch .pop-nav:disabled { opacity: 0.3; cursor: default; }
+
 /* ---- Small screens ---- */
 @media (max-width: 640px) {
   .topbar { flex-wrap: wrap; row-gap: 12px; padding: 14px 16px; }
@@ -541,6 +548,7 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
   .toolbar .month-switch { flex: 1 0 100%; justify-content: space-between; }
   .toolbar .spacer { display: none; }
   .toolbar #income-btn, .toolbar #add-btn { flex: 1; }
+  kbd { display: none; }
   .ghost-btn, .primary-btn, .month-btn { white-space: nowrap; }
   .month-btn { min-width: 0; }
   .total { font-size: 46px; }
@@ -558,6 +566,8 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
   .mgr-row { grid-template-columns: 1fr 90px 36px 28px; }
   .bank-fields { grid-template-columns: 1fr; }
   .outlook-summary { grid-template-columns: 1fr; }
+  .history-summary { grid-template-columns: 1fr 1fr; }
+  .history-summary .tile-value { font-size: 22px; }
   .plan-list li[data-plan] { grid-template-columns: 1fr auto; row-gap: 2px; }
   .plan-list li .muted { grid-column: 1; grid-row: 2; }
   .plan-list li .plan-amount { grid-row: 1 / 3; grid-column: 2; }

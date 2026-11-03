@@ -1,6 +1,7 @@
-// Starts the page: settings, the current page (overview or #outlook) and keyboard shortcuts.
+// Starts the page: settings, the current page (overview, #history or #outlook) and keyboard shortcuts.
 import "./bank-import.js";
 import "./data.js";
+import { renderHistory } from "./history.js";
 import { renderOutlook } from "./outlook.js";
 import { load } from "./overview.js";
 import { loadSettings } from "./settings.js";
@@ -8,11 +9,11 @@ import { openTransaction } from "./transaction.js";
 import { $ } from "./ui.js";
 
 function showPage() {
-  const page = location.hash === "#outlook" ? "outlook" : "overview";
-  $("#overview-view").hidden = page !== "overview";
-  $("#outlook-view").hidden = page !== "outlook";
+  const page = { "#outlook": "outlook", "#history": "history" }[location.hash] || "overview";
+  for (const view of ["overview", "history", "outlook"]) $(`#${view}-view`).hidden = page !== view;
   document.querySelectorAll(".tabs a").forEach((a) => a.classList.toggle("active", a.dataset.view === page));
   if (page === "outlook") renderOutlook();
+  if (page === "history") renderHistory();
 }
 addEventListener("hashchange", showPage);
 
@@ -31,6 +32,7 @@ document.addEventListener("keydown", (e) => {
 await loadSettings(() => {
   load();
   if (location.hash === "#outlook") renderOutlook();
+  if (location.hash === "#history") renderHistory();
 });
 showPage();
 load();

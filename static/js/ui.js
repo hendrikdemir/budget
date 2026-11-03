@@ -62,3 +62,24 @@ export function fieldError(form, name, message) {
 
 // Close buttons in dialogs.
 document.addEventListener("click", (e) => e.target.closest("[data-close]")?.closest("dialog").close());
+
+// Table headers that explain their column when hovered or focused: tipHead() makes the
+// header, columnTips(table) shows the explanation. It floats over the page, so a table that
+// scrolls sideways can't clip it.
+export const tipHead = (label, tip) => tip ? `<th tabindex="0" data-tip="${tip}">${label}</th>` : `<th>${label}</th>`;
+const columnTip = document.body.appendChild(Object.assign(document.createElement("div"), { className: "col-tip", hidden: true }));
+function showColumnTip(th) {
+  columnTip.textContent = th.dataset.tip;
+  columnTip.hidden = false;
+  const box = th.getBoundingClientRect();
+  columnTip.style.left = `${Math.max(8, Math.min(box.right - columnTip.offsetWidth, innerWidth - columnTip.offsetWidth - 8))}px`;
+  columnTip.style.top = `${box.bottom + 6}px`;
+}
+const hideColumnTip = () => (columnTip.hidden = true);
+addEventListener("scroll", hideColumnTip, { passive: true });
+export function columnTips(table) {
+  table.addEventListener("mouseover", (e) => e.target.closest("th[data-tip]") && showColumnTip(e.target.closest("th[data-tip]")));
+  table.addEventListener("mouseout", (e) => e.target.closest("th[data-tip]") && hideColumnTip());
+  table.addEventListener("focusin", (e) => e.target.matches("th[data-tip]") && showColumnTip(e.target));
+  table.addEventListener("focusout", hideColumnTip);
+}

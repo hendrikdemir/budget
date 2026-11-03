@@ -1,14 +1,12 @@
 // Bank and savings balances: the account rows on the overview and the account dialog
-// (expected balance, checks against the bank, starting point, development chart).
-import { lineChart } from "./chart.js";
+// (expected balance, checks against the bank, starting point). Their history is on the History page.
 import { datePicker } from "./controls.js";
-import { currencySymbol, inputAmount, isoDate, money, monthName, monthOnly, parseAmount, shortDate } from "./format.js";
+import { currencySymbol, inputAmount, isoDate, money, parseAmount, shortDate } from "./format.js";
 import { $, api, fieldError, toast } from "./ui.js";
 
 const ACCOUNTS = { bank: "Bank account", savings: "Savings" };
 const balances = {}; // per account: { start, start_date, expected, checks: [{ id, date, actual, expected, difference }] }
 let account = "bank"; // the account open in the dialog
-let historyYear = new Date().getFullYear();
 const checkForm = $("#check-form");
 const startForm = $("#start-form");
 const checkDate = datePicker($("#check-date-btn"), checkForm.date);
@@ -59,7 +57,6 @@ function renderDialog() {
          ? "income and minus expenses since, and transfers to and from savings" : "transfers to and from savings since"}.</span>`
     : `<span class="muted">Set a starting point first: the balance on a day from which you'll register everything.</span>`;
   checkForm.hidden = !set;
-  $("#history").hidden = !set;
   $("#check-list").innerHTML = b.checks.map((c) => `
     <li class="${c.difference === null ? "" : c.difference === 0 ? "ok" : "off"}">
       <span class="check-date">${shortDate(c.date)}</span>
@@ -69,38 +66,6 @@ function renderDialog() {
     </li>`).join("");
 }
 
-// End-of-month balance through a year. Months before tracking started (or still to come) stay empty.
-async function renderHistory() {
-  const data = await api(`/api/balance-history?account=${account}&year=${historyYear}`);
-  $("#hist-year").textContent = historyYear;
-  $("#hist-next").disabled = historyYear >= new Date().getFullYear();
-  // Nothing to show before the year tracking started.
-  $("#hist-prev").disabled = historyYear <= Number((balances[account].start_date || String(historyYear)).slice(0, 4));
-  const months = Array.from({ length: 12 }, (_, i) => `${historyYear}-${String(i + 1).padStart(2, "0")}`);
-  const values = months.map((m) => data.months.find((d) => d.month === m)?.balance ?? null);
-  const tracked = values.map((v, i) => ({ v, i })).filter((p) => p.v !== null);
-  if (!tracked.length) {
-    $("#hist-plot").innerHTML = "";
-    $("#hist-change").textContent = "";
-    $("#hist-note").textContent = `No balance tracked in ${historyYear}.`;
-    return;
-  }
-  lineChart($("#hist-plot"), months, [{ name: `${ACCOUNTS[account]} balance`, values, cls: "line" }], {
-    height: 170, ticks: 3,
-    tooltip: (i) => {
-      const before = values[i - 1] ?? null;
-      return `<b>${monthName(months[i])}</b><span>${money(values[i])}</span>${before === null ? ""
-        : `<span class="muted">${values[i] >= before ? "+" : "−"}${money(Math.abs(values[i] - before))} vs ${monthOnly(months[i - 1])}</span>`}`;
-    },
-  });
-  const first = tracked[0], last = tracked.at(-1), change = last.v - first.v;
-  $("#hist-change").textContent = tracked.length > 1 ? `${change >= 0 ? "+" : "−"}${money(Math.abs(change))} since ${monthOnly(months[first.i])}` : "";
-  $("#hist-change").className = `hist-change ${change < 0 ? "down" : ""}`;
-  $("#hist-note").textContent = tracked.length === 1
-    ? `Tracked since ${shortDate(balances[account].start_date)} — the line grows as months pass.` : "Balance at the end of each month (today for the current month).";
-}
-$("#hist-prev").onclick = () => { historyYear--; renderHistory(); };
-$("#hist-next").onclick = () => { historyYear++; renderHistory(); };
 
 document.querySelectorAll(".account-row").forEach((row) => (row.onclick = () => {
   account = row.dataset.account;
@@ -116,8 +81,6 @@ document.querySelectorAll(".account-row").forEach((row) => (row.onclick = () => 
   $("#start-section").open = b.start === null;
   renderDialog();
   $("#balance-dialog").showModal();
-  historyYear = new Date().getFullYear();
-  if (b.start !== null) renderHistory();
   (b.start === null ? startForm : checkForm).amount.focus();
 }));
 
@@ -142,7 +105,6 @@ startForm.onsubmit = async (e) => {
   $("#start-section").open = false;
   toast("Starting point saved");
   await loadBalances();
-  renderHistory();
   checkForm.amount.focus();
 };
 startForm.oninput = () => fieldError(startForm, "start", "");

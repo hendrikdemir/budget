@@ -2,7 +2,7 @@
 // Used for the balance development and the savings outlook.
 import { money, monthOnly } from "./format.js";
 
-// series: [{ name, values (cents, null = no value), cls, dots = true, against }]
+// series: [{ name, values (cents, null = no value), cls, dots = true, dotCls, against }]
 //   against: values of another series; the line is drawn green above it and red below.
 // options: height, ticks (number of steps), includeZero, tooltip(i) -> html,
 //   marker: { i, from, to, label, cls }: a labelled gap between two values in one month,
@@ -68,7 +68,7 @@ export function lineChart(el, months, series, { height = 220, ticks: steps = 4, 
         <path class="${s.cls} good" d="${d}" clip-path="url(#${id}a)"/>
         <path class="${s.cls} bad" d="${d}" clip-path="url(#${id}b)"/>`;
     }).join("")}
-    ${series.filter((s) => s.dots !== false).map((s) => s.values.map((v, i) => v === null ? "" : `<circle class="dot ${
+    ${series.filter((s) => s.dots !== false).map((s) => s.values.map((v, i) => v === null ? "" : `<circle class="dot ${s.dotCls || ""} ${
       s.against ? (v < s.against[i] ? "bad" : "good") : ""}" cx="${x(i)}" cy="${y(v)}" r="4"/>`).join("")).join("")}
     ${marker ? markerSvg() : ""}
     ${months.map((_, i) => series.some((s) => s.values[i] !== null)
