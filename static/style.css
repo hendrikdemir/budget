@@ -1,57 +1,57 @@
-/* Two real themes around one idea: warm paper and ink, with petrol as the main color and a
-   soft glow of petrol and peach behind frosted cards. Red stays free to mean one thing, over
-   budget. Light is dark text on paper; dark is warm charcoal with paper-colored text.
+/* Two real themes around one palette of greens and slate blues (#c9e4ca, #87bba2, #55828b,
+   #3b6064, #364958), with a soft glow behind frosted cards. Red stays free to mean one thing,
+   over budget. Light is dark text on pale green; dark is deep slate with pale text.
    Every component is styled in one place; colors come from these tokens. */
 :root {
-  --bg: #fdeee3;
-  --surface: rgba(255, 249, 244, 0.74);
-  --glow-a: rgba(65, 175, 176, 0.42);
-  --glow-b: rgba(247, 168, 124, 0.5);
-  --hero: linear-gradient(125deg, #0b646b, #0f7379 60%, #23898c);
-  --raised: #fffbf7;
-  --halo: #fff8f2;
-  --dialog: #fff8f2;
-  --text: #191919;
-  --muted: #665b55;
-  --border: #e5d1c6;
-  --input: #fffdfb;
-  --accent: #0b646b;
+  --bg: #f0f6f0;
+  --surface: rgba(250, 253, 250, 0.74);
+  --glow-a: rgba(135, 187, 162, 0.5);
+  --glow-b: rgba(85, 130, 139, 0.28);
+  --hero: linear-gradient(125deg, #364958, #3b6064 55%, #55828b);
+  --raised: #fbfdfb;
+  --halo: #f7fbf7;
+  --dialog: #f7fbf7;
+  --text: #1e2a31;
+  --muted: #4e6068;
+  --border: #cfe0d2;
+  --input: #fcfefc;
+  --accent: #3b6064;
   --on-accent: #ffffff;
-  --accent-soft: rgba(205, 170, 145, 0.26);
-  --track: #efdccf;
-  --danger: #ad0d0d;
-  --danger-solid: #c60f0f;
-  --danger-soft: rgba(198, 15, 15, 0.09);
-  --danger-on-accent: #ffb3a8;
-  --good: #0b646b;
-  --shadow: 0 16px 40px rgba(76, 70, 66, 0.18);
+  --accent-soft: rgba(135, 187, 162, 0.22);
+  --track: #dcebdd;
+  --danger: #b42318;
+  --danger-solid: #c8372d;
+  --danger-soft: rgba(200, 55, 45, 0.09);
+  --danger-on-accent: #ffb4a8;
+  --good: #3b6064;
+  --shadow: 0 16px 40px rgba(54, 73, 88, 0.18);
   --radius: 22px;
   --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #171514;
-  --surface: rgba(38, 34, 33, 0.62);
-  --glow-a: rgba(11, 100, 107, 0.6);
-  --glow-b: rgba(150, 82, 52, 0.34);
-  --hero: linear-gradient(125deg, #084b51, #0b5f66 60%, #15777b);
-  --raised: #2f2b29;
-  --halo: #231f1e;
-  --dialog: #262322;
-  --text: #f7ece4;
-  --muted: #cdbeb4;
-  --border: #3f3a36;
-  --input: #2c2826;
-  --accent: #41afb0;
-  --on-accent: #06201f;
-  --accent-soft: rgba(247, 236, 228, 0.08);
-  --track: #3d3835;
+  --bg: #1b242b;
+  --surface: rgba(40, 53, 62, 0.62);
+  --glow-a: rgba(59, 96, 100, 0.6);
+  --glow-b: rgba(85, 130, 139, 0.3);
+  --hero: linear-gradient(125deg, #2c3c48, #3b6064 60%, #55828b);
+  --raised: #2f3e48;
+  --halo: #25323b;
+  --dialog: #26333c;
+  --text: #e9f3eb;
+  --muted: #a9c2b5;
+  --border: #3a4c57;
+  --input: #2a3842;
+  --accent: #87bba2;
+  --on-accent: #16262a;
+  --accent-soft: rgba(201, 228, 202, 0.08);
+  --track: #3a4b55;
   --danger: #ff9d90;
   --danger-solid: #e5544f;
   --danger-soft: rgba(229, 84, 79, 0.16);
-  --good: #41afb0;
+  --good: #87bba2;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%2306201f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%2316262a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
 
