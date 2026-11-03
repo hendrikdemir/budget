@@ -10,9 +10,7 @@ const describe = (s) => {
 };
 
 async function refreshUndo() {
-  const { can_undo: canUndo, last } = await api("/api/backup-status");
-  $("#undo-import").hidden = !canUndo;
-  $("#undo-import").textContent = last === "delete" ? "Undo deleting your data" : "Undo last import";
+  $("#undo-import").hidden = !(await api("/api/backup-status")).can_undo;
 }
 whenSettingsOpen(refreshUndo);
 
@@ -38,7 +36,7 @@ $("#import-file").onchange = async (e) => {
   });
   if (!ok) return;
   const imported = await api("/api/backup-restore", { method: "POST", body: data });
-  await done("Your data is imported", `Budget now has ${describe(imported)}. Changed your mind? Choose Undo last import in Settings.`);
+  await done("Your backup is restored", `Budget now has ${describe(imported)}. Changed your mind? Choose Undo last import in Settings.`);
 };
 
 $("#undo-import").onclick = async () => {
@@ -68,5 +66,5 @@ $("#clear-skip").onchange = clearReady;
 $("#clear-confirm").onclick = async () => {
   await api("/api/clear-data", { method: "POST", body: { confirm: true } });
   $("#clear-dialog").close();
-  await done("Your data is deleted", "Budget is empty now. Changed your mind? Choose Undo in Settings to bring it all back.");
+  await done("Your data is deleted", "Budget is empty now. If you exported a copy, you can bring it back with Restore from backup in Settings.");
 };

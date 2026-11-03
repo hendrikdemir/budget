@@ -363,11 +363,11 @@
       </div>
       <span class="label">Currency</span>
       <input id="currency-input" placeholder="Search by name or code, e.g. euro" aria-label="Currency">
-      <span class="label">Your data</span>
-      <p class="muted data-hint">Export your data to keep a copy or to move to another Mac. On the other Mac, install Budget and choose Import data.</p>
+      <span class="label">Backup and moving to another Mac</span>
+      <p class="muted data-hint">A backup holds everything in Budget: transactions, budgets, balances, the income and costs you planned, and settings. Restoring one replaces all your current data with it, for example on a new Mac. To add transactions from your bank instead, use Import above your transactions.</p>
       <div class="data-actions">
-        <a id="export-btn" class="ghost-btn" href="/api/export" download>Export data</a>
-        <button type="button" id="import-btn" class="ghost-btn">Import data</button>
+        <a id="export-btn" class="ghost-btn" href="/api/export" download>Export backup</a>
+        <button type="button" id="import-btn" class="ghost-btn">Restore from backup</button>
         <button type="button" id="undo-import" class="link-btn" hidden>Undo last import</button>
       </div>
       <button type="button" id="clear-btn" class="link-btn danger-text clear-link">Delete all data…</button>
@@ -440,10 +440,10 @@
       <h2>Delete all your data?</h2>
       <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </div>
-    <p class="clear-text">This deletes every transaction, budget, plan and balance in Budget. Your theme and currency stay.</p>
+    <p class="clear-text">This deletes all your transactions, budgets, account balances, and the income and costs you planned in the Outlook. Budget's automatic backups are deleted too, so this can't be undone. Your theme and currency stay.</p>
     <div class="clear-step">
-      <div><b>First, export a copy</b><span class="muted">So you can bring it all back later with Import data.</span></div>
-      <a id="clear-export" class="ghost-btn" href="/api/export" download>Export data</a>
+      <div><b>First, export a backup</b><span class="muted">So you can bring it all back later with Restore from backup.</span></div>
+      <a id="clear-export" class="ghost-btn" href="/api/export" download>Export backup</a>
     </div>
     <p id="clear-exported" class="clear-done" hidden>✓ Exported. Check that the file is saved before you continue.</p>
     <label class="clear-skip"><input type="checkbox" id="clear-skip"> Delete without exporting. I don't need a copy.</label>

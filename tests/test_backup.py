@@ -1,5 +1,5 @@
-"""Deleting all data, and undoing it."""
-from app import api, backup
+"""Deleting all data: final, with nothing left behind."""
+from app import api, backup, db
 from app.money import ApiError
 
 from .base import AppTest
@@ -30,9 +30,10 @@ class ClearData(AppTest):
         settings = dict(self.conn.execute("SELECT key, value FROM settings").fetchall())
         self.assertEqual(settings, {"theme": "dark", "currency": "USD"})
 
-    def test_can_be_undone(self):
+    def test_cannot_be_undone_and_leaves_no_copies(self):
+        db.daily_backup()
+        backup.restore(backup.export_file()[1])  # an import leaves a safety copy
+        self.assertTrue(backup.status()["can_undo"])
         api.clear_data(self.conn, None, {"confirm": True}, None)
-        self.assertEqual(backup.status(), {"can_undo": True, "last": "delete"})
-        backup.undo()
-        self.assertEqual((self.count("expenses"), self.count("categories"), self.count("plans")), (1, 1, 1))
         self.assertFalse(backup.status()["can_undo"])
+        self.assertEqual(list(db.BACKUP_DIR.glob("*.db")), [])
