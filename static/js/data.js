@@ -20,7 +20,7 @@ async function done(title, message) {
   location.reload();
 }
 
-$("#export-btn").onclick = () => toast("This file holds all your financial data, so keep it somewhere safe");
+$("#export-btn").onclick = () => toast("Keep your backup somewhere safe: it holds all your financial data.", 4);
 
 $("#import-btn").onclick = () => $("#import-file").click();
 $("#import-file").onchange = async (e) => {
@@ -31,7 +31,7 @@ $("#import-file").onchange = async (e) => {
   const { backup, current } = await api("/api/backup-check", { method: "POST", body: data });
   const ok = await confirmDialog({
     title: "Replace your data with this backup?",
-    message: `The backup has ${describe(backup)}. It replaces everything now in Budget (${describe(current)}), including your settings. A safety copy is kept, so you can undo this.`,
+    message: `The backup has ${describe(backup)}. It replaces everything now in Budget (${describe(current)}), including your budgets and settings. A safety copy is kept, so you can undo this. To add transactions from your bank instead, use Import above your transactions.`,
     confirm: "Replace my data", danger: true,
   });
   if (!ok) return;

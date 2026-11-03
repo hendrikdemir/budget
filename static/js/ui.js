@@ -25,12 +25,14 @@ export async function api(path, options = {}) {
   return data;
 }
 
-export function toast(message) {
+// A short message at the bottom. It's a popover, so it shows above an open dialog too.
+export function toast(message, seconds = 2.2) {
   const el = $("#toast");
   el.textContent = message;
-  el.hidden = false;
+  if (el.matches(":popover-open")) el.hidePopover();
+  el.showPopover(); // shown last, so on top of any dialog
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => (el.hidden = true), 2200);
+  toast.timer = setTimeout(() => el.hidePopover(), seconds * 1000);
 }
 
 // Confirm / alert modals in the app's own style (instead of the browser's popups).

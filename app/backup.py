@@ -17,7 +17,7 @@ MAX_SIZE = 200 * 1024 * 1024
 KEEP_SAFETY_COPIES = 5
 KEEP_SETTINGS = ("theme", "currency")  # how Budget looks stays when all data is deleted
 REQUIRED_TABLES = {"categories", "items", "budgets", "expenses", "splits", "settings"}
-NOT_A_BACKUP = "This isn't a Budget backup. Choose a file that ends in .budget, made with Export backup."
+NOT_A_BACKUP = "This isn't a Budget backup. Choose a file that ends in .budget, made with Create backup."
 DAMAGED = "This backup file is damaged, so it can't be imported. Your data hasn't changed. Try exporting it again."
 TOO_NEW = "This backup was made with a newer version of Budget. Update Budget, then import it again. Your data hasn't changed."
 
