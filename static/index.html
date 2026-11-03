@@ -434,6 +434,23 @@
     </form>
   </dialog>
 
+  <dialog id="restore-dialog" class="small">
+    <div class="dialog-head">
+      <h2>Restore from backup</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+    </div>
+    <div class="careful-step">
+      <div><b>A backup you created</b><span class="muted">A .budget file, for example from another Mac.</span></div>
+      <button type="button" id="restore-file" class="ghost-btn">Choose file…</button>
+    </div>
+    <span class="label restore-label">Automatic backups</span>
+    <p class="muted restore-hint">Budget keeps a copy of your data from each day you use it, made when you first open or change Budget that day. It keeps the last 14.</p>
+    <ul id="auto-backups" class="auto-backups"></ul>
+    <div class="dialog-foot">
+      <button type="button" class="ghost-btn" data-close>Cancel</button>
+    </div>
+  </dialog>
+
   <!-- Before replacing or deleting all data: create a backup first, or say no copy is needed. -->
   <dialog id="careful-dialog" class="small">
     <div class="dialog-head">

@@ -2,9 +2,11 @@
 
 An export is a copy of the SQLite database, with the extension .budget. An import first
 checks the file thoroughly, then replaces all data with it; the page offers to create a backup
-of the current data first. Deleting all data is final: it also removes the automatic backups,
+of the current data first. The automatic daily backups (db.daily_backup) can be restored the
+same way. Deleting all data is final: it also removes the automatic backups,
 so nothing of the old data stays behind.
 """
+import re
 import sqlite3
 import tempfile
 from datetime import date
@@ -130,4 +132,38 @@ def clear():
     if db.BACKUP_DIR.exists():
         for copy in db.BACKUP_DIR.glob("*.db"):
             copy.unlink()
+    return inspect_current()
+
+
+# ---- Automatic backups ----
+
+def _auto_path(name):
+    """The automatic backup called `name`, or a friendly error if there's no such backup."""
+    path = db.BACKUP_DIR / str(name)
+    if not re.fullmatch(r"budget-\d{4}-\d{2}-\d{2}\.db", str(name)) or not path.exists():
+        raise ApiError("That automatic backup isn't there anymore. Close Settings and try again.")
+    return path
+
+
+def auto_backups():
+    """The automatic backups, newest first, with what's in each. Damaged ones are left out."""
+    found = []
+    for path in sorted(db.BACKUP_DIR.glob("budget-*.db"), reverse=True) if db.BACKUP_DIR.exists() else []:
+        try:
+            found.append({"name": path.name, "date": path.stem[len("budget-"):], **inspect(path)})
+        except ApiError:
+            continue
+    return found
+
+
+def check_auto(name):
+    """What's in an automatic backup, compared to the current data."""
+    return {"backup": inspect(_auto_path(name)), "current": inspect_current()}
+
+
+def restore_auto(name):
+    """Replaces all data with an automatic backup."""
+    path = _auto_path(name)
+    inspect(path)
+    _replace_data_with(path)
     return inspect_current()

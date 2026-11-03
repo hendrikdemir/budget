@@ -328,6 +328,18 @@ def restore_backup(conn, _, body, __):
     return backup.restore(body)
 
 
+def list_auto_backups(conn, _, __, ___):
+    return backup.auto_backups()
+
+
+def check_auto_backup(conn, _, body, __):
+    return backup.check_auto(body.get("name"))
+
+
+def restore_auto_backup(conn, _, body, __):
+    return backup.restore_auto(body.get("name"))
+
+
 def clear_data(conn, _, body, __):
     """Deletes all data. The page must say it means it: after an export, or with exporting skipped."""
     if body.get("confirm") is not True:
@@ -394,6 +406,9 @@ ROUTES = {
     ("GET", "export", False): export_data,
     ("POST", "backup-check", False): check_backup,
     ("POST", "backup-restore", False): restore_backup,
+    ("GET", "auto-backups", False): list_auto_backups,
+    ("POST", "auto-backup-check", False): check_auto_backup,
+    ("POST", "auto-backup-restore", False): restore_auto_backup,
     ("POST", "clear-data", False): clear_data,
     ("GET", "version", False): get_version,
     ("GET", "settings", False): get_settings,

@@ -366,6 +366,16 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .careful-step .muted { font-size: 12px; }
 .careful-step .ghost-btn { display: inline-flex; align-items: center; text-decoration: none; color: inherit; flex: none; }
 .careful-done { margin: 8px 0 0; font-size: 13px; color: var(--accent); }
+.restore-label { display: block; margin-top: 18px; }
+.restore-hint { margin: 2px 0 8px; font-size: 12px; }
+.auto-backups { list-style: none; margin: 0; padding: 0; display: grid; max-height: 260px; overflow-y: auto; }
+.auto-backups > li.muted { font-size: 13px; padding: 6px 0; }
+.auto-backup {
+  display: flex; justify-content: space-between; gap: 12px; width: 100%; padding: 9px 12px; border: 0; border-radius: 12px;
+  background: none; cursor: pointer; text-align: left; font-size: 14px;
+}
+.auto-backup:hover { background: var(--accent-soft); }
+.auto-backup .muted { font-size: 13px; }
 .careful-skip { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 13px; color: var(--muted); cursor: pointer; }
 
 /* Budgets editor */

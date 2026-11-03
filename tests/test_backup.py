@@ -47,3 +47,22 @@ class Restore(AppTest):
         payees = [r[0] for r in self.conn.execute("SELECT payee FROM expenses")]
         self.assertEqual(payees, ["Corner Grocer"])
         self.assertEqual(list(db.BACKUP_DIR.glob("before-*.db")) if db.BACKUP_DIR.exists() else [], [])
+
+
+class AutomaticBackups(AppTest):
+    def test_listed_and_restorable(self):
+        self.add(1250, "2026-11-01", payee="Corner Grocer")
+        self.conn.commit()
+        db.daily_backup()
+        self.add(900, "2026-11-02", payee="Fresh Market")
+        self.conn.commit()
+        (copy,) = backup.auto_backups()
+        self.assertEqual(copy["transactions"], 1)
+        self.assertEqual(backup.check_auto(copy["name"])["current"]["transactions"], 2)
+        backup.restore_auto(copy["name"])
+        self.assertEqual([r[0] for r in self.conn.execute("SELECT payee FROM expenses")], ["Corner Grocer"])
+
+    def test_only_its_own_files(self):
+        for name in ("../budget.db", "budget-2026-11-01.db", "before-import-x.db"):
+            with self.assertRaises(ApiError):
+                backup.restore_auto(name)
