@@ -30,10 +30,20 @@ class ClearData(AppTest):
         settings = dict(self.conn.execute("SELECT key, value FROM settings").fetchall())
         self.assertEqual(settings, {"theme": "dark", "currency": "USD"})
 
-    def test_cannot_be_undone_and_leaves_no_copies(self):
+    def test_leaves_no_copies(self):
         db.daily_backup()
-        backup.restore(backup.export_file()[1])  # an import leaves a safety copy
-        self.assertTrue(backup.status()["can_undo"])
         api.clear_data(self.conn, None, {"confirm": True}, None)
-        self.assertFalse(backup.status()["can_undo"])
         self.assertEqual(list(db.BACKUP_DIR.glob("*.db")), [])
+
+
+class Restore(AppTest):
+    def test_replaces_everything_and_keeps_no_copy(self):
+        self.add(1250, "2026-11-01", payee="Corner Grocer")
+        self.conn.commit()
+        saved = backup.export_file()[1]
+        self.add(900, "2026-11-02", payee="Fresh Market")
+        self.conn.commit()
+        backup.restore(saved)
+        payees = [r[0] for r in self.conn.execute("SELECT payee FROM expenses")]
+        self.assertEqual(payees, ["Corner Grocer"])
+        self.assertEqual(list(db.BACKUP_DIR.glob("before-*.db")) if db.BACKUP_DIR.exists() else [], [])

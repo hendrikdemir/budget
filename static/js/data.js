@@ -1,7 +1,6 @@
-// Exporting and importing all data, in Settings. The server checks a file before anything
-// changes and keeps a safety copy, so an import can be undone.
+// Backups in Settings: creating one, restoring one, and deleting all data. Before a restore
+// or a delete, the user creates a backup of the current data first, or says no copy is needed.
 import { shortDate, plural } from "./format.js";
-import { whenSettingsOpen } from "./settings.js";
 import { $, api, confirmDialog, toast } from "./ui.js";
 
 const describe = (s) => {
@@ -9,15 +8,31 @@ const describe = (s) => {
   return `${plural(s.transactions, "transaction")}${period}`;
 };
 
-async function refreshUndo() {
-  $("#undo-import").hidden = !(await api("/api/backup-status")).can_undo;
-}
-whenSettingsOpen(refreshUndo);
-
 // Everything on the page changes, so finish by reloading it.
 async function done(title, message) {
   await confirmDialog({ title, message, cancel: null });
   location.reload();
+}
+
+// Asks to go ahead with replacing or deleting all data. Resolves true once the user created a
+// backup or ticked that they don't need one, and then confirmed; false when cancelled.
+function carefully({ title, text, skip, confirm }) {
+  const dialog = $("#careful-dialog");
+  $("#careful-title").textContent = title;
+  $("#careful-text").textContent = text;
+  $("#careful-skip-text").textContent = skip;
+  $("#careful-confirm").textContent = confirm;
+  $("#careful-done").hidden = true;
+  $("#careful-skip").checked = false;
+  const ready = () => ($("#careful-confirm").disabled = $("#careful-done").hidden && !$("#careful-skip").checked);
+  ready();
+  $("#careful-backup").onclick = () => { $("#careful-done").hidden = false; ready(); };
+  $("#careful-skip").onchange = ready;
+  dialog.showModal();
+  return new Promise((resolve) => {
+    $("#careful-confirm").onclick = () => { dialog.close(); resolve(true); };
+    dialog.onclose = () => resolve(false); // resolving twice does nothing
+  });
 }
 
 $("#export-btn").onclick = () => toast("Keep your backup somewhere safe: it holds all your financial data.", 4);
@@ -29,42 +44,25 @@ $("#import-file").onchange = async (e) => {
   if (!file) return;
   const data = await file.arrayBuffer();
   const { backup, current } = await api("/api/backup-check", { method: "POST", body: data });
-  const ok = await confirmDialog({
+  const ok = await carefully({
     title: "Replace your data with this backup?",
-    message: `The backup has ${describe(backup)}. It replaces everything now in Budget (${describe(current)}), including your budgets and settings. A safety copy is kept, so you can undo this. To add transactions from your bank instead, use Import above your transactions.`,
-    confirm: "Replace my data", danger: true,
+    text: `The backup has ${describe(backup)}. It replaces everything now in Budget (${describe(current)}), including your budgets and settings. To add transactions from your bank instead, use Import above your transactions.`,
+    skip: "Replace without a backup. I don't need a copy of my current data.",
+    confirm: "Replace my data",
   });
   if (!ok) return;
-  const imported = await api("/api/backup-restore", { method: "POST", body: data });
-  await done("Your backup is restored", `Budget now has ${describe(imported)}. Changed your mind? Choose Undo last import in Settings.`);
+  const restored = await api("/api/backup-restore", { method: "POST", body: data });
+  await done("Your backup is restored", `Budget now has ${describe(restored)}.`);
 };
 
-$("#undo-import").onclick = async () => {
-  const ok = await confirmDialog({
-    title: "Undo the last import?",
-    message: "This brings back your data from just before the import. Anything you added since then is lost.",
-    confirm: "Undo import", danger: true,
+$("#clear-btn").onclick = async () => {
+  const ok = await carefully({
+    title: "Delete all your data?",
+    text: "This deletes all your transactions, budgets, account balances, and the income and costs you planned in the Outlook. Budget's automatic backups are deleted too, so this can't be undone. Your theme and currency stay.",
+    skip: "Delete without a backup. I don't need a copy.",
+    confirm: "Delete all data",
   });
   if (!ok) return;
-  const restored = await api("/api/backup-undo", { method: "POST" });
-  await done("Import undone", `Budget now has ${describe(restored)}.`);
-};
-
-// Deleting all data: only after an export, or after saying explicitly that no copy is needed.
-const clearReady = () => ($("#clear-confirm").disabled = $("#clear-exported").hidden && !$("#clear-skip").checked);
-$("#clear-btn").onclick = () => {
-  $("#clear-exported").hidden = true;
-  $("#clear-skip").checked = false;
-  clearReady();
-  $("#clear-dialog").showModal();
-};
-$("#clear-export").onclick = () => {
-  $("#clear-exported").hidden = false;
-  clearReady();
-};
-$("#clear-skip").onchange = clearReady;
-$("#clear-confirm").onclick = async () => {
   await api("/api/clear-data", { method: "POST", body: { confirm: true } });
-  $("#clear-dialog").close();
-  await done("Your data is deleted", "Budget is empty now. If you exported a copy, you can bring it back with Restore from backup in Settings.");
+  await done("Your data is deleted", "Budget is empty now. If you created a backup, you can bring it back with Restore from backup in Settings.");
 };

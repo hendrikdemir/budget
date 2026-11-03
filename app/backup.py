@@ -1,20 +1,19 @@
 """Exporting all data to one file, and importing such a file (for example on a new Mac).
 
 An export is a copy of the SQLite database, with the extension .budget. An import first
-checks the file thoroughly, then keeps a safety copy of the current data so it can be undone.
-Deleting all data is final: it also removes the automatic backups and safety copies, so
-nothing of the old data stays behind.
+checks the file thoroughly, then replaces all data with it; the page offers to create a backup
+of the current data first. Deleting all data is final: it also removes the automatic backups,
+so nothing of the old data stays behind.
 """
 import sqlite3
 import tempfile
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 
 from . import db
 from .money import ApiError
 
 MAX_SIZE = 200 * 1024 * 1024
-KEEP_SAFETY_COPIES = 5
 KEEP_SETTINGS = ("theme", "currency")  # how Budget looks stays when all data is deleted
 REQUIRED_TABLES = {"categories", "items", "budgets", "expenses", "splits", "settings"}
 NOT_A_BACKUP = "This isn't a Budget backup. Choose a file that ends in .budget, made with Create backup."
@@ -90,24 +89,6 @@ def _replace_data_with(path):
     db.migrate()
 
 
-def _safety_copies():
-    """Copies of the data from before an import, oldest first."""
-    return sorted(db.BACKUP_DIR.glob("before-import-*.db"))
-
-
-def _keep_safety_copy():
-    db.BACKUP_DIR.mkdir(exist_ok=True)
-    safety = db.BACKUP_DIR / f"before-import-{datetime.now():%Y-%m-%d-%H%M%S}.db"
-    source, copy = db.connect(), sqlite3.connect(safety)
-    try:
-        source.backup(copy)
-    finally:
-        copy.close()
-        source.close()
-    for old in _safety_copies()[:-KEEP_SAFETY_COPIES]:
-        old.unlink()
-
-
 def check(data):
     """What's in a backup, compared to the current data."""
     backup = _with_temp_file(data, inspect)
@@ -115,10 +96,9 @@ def check(data):
 
 
 def restore(data):
-    """Replaces all data with a backup, after keeping a safety copy of the current data."""
+    """Replaces all data with a backup."""
     def run(path):
         inspect(path)
-        _keep_safety_copy()
         _replace_data_with(path)
         return inspect_current()
     return _with_temp_file(data, run)
@@ -134,7 +114,7 @@ def inspect_current():
 
 def clear():
     """Deletes all transactions, budgets, plans and balances, keeping how Budget looks. This
-    can't be undone: the automatic backups and safety copies go too."""
+    can't be undone: the automatic backups go too."""
     conn = db.connect()
     try:
         conn.execute("PRAGMA foreign_keys = OFF")  # everything goes, so the order doesn't matter
@@ -150,19 +130,4 @@ def clear():
     if db.BACKUP_DIR.exists():
         for copy in db.BACKUP_DIR.glob("*.db"):
             copy.unlink()
-    return inspect_current()
-
-
-def status():
-    """Whether the last import can be undone."""
-    return {"can_undo": bool(_safety_copies())}
-
-
-def undo():
-    """Puts back the data from before the last import."""
-    copies = _safety_copies()
-    if not copies:
-        raise ApiError("There's no import to undo.")
-    _replace_data_with(copies[-1])
-    copies[-1].unlink()
     return inspect_current()

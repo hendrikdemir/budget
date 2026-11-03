@@ -335,14 +335,6 @@ def clear_data(conn, _, body, __):
     return backup.clear()
 
 
-def undo_import(conn, _, __, ___):
-    return backup.undo()
-
-
-def import_status(conn, _, __, ___):
-    return backup.status()
-
-
 # ---- Settings ----
 
 def get_version(conn, _, __, ___):
@@ -402,9 +394,7 @@ ROUTES = {
     ("GET", "export", False): export_data,
     ("POST", "backup-check", False): check_backup,
     ("POST", "backup-restore", False): restore_backup,
-    ("POST", "backup-undo", False): undo_import,
     ("POST", "clear-data", False): clear_data,
-    ("GET", "backup-status", False): import_status,
     ("GET", "version", False): get_version,
     ("GET", "settings", False): get_settings,
     ("POST", "settings", False): save_settings,

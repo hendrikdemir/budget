@@ -368,7 +368,6 @@
       <div class="data-actions">
         <a id="export-btn" class="ghost-btn" href="/api/export" download>Create backup</a>
         <button type="button" id="import-btn" class="ghost-btn">Restore from backup</button>
-        <button type="button" id="undo-import" class="link-btn" hidden>Undo last import</button>
       </div>
       <button type="button" id="clear-btn" class="link-btn danger-text clear-link">Delete all data…</button>
       <input type="file" id="import-file" accept=".budget" hidden>
@@ -435,21 +434,22 @@
     </form>
   </dialog>
 
-  <dialog id="clear-dialog" class="small">
+  <!-- Before replacing or deleting all data: create a backup first, or say no copy is needed. -->
+  <dialog id="careful-dialog" class="small">
     <div class="dialog-head">
-      <h2>Delete all your data?</h2>
+      <h2 id="careful-title"></h2>
       <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </div>
-    <p class="clear-text">This deletes all your transactions, budgets, account balances, and the income and costs you planned in the Outlook. Budget's automatic backups are deleted too, so this can't be undone. Your theme and currency stay.</p>
-    <div class="clear-step">
-      <div><b>First, create a backup</b><span class="muted">So you can bring it all back later with Restore from backup.</span></div>
-      <a id="clear-export" class="ghost-btn" href="/api/export" download>Create backup</a>
+    <p id="careful-text" class="careful-text"></p>
+    <div class="careful-step">
+      <div><b>First, create a backup</b><span class="muted">Of your data as it is now, so you can bring it back with Restore from backup.</span></div>
+      <a id="careful-backup" class="ghost-btn" href="/api/export" download>Create backup</a>
     </div>
-    <p id="clear-exported" class="clear-done" hidden>✓ Backup created. Check that the file is saved before you continue.</p>
-    <label class="clear-skip"><input type="checkbox" id="clear-skip"> Delete without a backup. I don't need a copy.</label>
+    <p id="careful-done" class="careful-done" hidden>✓ Backup created. Check that the file is saved before you continue.</p>
+    <label class="careful-skip"><input type="checkbox" id="careful-skip"> <span id="careful-skip-text"></span></label>
     <div class="dialog-foot">
       <button type="button" class="ghost-btn" data-close>Cancel</button>
-      <button type="button" class="danger-btn" id="clear-confirm" disabled>Delete all data</button>
+      <button type="button" class="danger-btn" id="careful-confirm" disabled></button>
     </div>
   </dialog>
 
