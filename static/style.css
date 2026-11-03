@@ -450,10 +450,16 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .opt-group { padding: 8px 10px 2px; font-size: 11px; font-weight: 500; color: var(--muted); }
 .opt-empty { padding: 8px 10px; font-size: 14px; color: var(--muted); }
 .toast {
-  position: fixed; inset: auto auto 24px 50%; margin: 0; border: 0; max-width: calc(100vw - 32px); transform: translateX(-50%);
+  position: fixed; inset: auto auto 24px 50%; margin: 0; border: 0; max-width: calc(100vw - 32px); transform: translateX(-50%); overflow: hidden;
   background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 999px;
   font-size: 14px; font-weight: 500; box-shadow: var(--shadow);
 }
+.toast::after {
+  content: ""; position: absolute; left: 20px; right: 20px; bottom: 5px; height: 2px; border-radius: 1px;
+  background: currentColor; opacity: 0.35; transform-origin: left;
+}
+.toast.running::after { animation: toast-time var(--toast-time, 3s) linear forwards; }
+@keyframes toast-time { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
 /* ---- Charts ---- */
 .hist-plot { position: relative; width: 100%; }
