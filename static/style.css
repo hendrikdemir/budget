@@ -1,57 +1,57 @@
-/* Two real themes around one palette of greens and slate blues (#c9e4ca, #87bba2, #55828b,
-   #3b6064, #364958), with a soft glow behind frosted cards. Red stays free to mean one thing,
-   over budget. Light is dark text on pale green; dark is deep slate with pale text.
-   Every component is styled in one place; colors come from these tokens. */
+/* Two real themes around one palette of ink, teal and sky blue with a fresh green for good
+   news (#74b3ce, #508991, #172a3a, #004346, #09bc8a), with a soft glow behind frosted cards.
+   Red stays free to mean one thing, over budget. Light is dark text on a pale blue-white;
+   dark is deep ink with pale text. Every component is styled in one place; colors come from these tokens. */
 :root {
-  --bg: #f0f6f0;
-  --surface: rgba(250, 253, 250, 0.74);
-  --glow-a: rgba(135, 187, 162, 0.5);
-  --glow-b: rgba(85, 130, 139, 0.28);
-  --hero: linear-gradient(125deg, #364958, #3b6064 55%, #55828b);
-  --raised: #fbfdfb;
-  --halo: #f7fbf7;
-  --dialog: #f7fbf7;
-  --text: #1e2a31;
-  --muted: #4e6068;
-  --border: #cfe0d2;
-  --input: #fcfefc;
-  --accent: #3b6064;
+  --bg: #f1f6f7;
+  --surface: rgba(250, 253, 253, 0.74);
+  --glow-a: rgba(116, 179, 206, 0.45);
+  --glow-b: rgba(9, 188, 138, 0.2);
+  --hero: linear-gradient(125deg, #172a3a, #004346 55%, #2f6f75);
+  --raised: #fbfdfd;
+  --halo: #f5f9fa;
+  --dialog: #f5f9fa;
+  --text: #172a3a;
+  --muted: #4b5d68;
+  --border: #d2e1e6;
+  --input: #fcfefe;
+  --accent: #004346;
   --on-accent: #ffffff;
-  --accent-soft: rgba(135, 187, 162, 0.22);
-  --track: #dcebdd;
+  --accent-soft: rgba(116, 179, 206, 0.22);
+  --track: #dce8ec;
   --danger: #b42318;
   --danger-solid: #c8372d;
   --danger-soft: rgba(200, 55, 45, 0.09);
   --danger-on-accent: #ffb4a8;
-  --good: #3b6064;
-  --shadow: 0 16px 40px rgba(54, 73, 88, 0.18);
+  --good: #078a66;
+  --shadow: 0 16px 40px rgba(23, 42, 58, 0.18);
   --radius: 22px;
   --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #1b242b;
-  --surface: rgba(40, 53, 62, 0.62);
-  --glow-a: rgba(59, 96, 100, 0.6);
-  --glow-b: rgba(85, 130, 139, 0.3);
-  --hero: linear-gradient(125deg, #2c3c48, #3b6064 60%, #55828b);
-  --raised: #2f3e48;
-  --halo: #25323b;
-  --dialog: #26333c;
-  --text: #e9f3eb;
-  --muted: #a9c2b5;
-  --border: #3a4c57;
-  --input: #2a3842;
-  --accent: #87bba2;
-  --on-accent: #16262a;
-  --accent-soft: rgba(201, 228, 202, 0.08);
-  --track: #3a4b55;
+  --bg: #0f1d28;
+  --surface: rgba(26, 44, 58, 0.62);
+  --glow-a: rgba(0, 67, 70, 0.7);
+  --glow-b: rgba(116, 179, 206, 0.16);
+  --hero: linear-gradient(125deg, #004346, #0b5b5f 55%, #508991);
+  --raised: #213646;
+  --halo: #172a3a;
+  --dialog: #182b3b;
+  --text: #eaf3f5;
+  --muted: #a5bcc6;
+  --border: #2c4556;
+  --input: #1d3343;
+  --accent: #74b3ce;
+  --on-accent: #0d2230;
+  --accent-soft: rgba(116, 179, 206, 0.1);
+  --track: #2c4556;
   --danger: #ff9d90;
   --danger-solid: #e5544f;
   --danger-soft: rgba(229, 84, 79, 0.16);
-  --good: #87bba2;
+  --good: #09bc8a;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%2316262a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%230d2230' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
 
