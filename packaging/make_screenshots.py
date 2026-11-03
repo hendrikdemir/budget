@@ -129,8 +129,22 @@ def capture(url):
         page.wait_for_timeout(300)
         page.evaluate("document.activeElement.blur()")
         page.locator("#settings").screenshot(path=OUT / "appearance.png")
+        page.click("#import-btn")
+        page.wait_for_selector("#restore-dialog[open]")
+        page.mouse.move(0, 0)
+        page.wait_for_timeout(300)
+        page.locator("#restore-dialog").screenshot(path=OUT / "restore.png")
         page.context.close()
         browser.close()
+
+
+def make_daily_backups():
+    """A few automatic backups, as if Budget was used on the last days."""
+    import shutil
+    db.daily_backup()
+    today = next(db.BACKUP_DIR.glob("budget-*.db"))
+    for days in (1, 2, 4):
+        shutil.copy(today, db.BACKUP_DIR / f"budget-{date.today() - timedelta(days=days)}.db")
 
 
 def bank_export():
@@ -160,6 +174,7 @@ def main():
         db.use_data_dir(Path(folder))
         db.migrate()
         seed()
+        make_daily_backups()
         outlook.READY_DAYS = 31  # show "ready for next month?" whatever today's date is
         server = make_server(0)
         threading.Thread(target=server.serve_forever, daemon=True).start()

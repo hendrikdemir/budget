@@ -31,7 +31,8 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 - `app/outlook.py`: `month_outlook()` ("ready for next month?") and `projection()`.
 - `app/bank_import.py`: reading bank exports (CSV) for review. One reader per bank in
   `READERS` (ING for now); `preview()` adds payee, budget and duplicate suggestions.
-- `app/backup.py`: export and import. Bump nothing here for schema changes: a backup's version is
+- `app/backup.py`: creating and restoring backups (a file, or the automatic daily ones from
+  `db.daily_backup()`), and deleting all data. Bump nothing here for schema changes: a backup's version is
   its `user_version`, and imports run the normal migrations.
 - `app/api.py`: request handlers; validation helpers are in `app/money.py`.
 - `static/js/`: ES modules. `main.js` starts the page; `overview.js`, `transaction.js`,

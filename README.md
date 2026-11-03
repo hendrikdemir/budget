@@ -102,13 +102,17 @@ Add your expected income and planned costs, like a holiday or a new laptop, and 
 
 ### Make it yours
 
-<img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency, and exporting or importing your data">
+<img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency and backups">
 
 Follow your Mac's light or dark mode, or choose one yourself, and pick your currency from every currency in the world.
 
-### Take your data with you
+### Backups and moving to a new Mac
 
-Export everything to a single file, to keep your own copy or to move to a new Mac. Importing is made to be safe: Budget checks the file first, shows what's in it and what it replaces, and keeps a safety copy so you can undo the import.
+<img src="docs/screenshots/restore.png" width="420" alt="Restoring a backup: a file you created, or one of the automatic daily backups">
+
+**Create backup** saves all your data in one file, to keep safe or to move to a new Mac. Budget also keeps an automatic backup of each day you use it, the last 14. **Restore from backup** brings back either one: it checks the file first, shows what's in it and what it replaces, and offers to create a backup of your current data before it does.
+
+**Delete all data** empties Budget, for a fresh start. It only goes ahead after you create a backup, or tick that you don't need one, and it can't be undone.
 
 ## Installing
 
@@ -123,15 +127,15 @@ Budget currently runs on Macs with Apple Silicon.
 
 ## Your data
 
-Everything stays on your Mac. Budget makes a backup automatically once a day and keeps the last 14 days, in `~/Library/Application Support/nl.hendrikdemir.budget/backups`.
+Everything stays on your Mac, in `~/Library/Application Support/nl.hendrikdemir.budget`. Budget makes a backup automatically on each day you use it and keeps the last 14, in the `backups` folder there. You can restore them from **Settings → Restore from backup**. They're on the same Mac, so for a copy elsewhere, use **Create backup** or Time Machine.
 
 **Moving to a new Mac**
 
-1. On your old Mac, open Budget, click the gear icon to open **Settings**, and choose **Export data**. Save the file.
+1. On your old Mac, open Budget, click the gear icon to open **Settings**, and choose **Create backup**. Save the file.
 2. Move the file to your new Mac, for example with AirDrop.
-3. Install Budget on your new Mac, open **Settings**, and choose **Import data**.
+3. Install Budget on your new Mac, open **Settings**, choose **Restore from backup**, and then **Choose file…**.
 
-The export file holds all your financial data and isn't encrypted, so keep it somewhere safe and delete it when you no longer need it.
+The backup file holds all your financial data and isn't encrypted, so keep it somewhere safe and delete it when you no longer need it.
 
 ## For developers
 
