@@ -62,16 +62,21 @@ def balance(conn, account):
 
 def year_history(conn, year):
     """Looking back on `year`: per finished month the income, spending and their difference,
-    and the expected bank and savings balance at its end (None before tracking started). The
+    and the expected bank and savings balance at its end (None before that account's tracking
+    started). Months before the first starting point are left out, as nothing was kept then. The
     month you're in isn't included: until it's over, its result says little (the income may
     not be in yet). Plus the totals of those months and which years have data."""
     from .budgets import month_data  # budgets doesn't need accounts, so no import cycle
     now = today()
+    starts = [d for d in (starting_point(conn, a)[1] for a in ACCOUNT_EFFECTS) if d]
+    begin = min(starts)[:7] if starts else ""
     months = []
     for m in range(1, 13):
         month = f"{year}-{m:02d}"
         if month >= now[:7]:
             break
+        if month < begin:
+            continue
         end = (date(year + m // 12, m % 12 + 1, 1) - timedelta(days=1)).isoformat()
         totals = month_data(conn, month)["totals"]
         months.append({"month": month, "income": totals["income"], "spent": totals["spent"], "net": totals["net"],
@@ -89,10 +94,9 @@ def year_history(conn, year):
         return None if first is None or last is None else last - first
 
     found = conn.execute("SELECT MIN(substr(date, 1, 4)) AS y FROM expenses").fetchone()["y"]
-    starts = [d[:4] for d in (starting_point(conn, a)[1] for a in ACCOUNT_EFFECTS) if d]
     return {
         "year": year, "months": months,
-        "first_year": int(min([found, *starts] if found else starts or [now[:4]])), "last_year": int(now[:4]),
+        "first_year": int(begin[:4] if begin else found or now[:4]), "last_year": int(now[:4]),
         "totals": {"income": sum(m["income"] for m in months), "spent": sum(m["spent"] for m in months),
                    "net": sum(m["net"] for m in months), "bank_change": change("bank"), "savings_change": change("savings")},
     }

@@ -27,7 +27,7 @@ export async function renderHistory() {
   // Only finished months: the one you're in is on the Overview until it's over.
   const done = h.months.length;
   $("#history-note").textContent = !done ? `No finished months in ${year} yet. This month is on the Overview until it's over.`
-    : `${done === 12 ? "The whole year" : `${monthOnly(h.months[0].month, "long")} – ${monthOnly(h.months[done - 1].month, "long")}`}. ${
+    : `${done === 12 ? "The whole year" : done === 1 ? monthOnly(h.months[0].month, "long") : `${monthOnly(h.months[0].month, "long")} – ${monthOnly(h.months[done - 1].month, "long")}`}. ${
       year === range.last ? "This month is added once it's over." : ""}`;
   ["#history-summary", "#history-chart-card", "#history-table-card"].forEach((s) => ($(s).hidden = !done));
   const { totals } = h;
@@ -41,8 +41,9 @@ export async function renderHistory() {
       totals.savings_change === null ? "Set a starting point for your savings to see this" : `Change over these months`),
   ].join("");
 
-  // Twelve months, with the ones still to come left empty.
-  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
+  // From the first tracked month to December, with the ones still to come left empty.
+  const from = Number(h.months[0]?.month.slice(5) ?? 1);
+  const months = Array.from({ length: 13 - from }, (_, i) => `${year}-${String(from + i).padStart(2, "0")}`);
   const row = (m) => h.months.find((r) => r.month === m);
   const values = (key) => months.map((m) => row(m)?.[key] ?? null);
   const savings = values("savings"), bank = values("bank");
