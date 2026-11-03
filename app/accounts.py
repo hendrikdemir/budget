@@ -61,17 +61,18 @@ def balance(conn, account):
 
 
 def year_history(conn, year):
-    """Looking back on `year`: per month (up to now) the income, spending and their difference,
-    and the expected bank and savings balance at its end (today for the current month; None
-    before tracking started). Plus the year's totals and which years have data."""
+    """Looking back on `year`: per finished month the income, spending and their difference,
+    and the expected bank and savings balance at its end (None before tracking started). The
+    month you're in isn't included: until it's over, its result says little (the income may
+    not be in yet). Plus the totals of those months and which years have data."""
     from .budgets import month_data  # budgets doesn't need accounts, so no import cycle
     now = today()
     months = []
     for m in range(1, 13):
         month = f"{year}-{m:02d}"
-        if f"{month}-01" > now:
+        if month >= now[:7]:
             break
-        end = min((date(year + m // 12, m % 12 + 1, 1) - timedelta(days=1)).isoformat(), now)
+        end = (date(year + m // 12, m % 12 + 1, 1) - timedelta(days=1)).isoformat()
         totals = month_data(conn, month)["totals"]
         months.append({"month": month, "income": totals["income"], "spent": totals["spent"], "net": totals["net"],
                        "bank": expected_balance(conn, "bank", end), "savings": expected_balance(conn, "savings", end)})

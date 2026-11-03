@@ -4,7 +4,8 @@ import { lineChart } from "./chart.js";
 import { money, monthName, monthOnly } from "./format.js";
 import { $, api, columnTips, tipHead } from "./ui.js";
 
-let year = new Date().getFullYear();
+// In January nothing of the new year is finished yet, so start on last year.
+let year = new Date().getFullYear() - (new Date().getMonth() === 0 ? 1 : 0);
 let range = { first: year, last: year };
 
 const signed = (v) => `${v < 0 ? "−" : "+"}${money(Math.abs(v))}`;
@@ -23,6 +24,12 @@ export async function renderHistory() {
   $("#history-prev").disabled = year <= range.first;
   $("#history-next").disabled = year >= range.last;
 
+  // Only finished months: the one you're in is on the Overview until it's over.
+  const done = h.months.length;
+  $("#history-note").textContent = !done ? `No finished months in ${year} yet. This month is on the Overview until it's over.`
+    : `${done === 12 ? "The whole year" : `${monthOnly(h.months[0].month, "long")} – ${monthOnly(h.months[done - 1].month, "long")}`}. ${
+      year === range.last ? "This month is added once it's over." : ""}`;
+  ["#history-summary", "#history-chart-card", "#history-table-card"].forEach((s) => ($(s).hidden = !done));
   const { totals } = h;
   const tile = (label, value, note = "", cls = "") =>
     `<div class="tile ${cls}"><span class="label">${label}</span><span class="tile-value">${value}</span>${note ? `<span class="muted">${note}</span>` : ""}</div>`;
@@ -31,7 +38,7 @@ export async function renderHistory() {
     tile("Spent", money(totals.spent)),
     tile("Result", signed(totals.net), totals.net < 0 ? "More spent than earned" : "Left after income and spending"),
     tile("Savings", totals.savings_change === null ? "—" : signed(totals.savings_change),
-      totals.savings_change === null ? "Set a starting point for your savings to see this" : `Change in ${year}`),
+      totals.savings_change === null ? "Set a starting point for your savings to see this" : `Change over these months`),
   ].join("");
 
   // Twelve months, with the ones still to come left empty.
@@ -59,11 +66,10 @@ export async function renderHistory() {
   }
 
   const cell = (v, cls = "") => `<td class="${cls}">${v === null ? "—" : money(v)}</td>`;
-  const now = new Date().toISOString().slice(0, 7);
   $("#history-table").innerHTML = `
     <thead><tr>${["Month", "Income", "Spent", "Result", "Bank account", "Savings"].map((l) => tipHead(l, COLUMN_TIPS[l])).join("")}</tr></thead>
-    <tbody>${[...h.months].reverse().map((r) => `<tr class="${r.month === now ? "now" : ""}">
-      <td>${monthOnly(r.month, "long")}${r.month === now ? ` <span class="muted">so far</span>` : ""}</td>
+    <tbody>${[...h.months].reverse().map((r) => `<tr>
+      <td>${monthOnly(r.month, "long")}</td>
       ${cell(r.income)}${cell(r.spent)}<td class="${r.net < 0 ? "neg" : ""}">${signed(r.net)}</td>${cell(r.bank)}${cell(r.savings)}
     </tr>`).join("")}</tbody>`;
 }
