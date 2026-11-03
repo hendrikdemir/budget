@@ -112,11 +112,6 @@ input[type="checkbox"]:checked { border-color: var(--accent); background: var(--
   height: 38px; padding: 0 18px; font-weight: 500; cursor: pointer; white-space: nowrap;
 }
 .primary-btn:hover { filter: brightness(1.08); }
-/* A keyboard shortcut shown in its button. */
-kbd {
-  display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border: 1px solid currentColor; border-radius: 6px;
-  font-family: inherit; font-size: 11px; font-weight: 500; line-height: 16px; text-align: center; opacity: 0.6; vertical-align: 1px;
-}
 .primary-btn:disabled { opacity: 0.45; cursor: default; }
 .danger-btn { background: var(--danger-solid); color: #fff; border: 0; border-radius: 999px; height: 38px; padding: 0 16px; font-weight: 500; cursor: pointer; }
 .danger-btn:disabled { opacity: 0.4; cursor: default; }
@@ -242,7 +237,7 @@ h1::before { content: ""; display: inline-block; width: 10px; height: 10px; bord
 .bl-row:hover .carry, .carry:focus-visible, .carry.on { opacity: 1; }
 .carry:hover { color: var(--accent); }
 .carry.on { color: var(--accent); font-weight: 500; }
-@media (hover: none) { .carry { opacity: 1; } kbd { display: none; } }
+@media (hover: none) { .carry { opacity: 1; } }
 
 /* ---- Account balances ---- */
 .account-row {
@@ -548,7 +543,6 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
   .toolbar .month-switch { flex: 1 0 100%; justify-content: space-between; }
   .toolbar .spacer { display: none; }
   .toolbar #income-btn, .toolbar #add-btn { flex: 1; }
-  kbd { display: none; }
   .ghost-btn, .primary-btn, .month-btn { white-space: nowrap; }
   .month-btn { min-width: 0; }
   .total { font-size: 46px; }

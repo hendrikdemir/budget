@@ -1,4 +1,4 @@
-// Starts the page: settings, the current page (overview, #history or #outlook) and keyboard shortcuts.
+// Starts the page: settings and the current page (overview, #history or #outlook).
 import "./bank-import.js";
 import "./data.js";
 import { renderHistory } from "./history.js";
@@ -19,15 +19,6 @@ addEventListener("hashchange", showPage);
 
 $("#add-btn").onclick = () => openTransaction();
 $("#income-btn").onclick = () => openTransaction(null, "income");
-// N: new expense, I: new income (when not typing).
-document.addEventListener("keydown", (e) => {
-  if (e.target.closest("input, textarea, select, dialog") || e.metaKey || e.ctrlKey) return;
-  const kind = { n: "expense", i: "income" }[e.key.toLowerCase()];
-  if (kind) {
-    e.preventDefault();
-    openTransaction(null, kind);
-  }
-});
 
 await loadSettings(() => {
   load();
