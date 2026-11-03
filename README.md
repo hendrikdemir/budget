@@ -52,7 +52,7 @@ Your spending, what's left in each budget, and anything spent outside your budge
 - **See the effect before you save:** a preview shows what's left in each budget, in red if it would go over.
 - **Income** can top up a budget. Sold something online? Add it to your Fun money.
 - **Bills paid in advance** can count for one month and leave your bank in another.
-- **Quick entry:** known payees suggest the budget you used last time, and pressing <kbd>N</kbd> or <kbd>I</kbd> opens a new expense or income.
+- **Quick entry:** known payees suggest the budget you used last time.
 
 </td>
 </tr>
@@ -80,12 +80,17 @@ Transactions are grouped per day. Search by payee, note, budget or amount, filte
 
 Set a starting balance for your bank account and savings, and Budget keeps track from there. Enter what your bank shows at any time: it tells you whether everything matches, or how much is off.
 
-Follow the development of your savings through the year, month by month.
 
 </td>
-<td width="50%"><img src="docs/screenshots/savings.png" alt="The savings account with its development chart"></td>
+<td width="50%"><img src="docs/screenshots/savings.png" alt="Checking the savings account against what the bank shows"></td>
 </tr>
 </table>
+
+### Look back with History
+
+<img src="docs/screenshots/history.png" alt="The History page: a year's income, spending and result, with the bank and savings balance per month">
+
+The History page shows a year at a glance: what came in, what went out and what was left, and how your bank account and savings developed, month by month.
 
 ### Look ahead with the Outlook
 

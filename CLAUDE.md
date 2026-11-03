@@ -26,7 +26,8 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   To change the schema, append a function to `MIGRATIONS` (never edit an old one).
 - `app/budgets.py`: budget history, carry-over, transactions, and `month_data()`, which
   computes a month's budget lines, totals and leftover.
-- `app/accounts.py`: expected balances (starting point + transactions by paid date).
+- `app/accounts.py`: expected balances (starting point + transactions by paid date) and `year_history()`
+  for the History page.
 - `app/outlook.py`: `month_outlook()` ("ready for next month?") and `projection()`.
 - `app/bank_import.py`: reading bank exports (CSV) for review. One reader per bank in
   `READERS` (ING for now); `preview()` adds payee, budget and duplicate suggestions.
@@ -34,7 +35,7 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   its `user_version`, and imports run the normal migrations.
 - `app/api.py`: request handlers; validation helpers are in `app/money.py`.
 - `static/js/`: ES modules. `main.js` starts the page; `overview.js`, `transaction.js`,
-  `budget-editor.js`, `accounts.js`, `outlook.js`, `settings.js`, `bank-import.js` each own a part of the UI;
+  `budget-editor.js`, `accounts.js`, `history.js`, `outlook.js`, `settings.js`, `bank-import.js` each own a part of the UI;
   `format.js`, `ui.js`, `controls.js`, `chart.js`, `state.js` are shared helpers.
 
 ## Conventions

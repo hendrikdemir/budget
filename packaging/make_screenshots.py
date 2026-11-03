@@ -82,9 +82,18 @@ def capture(url):
         # The savings development.
         page = page_for("dark", height=1000)
         page.click('.account-row[data-account="savings"]')
-        page.wait_for_selector("#hist-plot svg")
+        page.wait_for_selector("#balance-dialog[open]")
+        page.fill("#check-form [name=amount]", "11600")
         page.wait_for_timeout(400)
         page.locator("#balance-dialog").screenshot(path=OUT / "savings.png")
+        page.context.close()
+
+        # Looking back on the year.
+        page = page_for("light", height=1180)
+        page.goto(url + "#history")
+        page.wait_for_selector("#history-chart svg")
+        page.wait_for_timeout(500)
+        shot(page, "history")
         page.context.close()
 
         # The outlook.
