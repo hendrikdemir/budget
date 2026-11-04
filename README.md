@@ -102,7 +102,7 @@ Add your expected income and planned costs, like a holiday or a new laptop, and 
 
 ### Make it yours
 
-<img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency and backups">
+<img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency, backups and updates">
 
 Follow your Mac's light or dark mode, or choose one yourself, and pick your currency from every currency in the world.
 
@@ -114,6 +114,12 @@ Follow your Mac's light or dark mode, or choose one yourself, and pick your curr
 
 **Delete all data** empties Budget, for a fresh start. It only goes ahead after you create a backup, or tick that you don't need one, and it can't be undone.
 
+### Hear about new versions
+
+<img src="docs/screenshots/update.png" width="420" alt="A new version is available: what's new and how to install it">
+
+Once a day Budget asks GitHub whether there's a new version. Only GitHub is asked, and nothing about you or your data is sent. When there is one, a banner at the top says so, and **How to update** shows what's new and how to install it. Settings shows whether you have the latest version, and you can turn the check off there with **Check for new versions**.
+
 ## Installing
 
 1. Download `Budget.dmg` from the [Releases](../../releases) page.
@@ -121,7 +127,9 @@ Follow your Mac's light or dark mode, or choose one yourself, and pick your curr
 3. Open Budget. Nothing else needs to be installed.
 
 > [!NOTE]
-> Budget isn't signed with an Apple Developer account yet, so macOS blocks the first start. Open **System Settings → Privacy & Security** and choose **Open Anyway**. You only need to do this once.
+> Budget isn't signed with an Apple Developer account yet, so macOS blocks the first start. Open **System Settings → Privacy & Security** and choose **Open Anyway**. You do this again after installing a new version.
+
+To update, quit Budget, download the new `Budget.dmg`, drag Budget to **Applications** again and choose **Replace**. Your data is kept outside the app, so it stays as it is.
 
 Budget currently runs on Macs with Apple Silicon.
 
@@ -150,6 +158,14 @@ python3 server.py
 Then open http://localhost:8000.
 
 Add `--demo` to try it with a made-up household, kept in `.demo-data/`.
+
+To try the update check without a real release, point it at a made-up one:
+
+```bash
+BUDGET_RELEASES_URL=packaging/test-release.json python3 server.py --demo
+```
+
+For a release, set `VERSION` in `app/__init__.py`, build, and publish a GitHub release tagged with the same number (for example `v1.1.0`) with `Budget.dmg` attached. Apps with an older version then show that it's available.
 
 Build `dist/Budget.app` and `dist/Budget.dmg`:
 

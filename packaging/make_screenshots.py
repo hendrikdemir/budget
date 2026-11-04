@@ -4,6 +4,7 @@ folder. Never touches real data. Needs Playwright with WebKit in the build envir
     .venv-build/bin/pip install playwright && .venv-build/bin/playwright install webkit
     .venv-build/bin/python packaging/make_screenshots.py
 """
+import os
 import sys
 import tempfile
 import threading
@@ -15,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 
 from playwright.sync_api import sync_playwright
 
-from app import db, outlook
+from app import VERSION, db, outlook, updates
 from app.demo import seed
 from app.web import make_server
 
@@ -135,7 +136,30 @@ def capture(url):
         page.wait_for_timeout(300)
         page.locator("#restore-dialog").screenshot(path=OUT / "restore.png")
         page.context.close()
+
+        # A new version is available.
+        fake_release(NEWER)
+        page = page_for("light", height=880)
+        page.click("#update-how")
+        page.wait_for_selector("#update-dialog[open]")
+        page.evaluate("document.activeElement.blur()")
+        page.mouse.move(0, 0)
+        page.wait_for_timeout(300)
+        page.locator("#update-dialog").screenshot(path=OUT / "update.png")
+        page.context.close()
         browser.close()
+
+
+RELEASE_FILE = None
+NEWER = {"tag_name": "v9.9.0", "body": "- See how this month compares with the same month last year\n- Fixes a rounding issue in the outlook",
+         "assets": [{"name": "Budget.dmg", "browser_download_url": "https://github.com/hendrikdemir/budget/releases"}]}
+
+
+def fake_release(release):
+    """Makes the update check see `release` instead of asking GitHub."""
+    import json
+    RELEASE_FILE.write_text(json.dumps(release))
+    updates._cache.update(until=0, release=None)
 
 
 def make_daily_backups():
@@ -175,6 +199,10 @@ def main():
         db.migrate()
         seed()
         make_daily_backups()
+        global RELEASE_FILE
+        RELEASE_FILE = Path(folder) / "release.json"
+        os.environ["BUDGET_RELEASES_URL"] = str(RELEASE_FILE)
+        fake_release({"tag_name": f"v{VERSION}"})  # Settings: "You have the latest version"
         outlook.READY_DAYS = 31  # show "ready for next month?" whatever today's date is
         server = make_server(0)
         threading.Thread(target=server.serve_forever, daemon=True).start()
