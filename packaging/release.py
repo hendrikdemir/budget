@@ -230,7 +230,8 @@ def build_and_try(version):
 def publish(version, notes):
     tag = f"v{version}"
     step(f"Committing, tagging and pushing {tag}")
-    git("commit", "--quiet", "-m", f"Release {version}", "--", "app/__init__.py")
+    if git("status", "--porcelain", "--", "app/__init__.py"):  # unchanged for a first release at VERSION
+        git("commit", "--quiet", "-m", f"Release {version}", "--", "app/__init__.py")
     git("tag", "-a", tag, "-m", f"Budget {version}\n\n{notes}")
     git("push", "--quiet", REMOTE, BRANCH, tag)
     print(f"  Pushed {BRANCH} and {tag}.")
