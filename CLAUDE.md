@@ -17,7 +17,8 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 
 - `desktop.py`: the Mac app. `server.py`: development entry point.
 - `packaging/`: `build.sh` builds `dist/Budget.app` and `dist/Budget.dmg`. The version is `VERSION` in
-  `app/__init__.py`. It stays 1.0.0 until the first release; only raise it for a new release.
+  `app/__init__.py`. Don't change it by hand: `release.py` sets it when releasing (it suggests
+  patch/minor/major from what changed), builds, tags `v<VERSION>`, pushes and publishes the GitHub release.
 - `app/web.py`: HTTP server. Routes `/api/<resource>[/<id>]` to `app/api.py` `ROUTES`,
   everything else to `static/`. Sends `Cache-Control: no-cache`.
   It only answers the app's own page (checks Host, Origin and Content-Type), so websites open
