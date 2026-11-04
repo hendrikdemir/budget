@@ -126,8 +126,15 @@ Once a day Budget asks GitHub whether there's a new version. Only GitHub is aske
 2. Open it and drag **Budget** to **Applications**.
 3. Open Budget. Nothing else needs to be installed.
 
-> [!NOTE]
-> Budget isn't signed with an Apple Developer account yet, so macOS blocks the first start. Open **System Settings → Privacy & Security** and choose **Open Anyway**. You do this again after installing a new version.
+Budget isn't signed with a paid Apple Developer account, so the first time, macOS says it can't open it. Click **Done**, then allow it once:
+
+1. Open **System Settings** and choose **Privacy & Security** in the sidebar.
+2. Scroll all the way down to **Security**. Next to "“Budget” was blocked to protect your Mac", click **Open Anyway**.
+3. Confirm with your password or Touch ID, and choose **Open Anyway** once more.
+
+<img src="docs/screenshots/open-anyway.png" width="600" alt="System Settings, Privacy & Security, scrolled down to Security: the Open Anyway button next to the message that Budget was blocked">
+
+The button only shows for about an hour after macOS blocked Budget. If it isn't there, open Budget again first. You do this again after installing a new version.
 
 To update, quit Budget, download the new `Budget.dmg`, drag Budget to **Applications** again and choose **Replace**. Your data is kept outside the app, so it stays as it is.
 

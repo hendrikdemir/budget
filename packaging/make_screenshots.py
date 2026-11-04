@@ -147,7 +147,69 @@ def capture(url):
         page.wait_for_timeout(300)
         page.locator("#update-dialog").screenshot(path=OUT / "update.png")
         page.context.close()
+
+        # Where to find Open Anyway: a drawing, so it's in English whatever the Mac's language.
+        page = browser.new_page(viewport={"width": 760, "height": 480}, device_scale_factor=2)
+        page.set_content(OPEN_ANYWAY)
+        page.wait_for_timeout(200)
+        page.locator(".window").screenshot(path=OUT / "open-anyway.png")
+        page.close()
         browser.close()
+
+
+# A simplified System Settings window, Privacy & Security scrolled down to Security.
+OPEN_ANYWAY = """<!doctype html><meta charset="utf-8"><style>
+  * { box-sizing: border-box; margin: 0; }
+  body { padding: 24px; background: #f0f6f0; font: 13px/1.35 -apple-system, BlinkMacSystemFont, sans-serif;
+         color: #1d1d1f; -webkit-font-smoothing: antialiased; }
+  .window { display: flex; width: 712px; height: 432px; border-radius: 12px; overflow: hidden; background: #fff;
+            border: 1px solid #d5d5d8; box-shadow: 0 18px 40px rgba(54, 73, 88, .22); }
+  .side { width: 214px; background: #ecebef; padding: 14px 10px; border-right: 1px solid #dcdce0; }
+  .dots { display: flex; gap: 8px; margin: 0 0 16px 4px; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; background: #d1d1d6; }
+  .search { height: 26px; border-radius: 7px; background: #dedde2; color: #8e8e93; padding: 5px 9px; margin-bottom: 12px; }
+  .item { display: flex; align-items: center; gap: 8px; padding: 5px 7px; border-radius: 7px; margin-bottom: 1px; color: #3a3a3c; }
+  .item b { width: 20px; height: 20px; border-radius: 5px; flex: none; }
+  .item.on { background: #3b6064; color: #fff; }
+  .main { flex: 1; padding: 16px 26px; overflow: hidden; }
+  h1 { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+  .faded { color: #a1a1a6; }
+  .group { border: 1px solid #e3e3e8; border-radius: 9px; background: #fafafc; margin-bottom: 14px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 13px; }
+  .row + .row { border-top: 1px solid #ebebef; }
+  h2 { font-size: 13px; font-weight: 600; margin: 4px 0 8px; }
+  .pop { border: 1px solid #d1d1d6; border-radius: 6px; padding: 3px 9px; background: #fff; white-space: nowrap; }
+  .btn { position: relative; border: 1px solid #c7c7cc; border-radius: 6px; padding: 4px 12px; background: #fff;
+         font-weight: 500; white-space: nowrap; }
+  .btn::after { content: ""; position: absolute; inset: -7px; border: 3px solid #c8372d; border-radius: 11px; }
+  .hint { margin-top: 10px; font-size: 12px; color: #55828b; font-weight: 500; text-align: right; }
+</style>
+<div class="window">
+  <div class="side">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <div class="search">Search</div>
+    <div class="item"><b style="background:#8e8e93"></b>General</div>
+    <div class="item"><b style="background:#5e9fd9"></b>Appearance</div>
+    <div class="item"><b style="background:#e3a33b"></b>Notifications</div>
+    <div class="item"><b style="background:#6f6fd6"></b>Focus</div>
+    <div class="item"><b style="background:#d7584d"></b>Screen Time</div>
+    <div class="item on"><b style="background:#5b8fd6"></b>Privacy &amp; Security</div>
+    <div class="item"><b style="background:#9b9ba1"></b>Desktop &amp; Dock</div>
+    <div class="item"><b style="background:#4f9ae6"></b>Displays</div>
+    <div class="item"><b style="background:#62b06b"></b>Battery</div>
+  </div>
+  <div class="main">
+    <h1>Privacy &amp; Security</h1>
+    <div class="group faded"><div class="row">Location Services<span>›</span></div><div class="row">Full Disk Access<span>›</span></div></div>
+    <p class="faded" style="margin:-4px 0 12px">⋮ scroll down</p>
+    <h2>Security</h2>
+    <div class="group">
+      <div class="row">Allow applications from<span class="pop">App Store &amp; Known Developers ⌄</span></div>
+      <div class="row">“Budget” was blocked to protect your Mac.<span class="btn">Open Anyway</span></div>
+    </div>
+    <p class="hint">Click Open Anyway, then confirm with your password or Touch ID.</p>
+  </div>
+</div>"""
 
 
 RELEASE_FILE = None
