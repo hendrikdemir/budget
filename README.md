@@ -165,8 +165,6 @@ To try the update check without a real release, point it at a made-up one:
 BUDGET_RELEASES_URL=packaging/test-release.json python3 server.py --demo
 ```
 
-For a release, set `VERSION` in `app/__init__.py`, build, and publish a GitHub release tagged with the same number (for example `v1.1.0`) with `Budget.dmg` attached. Apps with an older version then show that it's available.
-
 Build `dist/Budget.app` and `dist/Budget.dmg`:
 
 ```bash
@@ -184,6 +182,14 @@ Run the tests:
 ```bash
 python3 -m unittest
 ```
+
+Release a new version:
+
+```bash
+python3 packaging/release.py
+```
+
+It checks that everything is committed and the tests pass, suggests a patch, minor or major version from what changed since the last release, and drafts release notes for you to edit. It then builds `Budget.dmg` for you to try, tags and pushes the release, and publishes it on GitHub (with the [`gh`](https://cli.github.com) tool, or by opening the filled-in release page). Add `--dry-run` to only see the suggested version. Write `BREAKING` in a commit message to make the next release a major one. Apps on an older version show the new one within a day.
 
 Update the screenshots, using made-up data:
 
