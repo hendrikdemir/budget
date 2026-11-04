@@ -205,3 +205,9 @@ Update the screenshots, using made-up data:
 | `static/` | The page: HTML, CSS and JavaScript modules |
 | `packaging/` | App build, icon and screenshots |
 | `tests/` | Tests for the calculations, bank imports and the server |
+
+## License
+
+Copyright © 2026 Hendrik Demir
+
+Budget is free software: you can use it for any purpose, and share and change it under the terms of the [GNU General Public License, version 3](LICENSE) or later. If you share a changed version, you share its source code under the same license too. Budget comes with no warranty.
