@@ -19,6 +19,15 @@
     </div>
   </header>
 
+  <div class="update-banner-wrap">
+    <div id="update-banner" class="card update-banner" role="status" hidden>
+      <span><strong id="update-banner-text"></strong> <span class="muted">Your data stays as it is.</span></span>
+      <span class="spacer"></span>
+      <button type="button" id="update-how" class="primary-btn">How to update</button>
+      <button type="button" id="update-later" class="icon-btn" aria-label="Hide until Budget restarts" title="Hide until Budget restarts">×</button>
+    </div>
+  </div>
+
   <main id="overview-view">
     <nav class="toolbar">
       <div class="month-switch">
@@ -370,6 +379,9 @@
         <button type="button" id="import-btn" class="ghost-btn">Restore from backup</button>
       </div>
       <button type="button" id="clear-btn" class="link-btn danger-text clear-link">Delete all data…</button>
+      <span class="label">Updates</span>
+      <label class="update-check"><input type="checkbox" id="update-check"> Check for new versions</label>
+      <p class="muted data-hint" id="update-hint"></p>
       <input type="file" id="import-file" accept=".budget" hidden>
       <div class="dialog-foot">
         <span id="app-version" class="app-version muted"></span>
@@ -421,6 +433,34 @@
         <div class="dialog-foot"><button class="ghost-btn">Save starting point</button></div>
       </form>
     </details>
+  </dialog>
+
+  <dialog id="update-dialog">
+    <form method="dialog">
+      <div class="dialog-head">
+        <h2 id="update-title"></h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+      <p class="muted hint" id="update-current"></p>
+      <div id="update-notes-block">
+        <span class="label">What's new</span>
+        <div id="update-notes" class="update-notes"></div>
+      </div>
+      <span class="label">How to update</span>
+      <ol class="update-steps">
+        <li>Click <strong>Download</strong> below. Budget.dmg is saved in your Downloads folder.</li>
+        <li>Quit Budget (Budget menu › Quit, or ⌘Q).</li>
+        <li>Open Budget.dmg and drag Budget onto the Applications folder. Choose <strong>Replace</strong>.</li>
+        <li>Open Budget. If macOS says it can't check the app, open System Settings › Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>.</li>
+      </ol>
+      <p class="muted update-safe">Your budgets, transactions and settings are kept outside the app, so replacing it doesn't touch them.</p>
+      <div class="dialog-foot">
+        <button type="button" id="update-skip" class="link-btn">Skip this version</button>
+        <span class="spacer"></span>
+        <button value="later" class="ghost-btn">Later</button>
+        <a id="update-download" class="primary-btn" target="_blank" rel="noopener">Download</a>
+      </div>
+    </form>
   </dialog>
 
   <dialog id="confirm-dialog" class="small">

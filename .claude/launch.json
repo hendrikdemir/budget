@@ -1,6 +1,25 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "budget", "runtimeExecutable": "python3", "runtimeArgs": ["server.py", "--demo"], "port": 8000 }
+    {
+      "name": "budget",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "server.py",
+        "--demo"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "budget-update",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "BUDGET_RELEASES_URL=packaging/test-release.json",
+        "python3",
+        "server.py",
+        "--demo"
+      ],
+      "port": 8000
+    }
   ]
 }

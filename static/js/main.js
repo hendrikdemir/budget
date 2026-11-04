@@ -7,6 +7,7 @@ import { load } from "./overview.js";
 import { loadSettings } from "./settings.js";
 import { openTransaction } from "./transaction.js";
 import { $ } from "./ui.js";
+import { checkForUpdate } from "./updates.js";
 
 function showPage() {
   const page = { "#outlook": "outlook", "#history": "history" }[location.hash] || "overview";
@@ -27,3 +28,4 @@ await loadSettings(() => {
 });
 showPage();
 load();
+checkForUpdate();

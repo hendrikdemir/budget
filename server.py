@@ -19,7 +19,10 @@ if __name__ == "__main__":
     new_demo = use_demo and not (DEMO_DIR / "budget.db").exists()
     if use_demo:
         db.use_data_dir(DEMO_DIR)
-    db.migrate()
+    try:
+        db.migrate()
+    except db.TooNewError as e:
+        sys.exit(str(e))
     if new_demo:
         demo.seed()
     if not use_demo:

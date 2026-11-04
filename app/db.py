@@ -119,9 +119,21 @@ def _v1_baseline(conn):
 MIGRATIONS = [_v1_baseline]
 
 
+class TooNewError(Exception):
+    """The data was last used by a newer Budget than this one (for example after reinstalling
+    an older version). This version doesn't know its newer structure, so it mustn't touch it."""
+
+
+TOO_NEW_MESSAGE = ("Your data was last used with a newer version of Budget than this one. "
+                   "Install the latest version from https://github.com/hendrikdemir/budget/releases "
+                   "to keep using it. Your data hasn't changed.")
+
+
 def migrate():
     with connect() as conn:
         version = conn.execute("PRAGMA user_version").fetchone()[0]
+        if version > len(MIGRATIONS):
+            raise TooNewError(TOO_NEW_MESSAGE)
         for number, migration in enumerate(MIGRATIONS[version:], start=version + 1):
             migration(conn)
             conn.execute(f"PRAGMA user_version = {number}")

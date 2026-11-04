@@ -26,6 +26,16 @@ def start_server():
         return make_server(0)
 
 
+def show_message(title, text):
+    """A small window with only a message, for when Budget can't start."""
+    from html import escape
+    html = (f"<body style='font:15px -apple-system,sans-serif;padding:28px;line-height:1.5;"
+            f"background:#f0f6f0;color:#1e2a31'><h2 style='margin-top:0'>{escape(title)}</h2>"
+            f"<p>{escape(text)}</p></body>")
+    webview.create_window("Budget", html=html, width=480, height=280)
+    webview.start()
+
+
 def main():
     data_dir = Path(os.environ.get("BUDGET_DATA_DIR") or Path.home() / "Library/Application Support/nl.hendrikdemir.budget")
     db.use_data_dir(data_dir)
@@ -37,7 +47,11 @@ def main():
     except OSError:
         sys.exit(0)
 
-    db.migrate()
+    try:
+        db.migrate()
+    except db.TooNewError as e:
+        show_message("Budget needs an update", str(e))
+        return
     db.daily_backup()
     server = start_server()
     threading.Thread(target=server.serve_forever, daemon=True).start()

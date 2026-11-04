@@ -2,11 +2,11 @@
 Amounts in requests and responses are whole cents."""
 import re
 
-from . import VERSION, accounts, backup, bank_import, budgets, outlook
+from . import VERSION, accounts, backup, bank_import, budgets, outlook, updates
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
-DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR"}
+DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR", "update_check": "on", "skipped_version": ""}
 
 
 def first(query, name, default=""):
@@ -353,6 +353,11 @@ def get_version(conn, _, __, ___):
     return {"version": VERSION}
 
 
+def check_update(conn, _, __, ___):
+    """Whether a newer Budget is available on GitHub (see app/updates.py)."""
+    settings = get_settings(conn, None, None, None)
+    return updates.check(settings["update_check"] == "on", settings["skipped_version"])
+
 
 def get_settings(conn, _, __, ___):
     rows = conn.execute("SELECT key, value FROM settings").fetchall()
@@ -363,6 +368,8 @@ def save_settings(conn, _, body, __):
     data = {k: str(v) for k, v in body.items() if k in DEFAULT_SETTINGS}
     if "currency" in data and not re.fullmatch(r"[A-Z]{3}", data["currency"]):
         raise ApiError("Choose a currency from the list.")
+    if data.get("update_check", "on") not in ("on", "off") or len(data.get("skipped_version", "")) > 20:
+        raise ApiError(GENERIC_ERROR)
     conn.executemany(
         "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
         data.items(),
@@ -411,6 +418,7 @@ ROUTES = {
     ("POST", "auto-backup-restore", False): restore_auto_backup,
     ("POST", "clear-data", False): clear_data,
     ("GET", "version", False): get_version,
+    ("GET", "update", False): check_update,
     ("GET", "settings", False): get_settings,
     ("POST", "settings", False): save_settings,
 }

@@ -34,9 +34,12 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 - `app/backup.py`: creating and restoring backups (a file, or the automatic daily ones from
   `db.daily_backup()`), and deleting all data. Bump nothing here for schema changes: a backup's version is
   its `user_version`, and imports run the normal migrations.
+- `app/updates.py`: asks GitHub (at most once a day) whether a newer release exists; the page
+  only tells the user and explains how to install it. `BUDGET_RELEASES_URL` (e.g.
+  `packaging/test-release.json`, used by the `budget-update` preview) fakes a release for testing.
 - `app/api.py`: request handlers; validation helpers are in `app/money.py`.
 - `static/js/`: ES modules. `main.js` starts the page; `overview.js`, `transaction.js`,
-  `budget-editor.js`, `accounts.js`, `history.js`, `outlook.js`, `settings.js`, `bank-import.js` each own a part of the UI;
+  `budget-editor.js`, `accounts.js`, `history.js`, `outlook.js`, `settings.js`, `bank-import.js`, `updates.js` each own a part of the UI;
   `format.js`, `ui.js`, `controls.js`, `chart.js`, `state.js` are shared helpers.
 
 ## Conventions

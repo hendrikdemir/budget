@@ -301,6 +301,21 @@ h1 { font-size: 21px; font-weight: 400; margin: 0; }
 .bl-group:has(> .bl-row:first-child:is(:hover, .filtered))::before,
 .bl-group:has(> .bl-row:last-child:is(:hover, .filtered)) + .bl-group::before { opacity: 0; }
 
+/* ---- Update available ---- */
+.update-banner-wrap { max-width: 820px; margin: 0 auto; padding: 0 16px; }
+.update-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 14px 16px 14px 20px; margin-bottom: 16px; font-size: 14px; }
+.update-banner strong { font-weight: 500; }
+.update-banner .spacer { flex: 1; }
+.update-banner .icon-btn { border: 0; }
+.update-notes { white-space: pre-wrap; font-size: 13px; max-height: 160px; overflow: auto; margin: 6px 0 16px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--input); }
+.update-steps { margin: 6px 0 12px; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+.update-steps li + li { margin-top: 4px; }
+.update-steps strong { font-weight: 500; }
+.update-safe { font-size: 13px; margin: 0; }
+#update-download { text-decoration: none; display: inline-flex; align-items: center; }
+.update-check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; justify-self: start; }
+
 /* ---- Dialogs ---- */
 dialog {
   border: 1px solid var(--border); border-radius: var(--radius); background: var(--dialog); color: var(--text);
