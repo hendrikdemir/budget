@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 [ -d .venv-build ] || python3 -m venv .venv-build
-.venv-build/bin/pip install --quiet pyinstaller pywebview pillow
+.venv-build/bin/pip install --quiet pyinstaller pywebview pillow certifi
 [ -f packaging/icon.icns ] || .venv-build/bin/python packaging/make_icon.py
 
 .venv-build/bin/pyinstaller --noconfirm --clean --distpath dist --workpath build packaging/Budget.spec

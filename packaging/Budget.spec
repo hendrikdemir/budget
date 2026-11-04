@@ -4,7 +4,8 @@ import sys
 sys.path.insert(0, f"{SPECPATH}/..")
 from app import VERSION
 
-a = Analysis(["../desktop.py"], pathex=[".."], datas=[("../static", "static")], excludes=["tkinter"])
+a = Analysis(["../desktop.py"], pathex=[".."], datas=[("../static", "static")], excludes=["tkinter"],
+             hiddenimports=["certifi"])  # trusted certificates for the update check
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="Budget", console=False, target_arch=None)
 coll = COLLECT(exe, a.binaries, a.datas, name="Budget")

@@ -11,6 +11,7 @@ release, e.g. packaging/test-release.json.
 import json
 import os
 import re
+import ssl
 import time
 import urllib.request
 from pathlib import Path
@@ -36,6 +37,17 @@ def _github_link(url, fallback):
     return url if isinstance(url, str) and url.startswith("https://github.com/") else fallback
 
 
+def ssl_context():
+    """Trusted certificates for HTTPS. The python.org Python, which the Mac app is built with,
+    has none of its own, so the app bundles certifi's (see packaging/build.sh). Without certifi,
+    e.g. when running from source, Python's defaults are used."""
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
+
+
 def fetch_release():
     """The latest release as {version, notes, page, download}, or None if it can't be read."""
     url = os.environ.get("BUDGET_RELEASES_URL") or RELEASES_URL
@@ -46,7 +58,7 @@ def fetch_release():
         "User-Agent": f"Budget/{VERSION}",
     })
     try:
-        with urllib.request.urlopen(request, timeout=5) as response:
+        with urllib.request.urlopen(request, timeout=5, context=ssl_context()) as response:
             data = json.loads(response.read(1_000_000))
     except (OSError, ValueError):
         return None
