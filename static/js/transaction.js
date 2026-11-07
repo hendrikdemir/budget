@@ -87,6 +87,15 @@ function updateSplits() {
   const label = splitMode ? "+ Add another part" : kind === "income" ? "+ Divide over budgets" : "+ Split across budgets";
   if ($("#add-split").textContent !== label) $("#add-split").textContent = label;
   const total = parseAmount(form.amount.value) || 0;
+  // The first part whose amount the user hasn't typed follows the rest of the total, so
+  // typing the other parts keeps everything adding up.
+  const auto = splitMode && splitRows().find((r) => !r.typed);
+  if (auto) {
+    const others = splitRows().reduce((sum, r) => sum + (r === auto ? 0 : parseAmount(r.querySelector(".split-amount").value) || 0), 0);
+    const value = total - others > 0 ? inputAmount(total - others) : "";
+    const input = auto.querySelector(".split-amount");
+    if (input.value !== value) input.value = value;
+  }
   const rest = total - splitRows().reduce((sum, r) => sum + (parseAmount(r.querySelector(".split-amount").value) || 0), 0);
   splitRows().forEach((r) => (r.querySelector(".split-amount").placeholder = rest > 0 ? `Rest ${inputAmount(rest)}` : "Amount"));
   renderImpact();
@@ -152,8 +161,8 @@ $("#leftover-hint").onclick = (e) => {
 $("#add-split").onclick = () => {
   if (!splitMode) {
     splitMode = true;
-    // The existing part keeps the full amount until another one takes some of it.
-    if (parseAmount(form.amount.value) > 0) splitRows()[0].querySelector(".split-amount").value = form.amount.value.trim();
+    // The existing part keeps whatever the other parts don't take (see updateSplits).
+    splitRows()[0].typed = false;
   }
   addSplitRow().querySelector(".split-line").focus();
   updateSplits();
@@ -164,11 +173,13 @@ $("#splits").onclick = (e) => {
   if (splitRows().length === 1) {
     splitMode = false;
     splitRows()[0].querySelector(".split-amount").value = "";
+    splitRows()[0].typed = false;
   }
   updateSplits();
 };
 form.addEventListener("input", (e) => {
   clearError(e.target.name || (e.target.closest(".split") ? "splits" : ""));
+  if (e.target.matches(".split-amount")) e.target.closest(".split").typed = true;
   updateSplits();
 });
 form.addEventListener("focusout", updateSplits);
