@@ -251,3 +251,47 @@ def month_data(conn, month, exclude=None):
         "leftover": {"unspent": unspent, "saved": saved,
                      "rest": max(0, unspent - max(0, saved)) if month < current_month() else unspent},
     }
+
+
+def budget_history(conn, year):
+    """Looking back on each budget line in `year`: per finished month what was budgeted, what
+    was available (with carry-over and extra from income) and what was spent. Per line the
+    totals over those months, in how many months the spending went over the budget, and
+    whether that's a pattern ("over": usually more spent than budgeted; "under": usually a lot
+    left). Lines are grouped by category, with the names they have now. `outside` is the
+    same for spending outside any budget (None if there was none)."""
+    first = conn.execute("SELECT MIN(substr(date, 1, 7)) AS m FROM expenses").fetchone()["m"]
+    months = [f"{year}-{m:02d}" for m in range(1, 13)]
+    months = [m for m in months if first and first <= m < current_month()]
+    groups, lines = {}, {}
+    outside = {"key": "outside", "name": None, "months": {}}  # spent outside any budget: "Uncategorized"
+    for month in months:
+        data = month_data(conn, month)
+        if data["totals"]["outside"]:
+            outside["months"][month] = {"budget": None, "available": 0, "spent": data["totals"]["outside"]}
+        for g in data["groups"]:
+            group = groups.setdefault(g["id"], {"id": g["id"], "lines": []})
+            group["name"] = g["name"]
+            for l in g["lines"]:
+                if l["key"] not in lines:
+                    lines[l["key"]] = {"key": l["key"], "months": {}}
+                    group["lines"].append(lines[l["key"]])
+                lines[l["key"]]["name"] = l["name"]
+                lines[l["key"]]["months"][month] = {"budget": l["budget"], "available": l["available"], "spent": l["spent"]}
+    for line in [*lines.values(), outside]:
+        rows = line["months"].values()
+        budgeted = [r for r in rows if r["budget"] is not None]
+        line["budget"] = sum(r["budget"] for r in budgeted)
+        line["spent"] = sum(r["spent"] for r in rows)
+        line["budgeted_months"] = len(budgeted)
+        line["over_budget"] = sum(1 for r in budgeted if r["spent"] > r["budget"])  # more than that month's budget
+        line["over_available"] = sum(1 for r in budgeted if r["spent"] > r["available"])  # more than there was, carry-over included
+        budgeted_spent = sum(r["spent"] for r in budgeted)
+        line["pattern"] = None
+        if len(budgeted) >= 2 and line["budget"] > 0:
+            if line["over_budget"] * 2 >= len(budgeted) and budgeted_spent > line["budget"]:
+                line["pattern"] = "over"
+            elif line["over_budget"] == 0 and budgeted_spent * 4 < line["budget"] * 3:
+                line["pattern"] = "under"  # never over, and on average more than a quarter left
+    return {"year": year, "months": months, "groups": [g for g in groups.values() if g["lines"]],
+            "outside": outside if outside["months"] else None}

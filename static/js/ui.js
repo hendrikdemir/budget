@@ -81,6 +81,7 @@ export const tipHead = (label, tip) => tip ? `<th tabindex="0" data-tip="${tip}"
 const columnTip = document.body.appendChild(Object.assign(document.createElement("div"), { className: "col-tip", hidden: true }));
 function showColumnTip(th) {
   columnTip.textContent = th.dataset.tip;
+  columnTip.classList.toggle("cell", th.tagName === "TD"); // a cell's tip starts with its title
   columnTip.hidden = false;
   const box = th.getBoundingClientRect();
   columnTip.style.left = `${Math.max(8, Math.min(box.right - columnTip.offsetWidth, innerWidth - columnTip.offsetWidth - 8))}px`;
@@ -88,9 +89,10 @@ function showColumnTip(th) {
 }
 const hideColumnTip = () => (columnTip.hidden = true);
 addEventListener("scroll", hideColumnTip, { passive: true });
+// Cells can have one too (data-tip, with line breaks as \n).
 export function columnTips(table) {
-  table.addEventListener("mouseover", (e) => e.target.closest("th[data-tip]") && showColumnTip(e.target.closest("th[data-tip]")));
-  table.addEventListener("mouseout", (e) => e.target.closest("th[data-tip]") && hideColumnTip());
-  table.addEventListener("focusin", (e) => e.target.matches("th[data-tip]") && showColumnTip(e.target));
+  table.addEventListener("mouseover", (e) => e.target.closest("[data-tip]") && showColumnTip(e.target.closest("[data-tip]")));
+  table.addEventListener("mouseout", (e) => e.target.closest("[data-tip]") && hideColumnTip());
+  table.addEventListener("focusin", (e) => e.target.matches("[data-tip]") && showColumnTip(e.target));
   table.addEventListener("focusout", hideColumnTip);
 }

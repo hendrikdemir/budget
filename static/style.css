@@ -121,12 +121,17 @@ input[type="checkbox"]:checked { border-color: var(--accent); background: var(--
 .danger-text, .danger-text:hover { background: none; border-color: transparent; padding: 0 4px; color: var(--danger); }
 .danger-text:hover { text-decoration: underline; }
 .link-btn { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 4px 0; font-size: 14px; font-weight: 500; justify-self: start; }
+a.link-btn { text-decoration: none; }
 .link-btn:hover { text-decoration: underline; }
 .delete { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 18px; border-radius: 8px; width: 28px; height: 28px; }
 .delete:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); }
 .segmented { display: flex; background: var(--input); border: 1px solid var(--border); border-radius: 999px; padding: 3px; }
 .segmented button { flex: 1; border: 0; background: none; padding: 6px; border-radius: 999px; cursor: pointer; }
 .segmented button.active { background: var(--accent-soft); font-weight: 500; }
+#repeat-options button { flex: auto; white-space: nowrap; padding: 6px 10px; }
+.every-input { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.every-input input { width: 64px; text-align: center; }
+.plan-when { margin: 0; font-size: 13px; }
 .segmented.small button { padding: 4px 10px; font-size: 13px; }
 
 /* ---- Top bar and tabs ---- */
@@ -267,6 +272,8 @@ h1 { font-size: 21px; font-weight: 400; margin: 0; }
 .clear-filter:hover { background: var(--accent-soft); }
 .selection-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin: 4px 0; background: var(--accent-soft); border-radius: 10px; font-size: 14px; font-weight: 500; }
 .selection-bar .ghost-btn, .selection-bar .danger-btn { height: 32px; }
+.selection-bar a.ghost-btn { display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
+.selection-bar a.ghost-btn.disabled { opacity: 0.45; cursor: default; pointer-events: none; }
 .day-list, .day-list ul { list-style: none; margin: 0; padding: 0; }
 .day + .day { margin-top: 8px; }
 .day-head {
@@ -442,6 +449,8 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .bank-fields.transfer { grid-template-columns: 1fr; }
 .bank-fields input { height: 36px; font-size: 14px; }
 .bank-fields input.invalid { border-color: var(--danger); }
+.bank-split { font-size: 13px; line-height: 1.4; color: var(--muted); align-self: center; }
+.bank-split b { color: var(--text); font-weight: 500; }
 .bank-dup { margin: 0; font-size: 12px; color: var(--muted); }
 /* Long lists: keep the buttons in reach at the bottom of the dialog. */
 #bank-dialog .dialog-foot { position: sticky; bottom: -24px; margin: 12px -24px -24px; padding: 14px 24px 24px; background: var(--dialog); border-top: 1px solid var(--border); }
@@ -467,6 +476,9 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .cal-grid button { padding: 6px 0; }
 .weekdays { font-size: 11px; color: var(--muted); font-weight: 500; padding: 2px 0 4px; }
 .combo-pop { max-height: 280px; overflow-y: auto; }
+.menu-pop { border-radius: 14px; }
+.menu-pop a.opt { display: block; color: var(--text); text-decoration: none; white-space: nowrap; }
+.menu-pop a.opt:hover, .menu-pop a.opt:focus-visible { background: var(--accent-soft); outline: none; }
 .opt { padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; }
 .opt.indent { padding-left: 18px; }
 .opt:hover { background: var(--accent-soft); }
@@ -544,12 +556,32 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .outlook-table tr.now td { color: var(--muted); }
 .outlook-table tr.low td { background: var(--accent-soft); }
 .outlook-table td.neg, .outlook-table tr.now td.neg { color: var(--danger); }
+/* History: each budget per month */
+.budget-history td.bh-name { white-space: normal; min-width: 150px; }
+.budget-history tr.bh-cat td { font-weight: 600; padding-top: 14px; border-bottom: 0; }
+.budget-history tr.bh-line td.bh-name { padding-left: 20px; }
+.budget-history tr.bh-line.single td.bh-name { padding-left: 8px; font-weight: 600; }
+.budget-history tr.bh-line.outside td { border-top: 1px solid var(--border); }
+.budget-history td.bh-month, .budget-history th.bh-month { text-align: center; padding: 7px 3px; }
+.budget-history td[data-tip] { cursor: default; border-radius: 6px; }
+.budget-history td[data-tip]:hover, .budget-history td[data-tip]:focus-visible { background: var(--accent-soft); outline: none; }
+.bh-col { position: relative; display: inline-block; width: 14px; height: 24px; border-radius: 3px; background: var(--track); vertical-align: middle; }
+.bh-col i { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 3px; background: var(--accent); }
+.bh-col.over i { background: var(--danger-solid); }
+.bh-col.none i { background: var(--muted); opacity: 0.45; }
+.budget-history td.bh-total { line-height: 1.35; }
+.bh-diff { display: block; font-size: 12px; color: var(--muted); }
+.bh-diff.neg { color: var(--danger); }
+.bh-tag { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 500; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.bh-tag.over { color: var(--danger); background: color-mix(in srgb, var(--danger-solid) 14%, transparent); }
+.bh-tag.under { color: var(--accent); background: var(--accent-soft); }
 /* The explanation of a table column, floating over the page so the scrolling table can't clip it. */
 .col-tip {
   position: fixed; z-index: 30; max-width: 260px; pointer-events: none;
   background: var(--raised); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
-  padding: 8px 12px; font-size: 12px; line-height: 1.45; color: var(--text);
+  padding: 8px 12px; font-size: 12px; line-height: 1.45; color: var(--text); white-space: pre-line;
 }
+.col-tip.cell::first-line { font-weight: 600; }
 .plan-list { list-style: none; margin: 0; padding: 0; }
 .plan-list li[data-plan] { display: grid; grid-template-columns: 1fr auto auto; gap: 16px; align-items: center; padding: 10px 14px; margin: 0 -14px; border-radius: 14px; cursor: pointer; font-size: 14px; }
 .plan-list li[data-plan]:hover, .plan-list li[data-plan]:focus-visible { background: var(--accent-soft); outline: none; }

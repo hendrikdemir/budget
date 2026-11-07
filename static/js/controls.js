@@ -48,6 +48,26 @@ function makePanel(anchor, className) {
   return panel;
 }
 
+// Menu: clicking `button` shows a short list of choices; items() returns their HTML
+// (links or buttons with class "opt"). Choosing one closes it.
+export function menu(button, items) {
+  // On the page itself: inside a frosted card (backdrop-filter), position: fixed would be
+  // relative to the card.
+  const panel = document.body.appendChild(Object.assign(document.createElement("div"), { className: "popover menu-pop", hidden: true }));
+  panel.setAttribute("role", "menu");
+  button.setAttribute("aria-haspopup", "menu");
+  button.addEventListener("click", () => {
+    if (popovers.isOpen(panel)) return popovers.close();
+    panel.innerHTML = items();
+    popovers.open(button, panel);
+    // Keep it under the button's right edge: the button sits at the end of a row.
+    const r = button.getBoundingClientRect();
+    panel.style.left = `${Math.max(8, Math.min(r.right - panel.offsetWidth, innerWidth - panel.offsetWidth - 8))}px`;
+  });
+  panel.addEventListener("click", (e) => e.target.closest(".opt") && popovers.close());
+  return panel;
+}
+
 // Month picker: clicking `button` shows a year with 12 months. get() / set() read and write "YYYY-MM".
 export function monthPicker(button, { get, set }) {
   const panel = makePanel(button, "month-pop");

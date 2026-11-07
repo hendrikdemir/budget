@@ -7,7 +7,20 @@ import { money, monthOnly } from "./format.js";
 // options: height, ticks (number of steps), includeZero, tooltip(i) -> html,
 //   marker: { i, from, to, label, cls }: a labelled gap between two values in one month,
 //   bars: { values, label }: small bars under the chart, up or down from zero (cents, null = none)
-export function lineChart(el, months, series, { height = 220, ticks: steps = 4, includeZero = false, tooltip, marker, bars } = {}) {
+// The chart is drawn at the width its element has, and drawn again when that width changes
+// (a resized window, or a page that was hidden while it was drawn).
+const drawn = new Map(); // element -> [arguments, width]
+const resized = new ResizeObserver((entries) => {
+  for (const { target } of entries) {
+    const [args, width] = drawn.get(target) || [];
+    if (args && target.clientWidth && target.clientWidth !== width) lineChart(target, ...args);
+  }
+});
+
+export function lineChart(el, months, series, options = {}) {
+  drawn.set(el, [[months, series, options], el.clientWidth]);
+  resized.observe(el);
+  const { height = 220, ticks: steps = 4, includeZero = false, tooltip, marker, bars } = options;
   const barsHeight = bars ? 52 : 0;
   const W = el.clientWidth || 600, H = height + barsHeight, pad = { l: 60, r: 12, t: 12, b: 24 + barsHeight };
   const all = series.flatMap((s) => s.values).filter((v) => v !== null);

@@ -1,5 +1,6 @@
 """Looking ahead: "ready for next month?" and the savings projection."""
-from app import outlook
+from app import api, outlook
+from app.money import ApiError
 
 from .base import AppTest
 
@@ -82,3 +83,28 @@ class Projection(AppTest):
     def test_hidden_without_starting_balances(self):
         self.conn.execute("DELETE FROM settings WHERE key LIKE 'savings_%'")
         self.assertFalse(outlook.projection(self.conn)["visible"])
+
+
+class PlansEveryFewMonths(AppTest):
+    def test_every_other_month_between_start_and_end(self):
+        api.save_plan(self.conn, None, {"kind": "expense", "name": "Tuition", "amount": 53880,
+                                        "start_month": "2026-12", "end_month": "2027-06", "every_months": 2}, None)
+        all_plans = outlook.plans(self.conn)
+        months = ["2026-11", "2026-12", "2027-01", "2027-02", "2027-03", "2027-04", "2027-05", "2027-06", "2027-08"]
+        self.assertEqual([m for m in months if outlook.planned_in(all_plans, "expense", m)],
+                         ["2026-12", "2027-02", "2027-04", "2027-06"])
+
+    def test_how_often_must_be_sensible(self):
+        with self.assertRaises(ApiError):
+            api.save_plan(self.conn, None, {"kind": "expense", "name": "X", "amount": 100,
+                                            "start_month": "2026-12", "every_months": 0}, None)
+
+    def test_a_custom_plan_has_one_amount(self):
+        api.save_plan(self.conn, None, {"kind": "expense", "name": "Tuition", "amount": 100, "start_month": "2026-12"}, None)
+        plan_id = outlook.plans(self.conn)[0]["id"]
+        api.add_plan_change(self.conn, None, {"plan_id": plan_id, "start_month": "2027-02", "amount": 200}, None)
+        api.save_plan(self.conn, plan_id, {"kind": "expense", "name": "Tuition", "amount": 100,
+                                           "start_month": "2026-12", "every_months": 2}, None)
+        self.assertEqual(outlook.plans(self.conn)[0]["changes"], [])
+        with self.assertRaises(ApiError):
+            api.add_plan_change(self.conn, None, {"plan_id": plan_id, "start_month": "2027-04", "amount": 300}, None)

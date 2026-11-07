@@ -4,7 +4,9 @@ Each bank has a reader in READERS: `name`, `matches(header)` (does this file com
 bank?) and `read(rows)`, which turns the rows after the header into transactions:
 {date, paid_date, amount (cents), kind, payee, description}. `date` is when you paid (e.g.
 at the till), `paid_date` when the money left the bank, if that was another day. To support
-another bank, write a reader like IngReader and add it to READERS.
+another bank, write a reader like IngReader and add it to READERS. A reader may also give
+`parts`: [{category, item, amount}], the budgets by name (BudgetReader, for Budget's own
+exports); preview() turns them into budget lines.
 
 `preview()` adds suggestions from what's already in Budget: the known payee name and the
 budget it was last booked on, and transactions that look like they were added already.
@@ -81,7 +83,42 @@ class IngReader:
         return f"{t[:4]}-{t[4:6]}-{t[6:8]}" if re.fullmatch(r"\d{8}", t) else t
 
 
-READERS = [IngReader()]
+class BudgetReader:
+    """Budget's own CSV export (app/export.py): a row per part of a transaction, with the
+    budget by name. Rows of one transaction follow each other and share everything but
+    Category, Item and Amount."""
+    name = "Budget"
+    columns = ("Date", "Left bank", "Type", "Payee", "Note", "Category", "Item", "Amount", "Total")
+    KINDS = {"Expense": "expense", "Income": "income", "To savings": "save", "From savings": "withdraw"}
+
+    def matches(self, header):
+        return all(c in header for c in self.columns)
+
+    @staticmethod
+    def text(value):
+        """Undo the export's guard against spreadsheet formulas: "'=Shop" -> "=Shop"."""
+        value = (value or "").strip()
+        return value[1:] if value[:1] == "'" and value[1:2] in ("=", "+", "-", "@") else value
+
+    def read(self, rows):
+        found, last = [], None
+        for row in rows:
+            same = ("Date", "Left bank", "Type", "Payee", "Note", "Total")
+            key = tuple(row[c] for c in same)
+            if key != last:
+                day, left = row["Date"].strip(), row["Left bank"].strip()
+                date.fromisoformat(day)  # a ValueError for anything else
+                found.append({"date": day, "paid_date": left if left and left != day else None,
+                              "amount": cents(row["Total"]), "kind": self.KINDS[row["Type"].strip()],
+                              "payee": self.text(row["Payee"]), "description": self.text(row["Note"]), "parts": []})
+                last = key
+            category = self.text(row["Category"])
+            if category:
+                found[-1]["parts"].append({"category": category, "item": self.text(row["Item"]), "amount": cents(row["Amount"])})
+        return found
+
+
+READERS = [IngReader(), BudgetReader()]
 
 
 def read_file(data):
@@ -117,7 +154,7 @@ def preview(conn, data, known_payees):
     # The payee as you named it before, and the budget it was last booked on.
     known = [(simple(p["name"]), p) for p in known_payees if simple(p["name"])]
     for t in found:
-        if not t["payee"]:
+        if not t["payee"] or "parts" in t:  # a Budget export already has its own names and budgets
             continue
         mine = simple(t["payee"])
         matches = [p for s, p in known if p["kind"] == t["kind"] and len(min(s, mine, key=len)) >= 4
@@ -151,6 +188,21 @@ def preview(conn, data, known_payees):
                     lines[f"i{item['id']}"] = {"value": f"i{item['id']}", "label": item["name"], "group": c["name"]}
             if not c["items"] and c["budget"] is not None:
                 lines[f"c{c['id']}"] = {"value": f"c{c['id']}", "label": c["name"]}
+    # Budgets by name (from a Budget export): one covering the whole amount is chosen like a
+    # suggestion; a split is kept as it is. A budget that doesn't exist here is left out.
+    by_name = {(l.get("group") or l["label"], l["label"] if l.get("group") else ""): l for l in lines.values()}
+    for t in found:
+        parts = t.pop("parts", None)
+        if not parts:
+            continue
+        known = [(by_name.get((p["category"], p["item"])), p) for p in parts]
+        t["missing"] = [f"{p['category']} · {p['item']}" if p["item"] else p["category"] for l, p in known if not l]
+        known = [(l, p) for l, p in known if l]
+        if len(known) == 1 and known[0][1]["amount"] == t["amount"]:
+            t["line"] = known[0][0]["value"]
+        elif known:
+            t["splits"] = [{"line": l["value"], "label": f"{l['group']} · {l['label']}" if l.get("group") else l["label"],
+                            "amount": p["amount"]} for l, p in known]
     for t in found:
         if t.get("line") not in lines:
             t["line"] = None

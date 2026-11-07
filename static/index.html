@@ -91,6 +91,7 @@
         <span class="spacer"></span>
         <span id="count" class="muted"></span>
         <button id="bank-import-btn" class="link-btn" title="Add transactions from a file your bank exported">Import</button>
+        <button id="csv-btn" class="link-btn" title="Download transactions as a CSV file for a spreadsheet">Export</button>
         <button id="select-btn" class="link-btn">Select</button>
         <input type="file" id="bank-file" accept=".csv,text/csv" hidden>
       </div>
@@ -106,13 +107,15 @@
           <button type="button" data-type="transfer">Savings</button>
         </div>
         <label class="all-months" title="Search in every month, not only the one you're viewing">
-          <input type="checkbox" id="all-months"> All months
+          <input type="checkbox" id="all-months"> Search all months
         </label>
       </div>
       <div id="selection-bar" class="selection-bar" hidden>
         <span id="selection-count"></span>
         <span class="spacer"></span>
+        <button id="select-all" class="link-btn">Select all</button>
         <button id="select-cancel" class="ghost-btn">Cancel</button>
+        <a id="select-export" class="ghost-btn" download>Export</a>
         <button id="select-delete" class="danger-btn" disabled>Delete</button>
       </div>
       <ul id="expenses" class="day-list"></ul>
@@ -142,6 +145,11 @@
       </div>
       <div id="history-chart" class="hist-plot"></div>
       <p id="history-chart-empty" class="muted" hidden>Set a starting point for your bank account or savings on the overview to see their balances here.</p>
+    </section>
+    <section class="card" id="history-budgets-card">
+      <div class="section-head"><h3>Budgets</h3></div>
+      <p class="muted hint">Each bar fills up as a month's budget is spent: full is all of it used, red is more spent than there was. Point at a month to see what was left or overspent.</p>
+      <div class="table-wrap"><table id="history-budgets" class="outlook-table budget-history"></table></div>
     </section>
     <section class="card" id="history-table-card">
       <div class="section-head"><h3>Month by month</h3></div>
@@ -238,13 +246,19 @@
           <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0,00"></span>
           <span class="error" data-error="amount"></span>
         </label>
-        <div class="field">
+        <div class="field wide">
           <span class="label">Repeats</span>
           <div class="segmented" id="repeat-options">
             <button type="button" data-repeat="once">Once</button>
             <button type="button" data-repeat="monthly">Monthly</button>
+            <button type="button" data-repeat="every">Custom</button>
           </div>
         </div>
+        <label class="field" id="plan-every-field" hidden>
+          <span class="label">How often <span class="req" aria-label="required">*</span></span>
+          <span class="every-input">Every <input name="every" inputmode="numeric" value="2" aria-label="Number of months"> months</span>
+          <span class="error" data-error="every"></span>
+        </label>
         <div class="field">
           <span class="label" id="plan-start-label">From <span class="req" aria-label="required">*</span></span>
           <button type="button" id="plan-start" class="input-like"></button>
@@ -255,6 +269,7 @@
           <button type="button" id="plan-no-end" class="link-btn">No end</button>
           <span class="error" data-error="end"></span>
         </div>
+        <p class="field wide muted plan-when" id="plan-when" hidden></p>
         <div class="field wide" id="plan-changes-field" hidden>
           <span class="label">Amount changes <span class="optional">optional</span></span>
           <div id="plan-changes" class="history plan-changes"></div>

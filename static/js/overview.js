@@ -2,7 +2,9 @@
 // list and the transactions. All numbers come from GET /api/month; this only renders them.
 import { loadBalances } from "./accounts.js";
 import { openManager } from "./budget-editor.js";
-import { monthPicker } from "./controls.js";
+import { menu, monthPicker } from "./controls.js";
+
+let exportList = { shown: [], everything: true }; // what the Export menu offers (renderTransactions)
 import { DATE_LOCALE, currentMonth, escapeHtml, isoDate, money, monthName, monthOnly, parseAmount, plural, shiftMonth, shortDate } from "./format.js";
 import { isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
 import { openTransaction } from "./transaction.js";
@@ -336,6 +338,7 @@ function renderTransactions() {
   // This month's transactions (or every month's, when searching all months), narrowed by
   // the budget filter, the type filter and the search box.
   const { search, filter, selecting, selected } = state;
+  const decimal = (1.5).toLocaleString().includes(",") ? "," : ".";
   const monthly = state.data.transactions;
   const searching = search.query || search.type !== "all";
   const source = search.allMonths && searching && state.allTransactions ? state.allTransactions : monthly;
@@ -344,9 +347,17 @@ function renderTransactions() {
   if (filter) $("#filter").innerHTML = `${escapeHtml(filter.label)} <button class="clear-filter" aria-label="Show all spending">×</button>`;
   $("#count").textContent = filter || searching ? `${shown.length} of ${source.length}` : monthly.length ? plural(monthly.length, "transaction") : "";
   $("#select-btn").hidden = selecting || !shown.length;
+  // Export: what the list shows, or every transaction (a menu, see below). While selecting,
+  // the selection bar's Export takes its place, for the selected ones.
+  $("#csv-btn").hidden = selecting || !shown.length;
+  exportList = { shown, everything: shown.length === monthly.length && source === monthly };
   $("#selection-bar").hidden = !selecting;
-  $("#selection-count").textContent = selected.size ? `${selected.size} selected` : "Select transactions to delete";
+  $("#selection-count").textContent = selected.size ? `${selected.size} selected` : "Select transactions to export or delete";
   $("#select-delete").disabled = !selected.size;
+  $("#select-all").hidden = shown.every((t) => selected.has(t.id));
+  $("#select-export").classList.toggle("disabled", !selected.size);
+  $("#select-export").setAttribute("aria-disabled", String(!selected.size));
+  $("#select-export").href = `/api/transactions-csv?ids=${[...selected].join(",")}&decimal=${decimal}`;
   $("#empty").hidden = shown.length > 0;
   const where = source === monthly ? monthName(state.month) : "any month";
   $("#empty").textContent = search.query ? `No transactions matching “${search.query}” in ${where}.`
@@ -385,7 +396,7 @@ $("#type-filter").onclick = (e) => {
 };
 $("#all-months").onchange = (e) => {
   state.search.allMonths = e.target.checked;
-  searchChanged();
+  searchChanged(); // also points the export at every month, or this one
 };
 
 // Click a transaction to edit it, or select several to delete.
@@ -408,6 +419,27 @@ $("#expenses").onkeydown = (e) => {
 $("#select-btn").onclick = () => {
   state.selecting = true;
   renderTransactions();
+};
+// Export: the transactions in the list, or all of them, as CSV with this Mac's decimal separator.
+menu($("#csv-btn"), () => {
+  const decimal = (1.5).toLocaleString().includes(",") ? "," : ".";
+  const { shown, everything } = exportList;
+  const list = everything ? `month=${state.month}` : `ids=${shown.map((t) => t.id).join(",")}`;
+  return `<a class="opt" download href="/api/transactions-csv?${list}&decimal=${decimal}">
+      ${everything ? `${monthName(state.month)}` : "The transactions shown"} <span class="muted">· ${plural(shown.length, "transaction")}</span></a>
+    <a class="opt" download href="/api/transactions-csv?month=&decimal=${decimal}">All transactions <span class="muted">· every month</span></a>`;
+});
+
+// Every transaction shown (with the search and filters), ready to export or delete.
+$("#select-all").onclick = () => {
+  const { search } = state;
+  const searching = search.query || search.type !== "all";
+  const source = search.allMonths && searching && state.allTransactions ? state.allTransactions : state.data.transactions;
+  source.filter((t) => matchesFilter(t) && matchesSearch(t)).forEach((t) => state.selected.add(t.id));
+  renderTransactions();
+};
+$("#select-export").onclick = (e) => {
+  if (!state.selected.size) e.preventDefault();
 };
 $("#select-cancel").onclick = () => {
   state.selecting = false;

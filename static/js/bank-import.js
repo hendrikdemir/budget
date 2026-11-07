@@ -39,8 +39,11 @@ function open({ bank, transactions, lines }) {
         <div class="bank-fields ${transfer ? "transfer" : ""}">
           ${transfer ? "" : `<input class="bank-payee" value="${escapeHtml(t.payee)}" placeholder="${t.kind === "income" ? "Received from" : "Paid to"}" aria-label="${t.kind === "income" ? "Received from" : "Paid to"}">`}
           <input class="bank-note" value="${escapeHtml(t.description)}" placeholder="Note (optional)" aria-label="Note">
-          ${transfer ? "" : `<input class="bank-line" placeholder="Budget (optional)" aria-label="Budget">`}
+          ${transfer ? "" : t.splits ? `<span class="bank-split" title="Split over budgets: you can change it after adding">${
+            t.splits.map((p) => `${escapeHtml(p.label)} <b>${money(p.amount)}</b>`).join("<br>")}</span>`
+            : `<input class="bank-line" placeholder="Budget (optional)" aria-label="Budget">`}
         </div>
+        ${t.missing?.length ? `<p class="bank-dup">${t.missing.map((m) => `“${escapeHtml(m)}”`).join(", ")} ${t.missing.length === 1 ? "isn't a budget" : "aren't budgets"} here, so that part stays outside a budget. You can choose one after adding.</p>` : ""}
         ${t.duplicate ? `<p class="bank-dup">Looks like it's already in Budget: ${escapeHtml(t.duplicate.payee || KINDS[t.kind])} on ${shortDate(t.duplicate.date)}.</p>` : ""}
       </div>
     </li>`;
@@ -83,6 +86,7 @@ $("#bank-add").onclick = async () => {
     payee: el.querySelector(".bank-payee")?.value.trim() || "",
     description: el.querySelector(".bank-note").value.trim(),
     line: budget?.value || null,
+    splits: t.splits || null,
   }));
   const { added } = await api("/api/bank-import", { method: "POST", body: { transactions } });
   $("#bank-dialog").close();

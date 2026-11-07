@@ -66,7 +66,8 @@ CREATE TABLE IF NOT EXISTS plans (
     name TEXT NOT NULL,
     amount_cents INTEGER NOT NULL,
     start_month TEXT NOT NULL,     -- YYYY-MM
-    end_month TEXT                 -- YYYY-MM, inclusive; NULL = ongoing
+    end_month TEXT,                -- YYYY-MM, inclusive; NULL = ongoing
+    every_months INTEGER NOT NULL DEFAULT 1  -- 1 = every month, 2 = every other month, ...
 );
 CREATE TABLE IF NOT EXISTS plan_changes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -115,8 +116,14 @@ def _v1_baseline(conn):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
 
+def _v2_plan_interval(conn):
+    """Version 2: plans can repeat every few months (every_months), not only every month."""
+    if "every_months" not in _columns(conn, "plans"):
+        conn.execute("ALTER TABLE plans ADD COLUMN every_months INTEGER NOT NULL DEFAULT 1")
+
+
 # MIGRATIONS[n] upgrades the database from version n to n + 1.
-MIGRATIONS = [_v1_baseline]
+MIGRATIONS = [_v1_baseline, _v2_plan_interval]
 
 
 class TooNewError(Exception):

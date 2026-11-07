@@ -83,7 +83,8 @@ def plans(conn):
         changes.setdefault(r["plan_id"], []).append({"id": r["id"], "start_month": r["start_month"], "amount": r["amount_cents"]})
     return [
         {"id": r["id"], "kind": r["kind"], "name": r["name"], "amount": r["amount_cents"],
-         "start_month": r["start_month"], "end_month": r["end_month"], "changes": changes.get(r["id"], [])}
+         "start_month": r["start_month"], "end_month": r["end_month"], "every_months": r["every_months"],
+         "changes": changes.get(r["id"], [])}
         for r in conn.execute("SELECT * FROM plans ORDER BY kind, start_month, name")
     ]
 
@@ -97,9 +98,20 @@ def amount_at(plan, month):
     return amount
 
 
+def months_between(first, second):
+    """Whole months from `first` to `second` ("YYYY-MM"), e.g. 2026-12 to 2027-02 is 2."""
+    return (int(second[:4]) - int(first[:4])) * 12 + int(second[5:7]) - int(first[5:7])
+
+
+def falls_in(plan, month):
+    """Whether a plan has an amount in `month`: between its start and end, and for a plan that
+    repeats every few months, a whole number of those after its start."""
+    return (plan["start_month"] <= month and (not plan["end_month"] or plan["end_month"] >= month)
+            and months_between(plan["start_month"], month) % plan["every_months"] == 0)
+
+
 def planned_in(all_plans, kind, month):
-    return sum(amount_at(p, month) for p in all_plans
-               if p["kind"] == kind and p["start_month"] <= month and (not p["end_month"] or p["end_month"] >= month))
+    return sum(amount_at(p, month) for p in all_plans if p["kind"] == kind and falls_in(p, month))
 
 
 # ---- Projection ----

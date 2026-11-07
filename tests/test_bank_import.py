@@ -1,5 +1,5 @@
 """Reading bank exports, suggestions, and adding the reviewed transactions. Made-up data only."""
-from app import api, bank_import
+from app import api, bank_import, export
 from app.money import ApiError
 
 from .base import AppTest
@@ -76,3 +76,46 @@ class Adding(AppTest):
         t = {"date": "2026-11-01", "amount": 1250, "kind": "expense", "payee": "Corner Grocer", "description": "", "line": food}
         api.bank_import_add(self.conn, None, {"transactions": [t]}, None)
         self.assertEqual(self.line("2026-11", food)["spent"], 1250)
+
+
+class BudgetExportImport(AppTest):
+    """Reading Budget's own CSV export back in, splits and all."""
+
+    def setUp(self):
+        super().setUp()
+        cat = self.category("Groceries")
+        self.food = self.item(cat, "Food", 30000)
+        self.home = self.item(cat, "Household", 5000)
+        api.save_transaction(self.conn, None, {"amount": 4831, "date": "2026-11-07", "kind": "expense", "payee": "=Shop",
+                                               "splits": [{"item_id": int(self.food[1:]), "amount": 4632},
+                                                          {"item_id": int(self.home[1:]), "amount": 199}]}, None)
+        self.add(1000, "2026-11-08", self.food, payee="Bakery")
+        self.add(250000, "2026-11-01", kind="income", payee="Employer")
+
+    def preview(self, decimal=","):
+        _, data = export.transactions_csv(self.conn, "2026-11", decimal)
+        return bank_import.preview(self.conn, data, [])
+
+    def test_reads_back_what_was_exported(self):
+        p = self.preview()
+        self.assertEqual(p["bank"], "Budget")
+        shop = next(t for t in p["transactions"] if t["payee"] == "=Shop")
+        self.assertEqual((shop["amount"], shop["kind"]), (4831, "expense"))
+        self.assertEqual([(s["line"], s["amount"]) for s in shop["splits"]], [(self.food, 4632), (self.home, 199)])
+        bakery = next(t for t in p["transactions"] if t["payee"] == "Bakery")
+        self.assertEqual((bakery["line"], bakery.get("splits")), (self.food, None))
+        self.assertTrue(all(t.get("duplicate") for t in p["transactions"]))  # they're in Budget already
+
+    def test_adds_splits_into_another_budget(self):
+        p = self.preview(".")
+        self.conn.execute("DELETE FROM splits")
+        self.conn.execute("DELETE FROM expenses")
+        api.bank_import_add(self.conn, None, {"transactions": p["transactions"]}, None)
+        self.assertEqual(self.line("2026-11", self.food)["spent"], 4632 + 1000)
+        self.assertEqual(self.line("2026-11", self.home)["spent"], 199)
+
+    def test_unknown_budget_stays_outside(self):
+        _, data = export.transactions_csv(self.conn, "2026-11", ",")
+        data = data.replace("Household".encode(), b"Pets")
+        shop = next(t for t in bank_import.preview(self.conn, data, [])["transactions"] if t["payee"] == "=Shop")
+        self.assertEqual((shop["missing"], [s["line"] for s in shop["splits"]]), (["Groceries · Pets"], [self.food]))

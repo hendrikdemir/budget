@@ -159,8 +159,16 @@ bufferForm.onsubmit = async (e) => {
 function planPeriod(p) {
   const short = (m) => monthName(m, "short");
   if (p.end_month === p.start_month) return short(p.start_month);
-  return p.end_month ? `Monthly, ${short(p.start_month)} – ${short(p.end_month)}` : `Monthly from ${short(p.start_month)}`;
+  const how = p.every_months > 1 ? `Every ${p.every_months} months` : "Monthly";
+  return p.end_month ? `${how}, ${short(p.start_month)} – ${short(p.end_month)}` : `${how} from ${short(p.start_month)}`;
 }
+// The months a plan falls in, from `start` every `every` months until `end` (at most `max`).
+function planMonths(start, end, every, max = 24) {
+  const found = [];
+  for (let m = start; (!end || m <= end) && found.length < max; m = shiftMonth(m, every)) found.push(m);
+  return found;
+}
+const everyValue = () => Number(planForm.every.value.trim());
 function renderPlans() {
   for (const kind of ["income", "expense"]) {
     const list = plans.filter((p) => p.kind === kind);
@@ -183,6 +191,7 @@ monthPicker($("#plan-end"), { get: () => planEnd || planStart, set: (m) => { pla
 let changeMonth = currentMonth();
 monthPicker($("#change-month"), { get: () => changeMonth, set: (m) => { changeMonth = m; renderPlanChanges(); } });
 function renderPlanChanges() {
+  // Only for monthly plans: a custom one has one amount, just spread over chosen months.
   const show = editingPlan && planRepeat === "monthly";
   $("#plan-changes-field").hidden = !show;
   if (!show) return;
@@ -219,6 +228,19 @@ function renderPlanDates() {
   $("#plan-end").textContent = planEnd ? monthName(planEnd) : "No end";
   $("#plan-no-end").hidden = !planEnd;
   $("#plan-end-field").hidden = planRepeat === "once";
+  $("#plan-every-field").hidden = planRepeat !== "every";
+  // When it falls, so it's easy to check: "4 times: Dec 2026, Feb, Apr and Jun 2027".
+  const every = everyValue();
+  const when = planRepeat === "every" && planEnd && Number.isInteger(every) && every >= 2 && every <= 12 && planEnd >= planStart
+    ? planMonths(planStart, planEnd, every) : null;
+  $("#plan-when").hidden = !when;
+  if (when) {
+    // The year once, after its last month in the list.
+    const names = when.map((m, i) => (i === when.length - 1 || m.slice(0, 4) !== when[i + 1].slice(0, 4)
+      ? monthName(m, "short") : monthOnly(m)));
+    const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
+    $("#plan-when").textContent = `${when.length === 1 ? "Once" : `${when.length} times`}: ${list}.`;
+  }
   $("#plan-start-label").firstChild.textContent = planRepeat === "once" ? "Month " : "From ";
   document.querySelectorAll("#repeat-options button").forEach((b) => b.classList.toggle("active", b.dataset.repeat === planRepeat));
   renderPlanChanges();
@@ -236,7 +258,9 @@ function openPlan(plan = null, kind = "income") {
   $("#plan-delete").hidden = !plan;
   planStart = plan?.start_month || shiftMonth(currentMonth(), 1);
   planEnd = plan?.end_month || null;
-  planRepeat = plan ? (plan.end_month === plan.start_month ? "once" : "monthly") : planKind === "income" ? "monthly" : "once";
+  planRepeat = plan ? (plan.end_month === plan.start_month ? "once" : plan.every_months > 1 ? "every" : "monthly")
+    : planKind === "income" ? "monthly" : "once";
+  planForm.every.value = plan?.every_months > 1 ? plan.every_months : 2;
   if (plan) {
     planForm.name.value = plan.name;
     planForm.amount.value = inputAmount(plan.amount);
@@ -258,7 +282,10 @@ document.querySelectorAll(".plan-list").forEach((ul) => {
   };
   ul.onkeydown = (e) => e.key === "Enter" && e.target.closest("[data-plan]")?.click();
 });
-planForm.oninput = (e) => fieldError(planForm, e.target.name, "");
+planForm.oninput = (e) => {
+  fieldError(planForm, e.target.name, "");
+  if (e.target.name === "every") renderPlanDates();
+};
 planForm.onsubmit = async (e) => {
   e.preventDefault();
   const amount = parseAmount(planForm.amount.value);
@@ -266,9 +293,11 @@ planForm.onsubmit = async (e) => {
   if (!planForm.name.value.trim()) { fieldError(planForm, "name", "Give it a name, like Salary."); ok = false; }
   if (!(amount > 0)) { fieldError(planForm, "amount", "Enter an amount above zero, like 1234,56."); ok = false; }
   const end = planRepeat === "once" ? planStart : planEnd;
+  const every = planRepeat === "every" ? everyValue() : 1;
+  if (!(Number.isInteger(every) && every >= 1 && every <= 12)) { fieldError(planForm, "every", "Enter a number of months from 2 to 12."); ok = false; }
   if (end && end < planStart) { fieldError(planForm, "end", "The end month is before the start month. Choose a later one."); ok = false; }
   if (!ok) return;
-  const body = { kind: planKind, name: planForm.name.value, amount, start_month: planStart, end_month: end };
+  const body = { kind: planKind, name: planForm.name.value, amount, start_month: planStart, end_month: end, every_months: every };
   await api(editingPlan ? `/api/plans/${editingPlan.id}` : "/api/plans", { method: editingPlan ? "PUT" : "POST", body });
   $("#plan-dialog").close();
   toast(editingPlan ? "Plan updated" : "Plan added");

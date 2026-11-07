@@ -2,7 +2,7 @@
 Amounts in requests and responses are whole cents."""
 import re
 
-from . import VERSION, accounts, backup, bank_import, budgets, outlook, updates
+from . import VERSION, accounts, backup, bank_import, budgets, export, outlook, updates
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
@@ -102,13 +102,14 @@ def bank_import_preview(conn, _, body, __):
 
 
 def bank_import_add(conn, _, body, __):
-    """Add the reviewed transactions, all or none. Each may name one budget line for its full amount."""
+    """Add the reviewed transactions, all or none. Each may name one budget line for its full
+    amount, or `splits`: [{line, amount}]."""
     items = body.get("transactions") or []
     for t in items:
-        line = t.get("line") or ""
-        splits = []
-        if re.fullmatch(r"[ic]\d+", line) and t.get("kind") in ("expense", "income"):
-            splits = [{"item_id" if line[0] == "i" else "category_id": int(line[1:]), "amount": t.get("amount")}]
+        # One budget line for the full amount, or (from a Budget export) the parts of a split.
+        parts = t.get("splits") or [{"line": t.get("line") or "", "amount": t.get("amount")}]
+        splits = [{"item_id" if p["line"][0] == "i" else "category_id": int(p["line"][1:]), "amount": p.get("amount")}
+                  for p in parts if re.fullmatch(r"[ic]\d+", str(p.get("line") or "")) and t.get("kind") in ("expense", "income")]
         try:
             save_transaction(conn, None, {**t, "splits": splits}, None)
         except ApiError as e:
@@ -221,7 +222,17 @@ def get_balance(conn, _, __, query):
 
 
 def year_history(conn, _, __, query):
-    return accounts.year_history(conn, int(first(query, "year")))
+    year = int(first(query, "year"))
+    return {**accounts.year_history(conn, year), "budgets": budgets.budget_history(conn, year)}
+
+
+def transactions_csv(conn, _, __, query):
+    """A CSV of the transactions in a month ("" = all), or of those in `ids` ("1,2,3")."""
+    month, ids = first(query, "month"), first(query, "ids")
+    if ids and not re.fullmatch(r"\d+(,\d+)*", ids):
+        raise ApiError(GENERIC_ERROR)
+    chosen = {int(i) for i in ids.split(",")} if ids else None
+    return export.transactions_csv(conn, clean_month(month) if month else "", first(query, "decimal", "."), chosen)
 
 
 def set_balance_start(conn, _, body, __):
@@ -262,12 +273,17 @@ def save_plan(conn, plan_id, body, _):
     end = clean_month(body["end_month"]) if body.get("end_month") else None
     if end and end < start:
         raise ApiError("The end month is before the start month. Choose a later end month.")
-    values = (kind, clean_name(body.get("name")), cents(body.get("amount")), start, end)
+    every = body.get("every_months", 1)
+    if not isinstance(every, int) or not 1 <= every <= 12:
+        raise ApiError("Choose how often it repeats: every 1 to 12 months.")
+    values = (kind, clean_name(body.get("name")), cents(body.get("amount")), start, end, 1 if end == start else every)
     if plan_id is None:
-        conn.execute("INSERT INTO plans (kind, name, amount_cents, start_month, end_month) VALUES (?, ?, ?, ?, ?)", values)
+        conn.execute("INSERT INTO plans (kind, name, amount_cents, start_month, end_month, every_months) VALUES (?, ?, ?, ?, ?, ?)", values)
     else:
-        conn.execute("UPDATE plans SET kind = ?, name = ?, amount_cents = ?, start_month = ?, end_month = ? WHERE id = ?",
+        conn.execute("UPDATE plans SET kind = ?, name = ?, amount_cents = ?, start_month = ?, end_month = ?, every_months = ? WHERE id = ?",
                      (*values, plan_id))
+    if values[-1] > 1:  # a plan every few months has one amount: no changes over time
+        conn.execute("DELETE FROM plan_changes WHERE plan_id = ?", (plan_id,))
     return {"ok": True}
 
 
@@ -281,6 +297,8 @@ def add_plan_change(conn, _, body, __):
     if not plan:
         raise ApiError("This plan no longer exists. Reload the page and try again.")
     month = clean_month(body.get("start_month"))
+    if plan["every_months"] > 1:
+        raise ApiError("A custom plan has one amount. To change it, edit the amount.")
     if month <= plan["start_month"]:
         raise ApiError("Choose a month after the plan starts.")
     conn.execute("DELETE FROM plan_changes WHERE plan_id = ? AND start_month = ?", (plan["id"], month))
@@ -385,6 +403,7 @@ ROUTES = {
     ("PUT", "transactions", True): save_transaction,
     ("DELETE", "transactions", True): delete_transaction,
     ("POST", "transactions-delete", False): delete_transactions,
+    ("GET", "transactions-csv", False): transactions_csv,
     ("GET", "payees", False): list_payees,
     ("POST", "bank-import-preview", False): bank_import_preview,
     ("POST", "bank-import", False): bank_import_add,

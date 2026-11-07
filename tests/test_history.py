@@ -1,5 +1,5 @@
 """Looking back: a year's months, totals and balances."""
-from app import accounts
+from app import accounts, budgets
 
 from .base import AppTest
 
@@ -47,3 +47,42 @@ class YearHistory(AppTest):
         h = accounts.year_history(self.conn, 2025)
         self.assertEqual(h["months"], [])
         self.assertIsNone(h["totals"]["savings_change"])
+
+
+class BudgetHistory(AppTest):
+    TODAY = "2026-05-15"
+
+    def setUp(self):
+        super().setUp()
+        cat = self.category("Groceries")
+        self.food = self.item(cat, "Food", 30000)
+        self.fun = self.category("Fun money", 10000)
+        for month, spent in (("01", 32000), ("02", 31000), ("03", 25000), ("04", 30500)):
+            self.add(spent, f"2026-{month}-10", self.food)
+            self.add(2000, f"2026-{month}-11", f"c{self.fun}")
+
+    def line(self, key):
+        h = budgets.budget_history(self.conn, 2026)
+        return next(l for g in h["groups"] for l in g["lines"] if l["key"] == key), h
+
+    def test_finished_months_with_budget_and_spending(self):
+        food, h = self.line(self.food)
+        self.assertEqual(h["months"], ["2026-01", "2026-02", "2026-03", "2026-04"])
+        self.assertEqual((food["budget"], food["spent"], food["budgeted_months"]), (120000, 118500, 4))
+        self.assertEqual(food["months"]["2026-02"], {"budget": 30000, "available": 30000, "spent": 31000})
+
+    def test_structurally_over_and_under(self):
+        food, _ = self.line(self.food)
+        self.assertEqual((food["over_budget"], food["pattern"]), (3, None))  # over 3 of 4 months, but not in total
+        self.add(5000, "2026-03-20", self.food)
+        food, _ = self.line(self.food)
+        self.assertEqual(food["pattern"], "over")
+        fun, _ = self.line(f"c{self.fun}")
+        self.assertEqual((fun["over_budget"], fun["pattern"]), (0, "under"))
+
+    def test_spending_outside_budgets(self):
+        self.add(1500, "2026-02-12")
+        self.add(500, "2026-02-20")
+        outside = budgets.budget_history(self.conn, 2026)["outside"]
+        self.assertEqual((outside["spent"], outside["budgeted_months"], outside["pattern"]), (2000, 0, None))
+        self.assertEqual(list(outside["months"]), ["2026-02"])
