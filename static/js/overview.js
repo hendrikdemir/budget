@@ -186,7 +186,7 @@ function budgetRow({ name, spent, avail, filterKey, label, level = 0, toggle = n
   return `<div class="bl-row level-${level} ${over ? "over" : ""} ${state.filter?.key === filterKey ? "filtered" : ""}"
       data-filter="${filterKey}" data-label="${escapeHtml(label)}" title="${details.join(" · ")}">
     <span class="bl-toggle">${toggle !== null
-      ? `<button class="chev ${open ? "open" : ""}" data-toggle="${toggle}" aria-label="${open ? "Collapse" : "Expand"} ${escapeHtml(name)}" aria-expanded="${open}">›</button>` : ""}</span>
+      ? `<button class="chev ${open ? "open" : ""}" data-toggle="${toggle}" aria-label="${open ? "Collapse" : "Expand"} ${escapeHtml(name)}" aria-expanded="${open}"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ""}</span>
     <span class="bl-name"><span class="bl-label">${escapeHtml(name)}</span>${warn ? `<span class="warn-dot" title="An item is over budget"></span>` : ""}${carried
       ? `<span class="carried-chip" title="${money(carried)} carried over from ${monthName(shiftMonth(state.month, -1))}">+${money(carried)}</span>` : ""}</span>
     <div class="bar"><span style="width:${pct}%"></span></div>
