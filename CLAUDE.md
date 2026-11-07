@@ -28,10 +28,13 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 - `app/budgets.py`: budget history, carry-over, transactions, and `month_data()`, which
   computes a month's budget lines, totals and leftover.
 - `app/accounts.py`: expected balances (starting point + transactions by paid date) and `year_history()`
-  for the History page.
-- `app/outlook.py`: `month_outlook()` ("ready for next month?") and `projection()`.
+  for the History page; `budgets.budget_history()` adds each budget per month.
+- `app/outlook.py`: `month_outlook()` ("ready for next month?") and `projection()`. Plans
+  repeat once, monthly or every `every_months` months (`falls_in()`).
 - `app/bank_import.py`: reading bank exports (CSV) for review. One reader per bank in
-  `READERS` (ING for now); `preview()` adds payee, budget and duplicate suggestions.
+  `READERS` (ING, and `BudgetReader` for Budget's own exports, with budgets by name and
+  splits); `preview()` adds payee, budget and duplicate suggestions.
+- `app/export.py`: transactions as CSV (a row per split part), for the Export menu and selection.
 - `app/backup.py`: creating and restoring backups (a file, or the automatic daily ones from
   `db.daily_backup()`), and deleting all data. Bump nothing here for schema changes: a backup's version is
   its `user_version`, and imports run the normal migrations.

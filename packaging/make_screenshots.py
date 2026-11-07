@@ -53,11 +53,13 @@ def capture(url):
         page.locator("#budgets").locator("xpath=..").screenshot(path=OUT / "budgets.png")
 
         # Search in the transactions.
+        page.check("#all-months")  # early in the month, the shop is mostly in earlier months
         page.fill("#search", "fresh")
-        page.wait_for_timeout(300)
+        page.wait_for_timeout(500)
         page.evaluate("document.querySelector('#expenses').style.maxHeight = '430px'; document.querySelector('#expenses').style.overflow = 'hidden'")
         page.locator("#expenses").locator("xpath=..").screenshot(path=OUT / "transactions.png")
         page.fill("#search", "")
+        page.uncheck("#all-months")
 
         # A split expense with its effect on both budgets.
         page.click("#add-btn")
@@ -95,6 +97,8 @@ def capture(url):
         page.wait_for_selector("#history-chart svg")
         page.wait_for_timeout(500)
         shot(page, "history")
+        page.mouse.move(0, 0)
+        page.locator("#history-budgets-card").screenshot(path=OUT / "budget-history.png")
         page.context.close()
 
         # The outlook.

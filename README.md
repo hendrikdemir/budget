@@ -64,13 +64,15 @@ Your spending, what's left in each budget, and anything spent outside your budge
 
 Export your transactions from your bank as CSV and choose **Import** above your transactions. Budget fills in every transaction: the date you paid and the day it left your bank, the payee, the note, and savings transfers. Payees you've paid before get the name and budget you used last time. You review each one before anything is added, and transactions that look like they're already in Budget are unchecked, so nothing is added twice.
 
-Budget reads exports from ING (Netherlands) for now. Each bank has its own small reader, so more banks can be added.
+Budget reads exports from ING (Netherlands) for now. Each bank has its own small reader, so more banks can be added. It also reads its own CSV exports, with their budgets and splits, for example to move transactions between two copies of Budget.
 
 ### Find anything
 
 <img src="docs/screenshots/transactions.png" alt="Searching the transaction list">
 
-Transactions are grouped per day. Search by payee, note, budget or amount, filter by type, and search across all months. Click a budget to see only its transactions, or select several to delete them at once.
+Transactions are grouped per day. Search by payee, note, budget or amount, filter by type, and search across all months. Click a budget to see only its transactions, or select several to export or delete them at once.
+
+**Export to a spreadsheet.** **Export** above your transactions saves the ones in the list (the month, or what your search shows) or all transactions as a CSV file. A transaction split over budgets gets a row per budget, so a spreadsheet can total each budget.
 
 ### Keep your balances honest
 
@@ -92,11 +94,15 @@ Set a starting balance for your bank account and savings, and Budget keeps track
 
 The History page shows a year at a glance: what came in, what went out and what was left, and how your bank account and savings developed, month by month. It starts at your starting point, so months before you began keeping track aren't shown.
 
+<img src="docs/screenshots/budget-history.png" alt="Each budget per month: a bar for what was spent of what there was, with the total spent of budgeted">
+
+**See how your budgets held up.** For each budget, a small bar per month shows how much of it was spent, in red when it went over. Point at a month for what was left or overspent. Budgets that are usually over, or usually have a lot left, are marked, so you can see which ones need a different amount. Spending outside your budgets has its own row.
+
 ### Look ahead with the Outlook
 
 <img src="docs/screenshots/outlook.png" alt="The Outlook: projected savings for the next twelve months">
 
-Add your expected income and planned costs, like a holiday or a new laptop, and Budget projects your savings for the next 12 months. If your bank account won't cover next month's budget, it tells you how much to take from your savings. It keeps a safety buffer in your savings and shows how much you can **freely spend** without dipping below it in any month ahead. The chart marks the lowest point ahead, so you can see where that amount comes from, and small bars show what each month adds or takes. You choose the buffer: a number of months of budget, or a fixed amount.
+Add your expected income and planned costs, like a holiday or a new laptop, once, monthly, or every few months (like tuition paid every other month), and Budget projects your savings for the next 12 months. If your bank account won't cover next month's budget, it tells you how much to take from your savings. It keeps a safety buffer in your savings and shows how much you can **freely spend** without dipping below it in any month ahead. The chart marks the lowest point ahead, so you can see where that amount comes from, and small bars show what each month adds or takes. You choose the buffer: a number of months of budget, or a fixed amount.
 
 <img src="docs/screenshots/buffer.png" width="420" alt="Choosing the savings buffer: months of budget or a fixed amount">
 
