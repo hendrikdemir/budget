@@ -240,7 +240,7 @@ def make_daily_backups():
 def bank_export():
     """A made-up ING export: a card payment at a known shop, the rent that's already in the
     demo data, a transfer to savings, and a payment to someone new."""
-    with db.connect() as conn:
+    with db.session() as conn:
         rent = conn.execute("SELECT date, amount_cents FROM expenses WHERE payee = 'Oakwood Rentals' ORDER BY date DESC").fetchone()
     day = date.today() - timedelta(days=1)
     ing = lambda d: d.strftime("%Y%m%d")

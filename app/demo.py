@@ -21,7 +21,7 @@ BUDGETS = {
 
 
 def seed():
-    with db.connect() as conn:
+    with db.session() as conn:
         lines = {}
 
         def add_budget(category, spec):

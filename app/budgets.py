@@ -71,51 +71,76 @@ def is_active(conn, column, target_id, month):
     return bool(version) and version["amount_cents"] is not None
 
 
-def carried_into(versions, spent, extra, choices, month, first_month):
-    """Leftover carried into `month` by walking the line's history.
-    versions: [{start_month, amount_cents, rollover}] sorted; spent/extra/choices: {month: value}."""
-    starts = [v["start_month"] for v in versions if v["start_month"] != FIRST_MONTH]
-    if any(v["start_month"] == FIRST_MONTH for v in versions):
-        starts.append(first_month)
-    current = min(starts, default=month)
-    carried = 0
-    while current < month:
-        version = next((v for v in reversed(versions) if v["start_month"] <= current), None)
-        if not version or version["amount_cents"] is None:
-            carried = 0
-        else:
-            left = version["amount_cents"] + extra.get(current, 0) + carried - spent.get(current, 0)
-            carry = choices.get(current, bool(version["rollover"]))
-            carried = left if carry and left > 0 else 0
-        current = next_month(current)
-    return carried
+class Line:
+    """One budget line's history, spending and carry-over choices. The leftover carried into
+    each month is worked out by walking its history once, from the line's first month, and
+    remembered: asking about many months (History, Outlook) doesn't walk it again each time."""
+
+    def __init__(self, versions, spent, extra, choices, first_month):
+        # versions: [{start_month, amount_cents, rollover}] sorted; spent/extra/choices: {month: value}.
+        self.versions, self.spent, self.extra, self.choices = versions, spent, extra, choices
+        # Budgets that have always applied count from the first month with transactions.
+        starts = [v["start_month"] for v in versions if v["start_month"] != FIRST_MONTH]
+        if first_month and any(v["start_month"] == FIRST_MONTH for v in versions):
+            starts.append(first_month)
+        self.start = min(starts, default=None)
+        self.carried = {}  # month -> leftover carried into it, for the months walked so far
+        self.walked, self.carry = self.start, 0  # the next month to walk, and what's carried into it
+
+    def version_at(self, month):
+        return next((v for v in reversed(self.versions) if v["start_month"] <= month), None)
+
+    def carried_into(self, month):
+        """Leftover carried into `month`: 0 before the line's first month."""
+        if self.start is None or month <= self.start:
+            return 0
+        while self.walked < month:
+            self.carried[self.walked] = self.carry
+            version = self.version_at(self.walked)
+            if not version or version["amount_cents"] is None:
+                self.carry = 0
+            else:
+                left = version["amount_cents"] + self.extra.get(self.walked, 0) + self.carry - self.spent.get(self.walked, 0)
+                carry = self.choices.get(self.walked, bool(version["rollover"]))
+                self.carry = left if carry and left > 0 else 0
+            self.walked = next_month(self.walked)
+        return self.carry if month == self.walked else self.carried[month]
+
+
+def budget_lines(conn):
+    """Every budget line ({("item" | "category", id): Line}), loaded once per connection
+    until its data changes. Lines without any budget history or carry-over choice are left out."""
+    def load():
+        first = conn.execute("SELECT MIN(substr(date, 1, 7)) AS m FROM expenses").fetchone()["m"]
+
+        def key(row):
+            return ("item", row["item_id"]) if row["item_id"] else ("category", row["category_id"])
+
+        versions, spent, extra, choices = {}, {}, {}, {}
+        for r in conn.execute("SELECT * FROM budgets ORDER BY start_month"):
+            versions.setdefault(key(r), []).append(dict(r))
+        for r in conn.execute(
+            "SELECT s.category_id, s.item_id, e.kind, substr(e.date, 1, 7) AS month, SUM(s.amount_cents) AS cents "
+            "FROM splits s JOIN expenses e ON e.id = s.expense_id GROUP BY 1, 2, 3, 4"
+        ):
+            target = extra if r["kind"] == "income" else spent
+            target.setdefault(key(r), {})[r["month"]] = r["cents"]
+        for r in conn.execute("SELECT * FROM rollover_choices"):
+            choices.setdefault(key(r), {})[r["month"]] = bool(r["carry"])
+        return {k: Line(versions.get(k, []), spent.get(k, {}), extra.get(k, {}), choices.get(k, {}), first)
+                for k in versions.keys() | choices.keys()}
+    return conn.cached("lines", load)
 
 
 def categories_for(conn, month):
     """All categories and items with, for `month`: the budget in effect (None = none), the
     leftover carried in, extra budget from income, whether this month's leftover carries
     over, and the budget history."""
-    first = conn.execute("SELECT MIN(substr(date, 1, 7)) AS m FROM expenses").fetchone()["m"] or month
-
-    def key(row):
-        return ("item", row["item_id"]) if row["item_id"] else ("category", row["category_id"])
-
-    versions, spent, extra, choices = {}, {}, {}, {}
-    for r in conn.execute("SELECT * FROM budgets ORDER BY start_month"):
-        versions.setdefault(key(r), []).append(dict(r))
-    for r in conn.execute(
-        "SELECT s.category_id, s.item_id, e.kind, substr(e.date, 1, 7) AS month, SUM(s.amount_cents) AS cents "
-        "FROM splits s JOIN expenses e ON e.id = s.expense_id GROUP BY 1, 2, 3, 4"
-    ):
-        target = extra if r["kind"] == "income" else spent
-        target.setdefault(key(r), {})[r["month"]] = r["cents"]
-    for r in conn.execute("SELECT * FROM rollover_choices"):
-        choices.setdefault(key(r), {})[r["month"]] = bool(r["carry"])
+    all_lines = budget_lines(conn)
 
     def line(kind, row):
-        k = (kind, row["id"])
-        history = versions.get(k, [])
-        current = next((v for v in reversed(history) if v["start_month"] <= month), None)
+        found = all_lines.get((kind, row["id"]))
+        current = found.version_at(month) if found else None
         active = current is not None and current["amount_cents"] is not None
         default_carry = bool(active and current["rollover"])
         return {
@@ -123,11 +148,11 @@ def categories_for(conn, month):
             "name": row["name"],
             "budget": current["amount_cents"] if active else None,
             "rollover": default_carry,
-            "carry": choices.get(k, {}).get(month, default_carry),
-            "extra": extra.get(k, {}).get(month, 0) if active else 0,
-            "carried_in": carried_into(history, spent.get(k, {}), extra.get(k, {}), choices.get(k, {}), month, first) if active else 0,
+            "carry": found.choices.get(month, default_carry) if found else default_carry,
+            "extra": found.extra.get(month, 0) if active else 0,
+            "carried_in": found.carried_into(month) if active else 0,
             "history": [{"id": v["id"], "start_month": v["start_month"], "rollover": bool(v["rollover"]),
-                         "amount": v["amount_cents"]} for v in history],
+                         "amount": v["amount_cents"]} for v in found.versions] if found else [],
         }
 
     categories = {r["id"]: {**line("category", r), "items": []} for r in conn.execute("SELECT * FROM categories ORDER BY id")}
@@ -214,7 +239,13 @@ def lines_for(category, spent):
 
 def month_data(conn, month, exclude=None):
     """Everything about one month: categories, transactions, the budget lines per category
-    and the totals. `exclude` leaves out one transaction (the one being edited)."""
+    and the totals. `exclude` leaves out one transaction (the one being edited). Worked out
+    once per connection until its data changes, as History and Outlook need the same months
+    more than once: don't change the result (copy what you add to)."""
+    return conn.cached(("month", month, exclude, current_month()), lambda: _month_data(conn, month, exclude))
+
+
+def _month_data(conn, month, exclude):
     categories = categories_for(conn, month)
     items = [t for t in transactions(conn, month) if t["id"] != exclude]
     spent, outside = spent_by_line(items)

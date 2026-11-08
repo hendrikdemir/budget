@@ -41,6 +41,21 @@ class CarryOver(AppTest):
         self.assertEqual(self.line("2026-02", food)["carried_in"], 20000)
         self.assertEqual(self.line("2026-03", food)["carried_in"], 0)  # February's leftover stays behind again
 
+    def test_the_order_months_are_asked_in_doesnt_matter(self):
+        fun = self.item(self.category("Fun"), "Fun money", 10000, carry=True)
+        for month, spent in (("01", 3000), ("02", 12000), ("03", 1000), ("05", 4000)):
+            self.add(spent, f"2026-{month}-10", fun)
+        expected = {"2026-02": 7000, "2026-03": 5000, "2026-04": 14000, "2026-05": 24000, "2026-06": 30000}
+        for month in ("2026-06", "2026-02", "2026-05", "2026-03", "2026-04", "2026-01"):
+            self.assertEqual(self.line(month, fun)["carried_in"], expected.get(month, 0))
+
+    def test_a_change_after_asking_is_taken_into_account(self):
+        fun = self.item(self.category("Fun"), "Fun money", 10000, carry=True)
+        self.assertEqual(self.line("2026-03", fun)["carried_in"], 20000)
+        self.add(4000, "2026-01-10", fun)  # through the same connection, so the remembered results go
+        self.assertEqual(self.line("2026-03", fun)["carried_in"], 16000)
+        self.assertEqual(self.line("2026-01", fun)["spent"], 4000)
+
     def test_overspending_doesnt_carry_a_negative_amount(self):
         fun = self.item(self.category("Fun"), "Fun money", 10000, carry=True)
         self.add(15000, "2026-01-10", fun)

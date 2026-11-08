@@ -4,6 +4,7 @@ The schema version is stored in SQLite's `user_version`. To change the schema, a
 function to MIGRATIONS; it runs once on databases that are older, in order.
 """
 import sqlite3
+from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 
@@ -91,11 +92,40 @@ def use_data_dir(folder):
     BACKUP_DIR = folder / "backups"
 
 
+class Connection(sqlite3.Connection):
+    """A connection that can remember results worked out from its data (see `cached`)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cache = {}
+
+    def cached(self, key, compute):
+        """`compute()`, worked out again only once this connection changed the data since.
+        Only for results that depend on the data alone, and that callers don't change."""
+        changes = self.total_changes
+        if key not in self.cache or self.cache[key][0] != changes:
+            self.cache[key] = (changes, compute())
+        return self.cache[key][1]
+
+
 def connect():
-    conn = sqlite3.connect(DB_PATH)
+    """A connection to the data. Close it when done; `session()` does that for you."""
+    conn = sqlite3.connect(DB_PATH, factory=Connection)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
+
+
+@contextmanager
+def session():
+    """A connection whose changes are saved together (or not at all, after an error), and
+    that is closed afterwards."""
+    conn = connect()
+    try:
+        with conn:  # commits, or rolls back after an error
+            yield conn
+    finally:
+        conn.close()
 
 
 def _columns(conn, table):
@@ -137,7 +167,7 @@ TOO_NEW_MESSAGE = ("Your data was last used with a newer version of Budget than 
 
 
 def migrate():
-    with connect() as conn:
+    with session() as conn:
         version = conn.execute("PRAGMA user_version").fetchone()[0]
         if version > len(MIGRATIONS):
             raise TooNewError(TOO_NEW_MESSAGE)
@@ -154,7 +184,11 @@ def daily_backup():
     target = BACKUP_DIR / f"budget-{date.today().isoformat()}.db"
     if target.exists():
         return
-    with connect() as source, sqlite3.connect(target) as copy:
+    source, copy = connect(), sqlite3.connect(target)
+    try:
         source.backup(copy)  # consistent even while the app is in use
+    finally:
+        copy.close()
+        source.close()
     for old in sorted(BACKUP_DIR.glob("budget-*.db"))[:-KEEP_BACKUPS]:
         old.unlink()

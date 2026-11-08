@@ -25,6 +25,9 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   in a browser can't use it; keep that when adding routes or request types.
 - `app/db.py`: schema and **migrations**. The schema version is SQLite's `user_version`.
   To change the schema, append a function to `MIGRATIONS` (never edit an old one).
+  Use `db.session()` for a connection (it commits and closes). A connection remembers results
+  from `conn.cached()` (budget lines with their carry-over, `month_data()`) until it changes data
+  itself; those results are shared, so copy before adding to them.
 - `app/budgets.py`: budget history, carry-over, transactions, and `month_data()`, which
   computes a month's budget lines, totals and leftover.
 - `app/accounts.py`: expected balances (starting point + transactions by paid date) and `year_history()`

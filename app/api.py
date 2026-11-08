@@ -19,7 +19,7 @@ def get_month(conn, _, __, query):
     """Everything the overview shows for a month, including whether it's ready for the next."""
     month = clean_month(first(query, "month", current_month()))
     exclude = int(first(query, "exclude")) if first(query, "exclude") else None
-    data = budgets.month_data(conn, month, exclude)
+    data = {**budgets.month_data(conn, month, exclude)}  # a copy: month_data's result is shared
     data["outlook"] = outlook.month_outlook(conn, month, data)
     return data
 

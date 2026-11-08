@@ -76,7 +76,7 @@ class Handler(SimpleHTTPRequestHandler):
                 db.daily_backup()  # before the first change of the day
             record_id = int(parts[1]) if len(parts) > 1 else None
             body = self.read_body()
-            with db.connect() as conn:
+            with db.session() as conn:
                 result = handler(conn, record_id, body, parse_qs(url.query))
             if isinstance(result, tuple):
                 self.send_download(*result)
