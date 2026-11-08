@@ -31,6 +31,13 @@ export async function api(path, options = {}) {
 const popovers = typeof HTMLElement.prototype.showPopover === "function";
 export function toast(message, seconds = 2.2) {
   const el = $("#toast");
+  // Inside the open modal dialog, if any: the Mac app's WebKit can put a popover shown while a
+  // dialog is open (e.g. under a native save panel) below that dialog's backdrop.
+  const host = [...document.querySelectorAll("dialog[open]")].filter((d) => d.matches(":modal")).pop() || document.body;
+  if (el.parentElement !== host) {
+    if (popovers && el.matches(":popover-open")) el.hidePopover();
+    host.append(el);
+  }
   el.textContent = message;
   el.hidden = false;
   if (popovers) {
