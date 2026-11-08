@@ -12,7 +12,10 @@ const popovers = {
     panel.style.minWidth = `${r.width}px`;
     panel.hidden = false;
     const below = r.bottom + 6 + panel.offsetHeight <= innerHeight || r.top < panel.offsetHeight;
-    panel.style.top = `${below ? r.bottom + 6 : r.top - 6 - panel.offsetHeight}px`;
+    // Above its anchor, a panel hangs from its bottom edge, so it stays next to the anchor
+    // when its content changes (a combobox's list gets shorter while typing).
+    panel.style.top = below ? `${r.bottom + 6}px` : "auto";
+    panel.style.bottom = below ? "auto" : `${innerHeight - r.top + 6}px`;
     panel.style.left = `${Math.max(8, Math.min(r.left, innerWidth - panel.offsetWidth - 8))}px`;
     this.current = { anchor, panel };
   },
