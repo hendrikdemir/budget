@@ -122,6 +122,7 @@ def bank_import_add(conn, _, body, __):
 # ---- Categories, items and budgets ----
 
 def create_category(conn, _, body, __):
+    """A new category with its budget from `month`; `rollover` carries its leftovers over by default."""
     name, month = clean_name(body.get("name")), clean_month(body.get("month"))
     amount = cents(body.get("budget", 0), allow_zero=True)
     existing = conn.execute("SELECT id FROM categories WHERE name = ?", (name,)).fetchone()
@@ -134,7 +135,7 @@ def create_category(conn, _, body, __):
             raise ApiError(f"You already have a category called “{name}”.")
     else:
         cat_id = conn.execute("INSERT INTO categories (name) VALUES (?)", (name,)).lastrowid
-    set_budget(conn, "category_id", cat_id, month, amount)
+    set_budget(conn, "category_id", cat_id, month, amount, bool(body.get("rollover")))
     return {"ok": True}
 
 
@@ -171,7 +172,7 @@ def create_item(conn, _, body, __):
         item_id = existing["id"]
     else:
         item_id = conn.execute("INSERT INTO items (category_id, name) VALUES (?, ?)", (category_id, name)).lastrowid
-    set_budget(conn, "item_id", item_id, month, amount)
+    set_budget(conn, "item_id", item_id, month, amount, bool(body.get("rollover")))
     return {"ok": True}
 
 

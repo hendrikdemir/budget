@@ -120,6 +120,12 @@ class Totals(AppTest):
         totals = self.month("2026-10")["totals"]
         self.assertEqual((totals["net"], totals["carried_out"]), (246000, 6000))
 
+    def test_a_new_budget_can_carry_over_from_the_start(self):
+        api.create_category(self.conn, None, {"name": "Fun money", "month": "2026-01", "budget": 10000, "rollover": True}, None)
+        api.create_item(self.conn, None, {"category_id": self.category("Home"), "name": "Repairs", "month": "2026-01",
+                                          "budget": 5000, "rollover": True}, None)
+        self.assertEqual((self.line("2026-02", "c1")["carried_in"], self.line("2026-02", "i1")["carried_in"]), (10000, 5000))
+
 
 class Transactions(AppTest):
     def test_parts_cant_add_up_to_more_than_the_amount(self):

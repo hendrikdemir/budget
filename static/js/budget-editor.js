@@ -52,7 +52,7 @@ function render() {
           <form class="mgr-row add-item">
             <input name="name" placeholder="${c.items.length ? "New item" : "Split into items, e.g. Electricity"}" required>
             <input name="budget" inputmode="decimal" placeholder="Budget">
-            <span></span>
+            <label class="carry-default" title="Carry leftovers to next month by default"><input type="checkbox" name="rollover" aria-label="Carry leftovers to next month"></label>
             <button class="icon-btn" aria-label="Add item">${PLUS}</button>
           </form>
         </div>`).join("");
@@ -70,7 +70,7 @@ export function openManager() {
 $("#add-category").onsubmit = once(async (e) => {
   e.preventDefault();
   const f = e.target;
-  await api("/api/categories", { method: "POST", body: { name: f.name.value, budget: parseAmount(f.budget.value) || 0, month: state.month } });
+  await api("/api/categories", { method: "POST", body: { name: f.name.value, budget: parseAmount(f.budget.value) || 0, rollover: f.rollover.checked, month: state.month } });
   f.reset();
   refresh();
 });
@@ -80,7 +80,7 @@ body.onsubmit = once(async (e) => {
   e.preventDefault();
   const f = e.target;
   const categoryId = Number(f.closest(".mgr-cat").dataset.id);
-  await api("/api/items", { method: "POST", body: { category_id: categoryId, name: f.name.value, budget: parseAmount(f.budget.value) || 0, month: state.month } });
+  await api("/api/items", { method: "POST", body: { category_id: categoryId, name: f.name.value, budget: parseAmount(f.budget.value) || 0, rollover: f.rollover.checked, month: state.month } });
   await refresh();
   body.querySelector(`.mgr-cat[data-id="${categoryId}"] .add-item input`).focus();
 });

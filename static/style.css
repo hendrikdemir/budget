@@ -431,8 +431,10 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 .mgr-row.ended input { opacity: 0.55; }
 .mgr-head input.name { font-weight: 500; background: transparent; border-color: transparent; padding-left: 0; }
 .mgr-head input.name:focus { padding-left: 12px; }
-.mgr-item input.name, .add-item input:first-child { margin-left: 16px; width: calc(100% - 16px); }
-.add-item input { background: transparent; border-style: dashed; }
+.mgr-item input.name, .add-item > input:first-child { margin-left: 16px; width: calc(100% - 16px); }
+.add-item > input { background: transparent; border-style: dashed; }
+/* The Carry checkbox of a new item is dashed like its fields, but keeps a checkbox's own size and place. */
+.add-item input[type="checkbox"]:not(:checked) { background: transparent; border-style: dashed; }
 #add-category .icon-btn, .add-item .icon-btn { width: 28px; min-width: 28px; height: 28px; display: grid; place-items: center; justify-self: center; }
 /* Budget history chips (in the editor) */
 .history { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px 16px; }
