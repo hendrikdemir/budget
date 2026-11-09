@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 
 from playwright.sync_api import sync_playwright
 
-from app import VERSION, db, outlook, updates
+from app import VERSION, api, db, outlook, updates
 from app.demo import seed
 from app.web import make_server
 
@@ -221,6 +221,19 @@ NEWER = {"tag_name": "v9.9.0", "body": "- See how this month compares with the s
          "assets": [{"name": "Budget.dmg", "browser_download_url": "https://github.com/hendrikdemir/budget/releases"}]}
 
 
+def capture_guide(url):
+    """The getting-started guide, as a new user sees it after the first step."""
+    with sync_playwright() as p:
+        browser = p.webkit.launch()
+        page = browser.new_context(viewport={"width": 1000, "height": 800}, device_scale_factor=2,
+                                   color_scheme="light", locale="en-GB").new_page()
+        page.goto(url)
+        page.wait_for_selector("#guide:not([hidden]) .guide-step")
+        page.wait_for_timeout(600)
+        page.locator("#guide").screenshot(path=OUT / "guide.png")
+        browser.close()
+
+
 def fake_release(release):
     """Makes the update check see `release` instead of asking GitHub."""
     import json
@@ -273,6 +286,17 @@ def main():
         server = make_server(0)
         threading.Thread(target=server.serve_forever, daemon=True).start()
         capture(f"http://127.0.0.1:{server.server_address[1]}/")
+        server.shutdown()
+    # A new user's first steps: nothing but the balances yet.
+    with tempfile.TemporaryDirectory() as folder:
+        db.use_data_dir(Path(folder))
+        db.migrate()
+        with db.session() as conn:
+            for account, amount in (("bank", 250000), ("savings", 1160000)):
+                api.set_balance_start(conn, None, {"account": account, "amount": amount, "date": date.today().isoformat()}, None)
+        server = make_server(0)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        capture_guide(f"http://127.0.0.1:{server.server_address[1]}/")
         server.shutdown()
     print(f"Saved screenshots to {OUT}")
 

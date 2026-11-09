@@ -40,6 +40,7 @@ Your spending, what's left in each budget, and anything spent outside your budge
 - **Categories and items**, such as Home › Rent, Energy and Internet, or a single budget like Fun money.
 - **Budgets that change over time.** Raise the rent from next month and earlier months stay exactly as they were.
 - **Carry leftovers over** to next month, by default or case by case, and see how much came along.
+- **Split a budget into items later.** Turn Groceries into Food and Household from this month on; the months before keep the single budget they had.
 
 ### Add a transaction and see the effect first
 
@@ -92,7 +93,7 @@ Set a starting balance for your bank account and savings, and Budget keeps track
 
 <img src="docs/screenshots/history.png" alt="The History page: a year's income, spending and result, with the bank and savings balance per month">
 
-The History page shows a year at a glance: what came in, what went out and what was left, and how your bank account and savings developed, month by month. It starts at your starting point, so months before you began keeping track aren't shown.
+The History page shows a year at a glance: what came in, what went out and what was left, and how your bank account and savings developed, month by month. It starts at your starting point (or, without one, at your first transaction), so months before you began keeping track aren't shown.
 
 <img src="docs/screenshots/budget-history.png" alt="Each budget per month: a bar for what was spent of what there was, with the total spent of budgeted">
 
@@ -108,9 +109,9 @@ Add your expected income and planned costs, like a holiday or a new laptop, once
 
 ### Make it yours
 
-<img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency, backups and updates">
+<img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency, how numbers are written, backups and updates">
 
-Follow your Mac's light or dark mode, or choose one yourself, and pick your currency from every currency in the world.
+Follow your Mac's light or dark mode, or choose one yourself, and pick your currency from every currency in the world. Numbers are written the way your Mac writes them, or the way you choose: 1.234,56 or 1,234.56. Amounts you type, and the examples in messages, follow the same choice.
 
 ### Backups and moving to a new Mac
 
@@ -146,6 +147,12 @@ To update, quit Budget, download the new `Budget.dmg`, drag Budget to **Applicat
 
 Budget currently runs on Macs with Apple Silicon.
 
+### Getting started
+
+<img src="docs/screenshots/guide.png" alt="The getting-started guide: balances done, then budgets, a first transaction and expected income">
+
+A new Budget is empty. The Overview shows four steps to make it yours, in any order: enter your bank and savings balances, set up your budgets, add what you spend (by hand or from your bank), and add the income you expect. Each step is ticked off by itself, and the guide goes away when all four are done. **Hide** puts it away sooner.
+
 ## Your data
 
 Everything stays on your Mac, in `~/Library/Application Support/nl.hendrikdemir.budget`. Budget makes a backup automatically on each day you use it and keeps the last 14, in the `backups` folder there. You can restore them from **Settings → Restore from backup**. They're on the same Mac, so for a copy elsewhere, use **Create backup** or Time Machine.
@@ -170,7 +177,7 @@ python3 server.py
 
 Then open http://localhost:8000.
 
-Add `--demo` to try it with a made-up household, kept in `.demo-data/`.
+Add `--demo` to try it with a made-up household, kept in `.demo-data/`. Add `--empty` to see it as a new user does, without any data: it starts empty every time.
 
 To try the update check without a real release, point it at a made-up one:
 
