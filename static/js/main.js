@@ -1,6 +1,7 @@
 // Starts the page: settings and the current page (overview, #history or #outlook).
 import "./bank-import.js";
 import "./data.js";
+import "./guide.js";
 import { renderHistory } from "./history.js";
 import { renderOutlook } from "./outlook.js";
 import { load } from "./overview.js";

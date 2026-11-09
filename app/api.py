@@ -7,7 +7,8 @@ from .budgets import end_budget, has_history_before, is_active, set_budget, targ
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
 # number_format: "comma" (1.234,56), "point" (1,234.56) or "system" (the way this Mac writes numbers).
-DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR", "number_format": "system", "update_check": "on", "skipped_version": ""}
+DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR", "number_format": "system", "update_check": "on", "skipped_version": "",
+                    "guide": "show"}  # the getting-started guide on the overview: "show" or "hidden"
 
 
 def first(query, name, default=""):
@@ -366,6 +367,25 @@ def clear_data(conn, _, body, __):
     return backup.clear()
 
 
+# ---- Getting started ----
+
+def get_setup(conn, _, __, ___):
+    """What's been set up so far, for the getting-started guide on the overview: a starting
+    balance per account, a budget, a transaction and an expected income. `hidden` once the
+    user put the guide away."""
+    has = lambda sql: conn.execute(sql).fetchone() is not None
+    return {
+        "steps": {
+            "bank": accounts.starting_point(conn, "bank")[0] is not None,
+            "savings": accounts.starting_point(conn, "savings")[0] is not None,
+            "budgets": has("SELECT 1 FROM budgets WHERE amount_cents > 0"),
+            "transaction": has("SELECT 1 FROM expenses"),
+            "income": has("SELECT 1 FROM plans WHERE kind = 'income'"),
+        },
+        "hidden": get_settings(conn, None, None, None)["guide"] == "hidden",
+    }
+
+
 # ---- Settings ----
 
 def get_version(conn, _, __, ___):
@@ -388,7 +408,8 @@ def save_settings(conn, _, body, __):
     if "currency" in data and not re.fullmatch(r"[A-Z]{3}", data["currency"]):
         raise ApiError("Choose a currency from the list.")
     if data.get("update_check", "on") not in ("on", "off") or len(data.get("skipped_version", "")) > 20 \
-            or data.get("number_format", "system") not in ("system", "comma", "point"):
+            or data.get("number_format", "system") not in ("system", "comma", "point") \
+            or data.get("guide", "show") not in ("show", "hidden"):
         raise ApiError(GENERIC_ERROR)
     conn.executemany(
         "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
@@ -438,6 +459,7 @@ ROUTES = {
     ("POST", "auto-backup-check", False): check_auto_backup,
     ("POST", "auto-backup-restore", False): restore_auto_backup,
     ("POST", "clear-data", False): clear_data,
+    ("GET", "setup", False): get_setup,
     ("GET", "version", False): get_version,
     ("GET", "update", False): check_update,
     ("GET", "settings", False): get_settings,

@@ -10,7 +10,8 @@ Its data is in `~/Library/Application Support/nl.hendrikdemir.budget`.
 
 `python3 server.py` runs the same app in a browser on port 8000, with separate data in this
 folder (`budget.db`, `backups/`). With `--demo` it uses a made-up household in `.demo-data/`
-(`app/demo.py`), which is what the preview in `.claude/launch.json` shows. The app itself needs only the Python standard library;
+(`app/demo.py`), which is what the preview in `.claude/launch.json` shows. With `--empty` it starts
+without any data, as a new user sees it (the `budget-empty` preview; emptied at every start). The app itself needs only the Python standard library;
 pywebview and PyInstaller are used for the Mac app. There is no web build step.
 
 ## Layout
@@ -46,7 +47,7 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   `packaging/test-release.json`, used by the `budget-update` preview) fakes a release for testing.
 - `app/api.py`: request handlers; validation helpers are in `app/money.py`.
 - `static/js/`: ES modules. `main.js` starts the page; `overview.js`, `transaction.js`,
-  `budget-editor.js`, `accounts.js`, `history.js`, `outlook.js`, `settings.js`, `bank-import.js`, `updates.js` each own a part of the UI;
+  `budget-editor.js`, `accounts.js`, `history.js`, `outlook.js`, `settings.js`, `bank-import.js`, `updates.js`, `guide.js` (getting started) each own a part of the UI;
   `format.js`, `ui.js`, `controls.js`, `chart.js`, `state.js` are shared helpers.
 
 ## Conventions

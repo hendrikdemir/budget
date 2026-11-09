@@ -105,6 +105,7 @@ startForm.onsubmit = once(async (e) => {
   $("#start-section").open = false;
   toast("Starting point saved");
   await loadBalances();
+  document.dispatchEvent(new Event("data-changed")); // e.g. the getting-started guide
   checkForm.amount.focus();
 });
 startForm.oninput = () => fieldError(startForm, "start", "");

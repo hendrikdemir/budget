@@ -11,6 +11,15 @@
       "port": 8000
     },
     {
+      "name": "budget-empty",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "server.py",
+        "--empty"
+      ],
+      "port": 8000
+    },
+    {
       "name": "budget-update",
       "runtimeExecutable": "env",
       "runtimeArgs": [

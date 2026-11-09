@@ -6,4 +6,5 @@ build/
 dist/
 .venv-build/
 .demo-data/
+.empty-data/
 *.budget
