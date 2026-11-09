@@ -1,5 +1,22 @@
 // Small helpers shared by every part of the page: the API, toasts and modals.
+import { example } from "./format.js";
+
 export const $ = (sel) => document.querySelector(sel);
+
+// A handler that ignores a second click or Enter while the first is still being saved, so a
+// double click can't add something twice.
+export function once(handler) {
+  let busy = false;
+  return async function (e, ...rest) {
+    if (busy) return e?.type === "submit" && e.preventDefault();
+    busy = true;
+    try {
+      return await handler.call(this, e, ...rest);
+    } finally {
+      busy = false;
+    }
+  };
+}
 
 // Calls the app's API. Shows a friendly message (and throws) when something fails.
 export async function api(path, options = {}) {
@@ -19,6 +36,8 @@ export async function api(path, options = {}) {
     throw new Error("Server not reachable");
   }
   if (!res.ok) {
+    // Example numbers arrive as {12.50}: written the user's way here.
+    if (data.error) data.error = data.error.replace(/\{(-?\d+\.\d+)\}/g, (_, number) => example(number));
     alertDialog(data.error || "Something went wrong. Reload the page and try again.");
     throw new Error(data.error);
   }

@@ -2,11 +2,11 @@
 // and income can be split over several budgets; the dialog previews each budget's effect.
 import { combobox, datePicker } from "./controls.js";
 import {
-  currencySymbol, currentMonth, escapeHtml, inputAmount, isoDate, money, monthName, monthOnly, parseAmount,
+  currencySymbol, currentMonth, escapeHtml, example, inputAmount, isoDate, money, monthName, monthOnly, parseAmount,
 } from "./format.js";
 import { load, monthData } from "./overview.js";
 import { isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
-import { $, api, confirmDialog, toast } from "./ui.js";
+import { $, api, confirmDialog, once, toast } from "./ui.js";
 
 const form = $("#add-form");
 let editing = null; // the transaction being edited, or null when adding
@@ -37,7 +37,7 @@ $("#paid-clear").onclick = () => showPaidDate(null);
 // Choices: the budget lines that apply in the transaction's month.
 function budgetOptions() {
   const categories = dialogData?.categories || state.data.categories;
-  const standalone = categories.filter((c) => !c.items.length && c.budget !== null).map((c) => ({ value: `c${c.id}`, label: c.name }));
+  const standalone = categories.filter((c) => c.single).map((c) => ({ value: `c${c.id}`, label: c.name }));
   const items = categories.flatMap((c) => c.items.filter((i) => i.budget !== null)
     .map((i) => ({ value: `i${i.id}`, label: i.name, group: c.name, display: `${c.name} · ${i.name}` })));
   return [...standalone, ...items];
@@ -184,7 +184,7 @@ form.addEventListener("input", (e) => {
 });
 form.addEventListener("focusout", updateSplits);
 form.amount.addEventListener("blur", () => {
-  if (form.amount.value.trim() && !(parseAmount(form.amount.value) > 0)) showError("amount", "Enter the amount as a number, like 12,50.");
+  if (form.amount.value.trim() && !(parseAmount(form.amount.value) > 0)) showError("amount", `Enter the amount as a number, like ${example("12.50")}.`);
 });
 
 function showError(name, message) {
@@ -272,14 +272,14 @@ export async function openTransaction(transaction = null, newKind = "expense", p
   form.amount.focus();
 }
 
-form.onsubmit = async (e) => {
+form.onsubmit = once(async (e) => {
   e.preventDefault();
   const total = parseAmount(form.amount.value);
   const parts = currentParts();
   const transfer = isTransferKind();
   const invalid = [];
   if (!form.amount.value.trim()) invalid.push(["amount", kind === "income" ? "Enter the amount you received." : transfer ? "Enter the amount to move." : "Enter the amount you paid."]);
-  else if (!(total > 0)) invalid.push(["amount", "Enter an amount above zero, like 12,50."]);
+  else if (!(total > 0)) invalid.push(["amount", `Enter an amount above zero, like ${example("12.50")}.`]);
   if (!payee.value && !transfer) invalid.push(["payee", kind === "income" ? "Enter who paid you." : "Enter who you paid."]);
   if (splitMode && total > 0 && !transfer) {
     const sum = parts.reduce((s, p) => s + (p.amount || 0), 0);
@@ -306,9 +306,9 @@ form.onsubmit = async (e) => {
     : kind === "income" ? `Added ${money(total)} from ${payee.value}` : `Added ${money(total)} at ${payee.value}`);
   state.month = form.date.value.slice(0, 7);
   load();
-};
+});
 
-$("#expense-delete").onclick = async () => {
+$("#expense-delete").onclick = once(async () => {
   const noun = isTransfer(editing) ? "transfer" : editing.kind === "income" ? "income" : "expense";
   if (!(await confirmDialog({
     title: `Delete this ${noun}?`, message: "It's removed for good. Your budgets and balances update right away.",
@@ -318,4 +318,4 @@ $("#expense-delete").onclick = async () => {
   $("#expense-dialog").close();
   toast(`Deleted ${noun}`);
   load();
-};
+});

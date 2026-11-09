@@ -3,7 +3,7 @@
 import { escapeHtml, inputAmount, money, monthName, parseAmount } from "./format.js";
 import { load } from "./overview.js";
 import { state } from "./state.js";
-import { $, api, confirmDialog } from "./ui.js";
+import { $, api, confirmDialog, once } from "./ui.js";
 
 const FIRST_MONTH = "0000-01"; // budgets that have applied since the start
 const PLUS = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
@@ -47,7 +47,7 @@ function render() {
       .filter((c) => relevant(c) || c.items.some(relevant))
       .map((c) => `
         <div class="mgr-cat" data-id="${c.id}">
-          ${lineRow("category", c, { withBudget: !c.items.length })}
+          ${lineRow("category", c, { withBudget: c.single || !c.items.length })}
           ${c.items.filter(relevant).map((i) => lineRow("item", i)).join("")}
           <form class="mgr-row add-item">
             <input name="name" placeholder="${c.items.length ? "New item" : "Split into items, e.g. Electricity"}" required>
@@ -67,23 +67,23 @@ export function openManager() {
   $("#manager").showModal();
 }
 
-$("#add-category").onsubmit = async (e) => {
+$("#add-category").onsubmit = once(async (e) => {
   e.preventDefault();
   const f = e.target;
   await api("/api/categories", { method: "POST", body: { name: f.name.value, budget: parseAmount(f.budget.value) || 0, month: state.month } });
   f.reset();
   refresh();
-};
+});
 
 const body = $("#manager-body");
-body.onsubmit = async (e) => {
+body.onsubmit = once(async (e) => {
   e.preventDefault();
   const f = e.target;
   const categoryId = Number(f.closest(".mgr-cat").dataset.id);
   await api("/api/items", { method: "POST", body: { category_id: categoryId, name: f.name.value, budget: parseAmount(f.budget.value) || 0, month: state.month } });
   await refresh();
   body.querySelector(`.mgr-cat[data-id="${categoryId}"] .add-item input`).focus();
-};
+});
 body.onchange = async (e) => {
   const row = e.target.closest(".mgr-row[data-kind]");
   if (!row) return;

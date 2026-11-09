@@ -16,7 +16,7 @@ from . import db
 from .money import ApiError
 
 MAX_SIZE = 200 * 1024 * 1024
-KEEP_SETTINGS = ("theme", "currency", "update_check")  # how Budget looks stays when all data is deleted
+KEEP_SETTINGS = ("theme", "currency", "number_format", "update_check")  # how Budget looks stays when all data is deleted
 REQUIRED_TABLES = {"categories", "items", "budgets", "expenses", "splits", "settings"}
 NOT_A_BACKUP = "This isn't a Budget backup. Choose a file that ends in .budget, made with Create backup."
 DAMAGED = "This backup file is damaged, so it can't be imported. Your data hasn't changed. Try exporting it again."

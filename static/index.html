@@ -132,6 +132,7 @@
       </div>
     </nav>
     <p id="history-note" class="muted history-note"></p>
+    <section class="card" id="history-empty" hidden><p class="muted"></p></section>
     <section class="card history-summary" id="history-summary"></section>
     <section class="card" id="history-chart-card">
       <div class="section-head">
@@ -217,7 +218,7 @@
         </label>
         <label class="field wide" id="buffer-amount-field">
           <span class="label">Amount <span class="req" aria-label="required">*</span></span>
-          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0,00"></span>
+          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
           <span class="error" data-error="amount"></span>
         </label>
       </div>
@@ -242,7 +243,7 @@
         </label>
         <label class="field">
           <span class="label">Amount <span class="req" aria-label="required">*</span></span>
-          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0,00"></span>
+          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
           <span class="error" data-error="amount"></span>
         </label>
         <div class="field wide">
@@ -303,7 +304,7 @@
       <div class="fields">
         <label class="field">
           <span class="label">Amount <span class="req" aria-label="required">*</span></span>
-          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0,00"></span>
+          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
           <span class="error" data-error="amount"></span>
         </label>
         <div class="field">
@@ -386,6 +387,11 @@
       </div>
       <span class="label">Currency</span>
       <input id="currency-input" placeholder="Search by name or code, e.g. euro" aria-label="Currency">
+      <span class="label">Numbers</span>
+      <div class="segmented" id="number-options" aria-label="How numbers are written">
+        <button type="button" data-format="comma">1.234,56</button>
+        <button type="button" data-format="point">1,234.56</button>
+      </div>
       <span class="label">Backup</span>
       <p class="muted data-hint">All your data in one file, to keep safe or to move to another Mac.</p>
       <div class="data-actions">
@@ -416,7 +422,7 @@
       <div class="fields">
         <label class="field">
           <span class="label">Balance in your bank <span class="req" aria-label="required">*</span></span>
-          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0,00"></span>
+          <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
           <span class="error" data-error="check"></span>
         </label>
         <div class="field">
@@ -435,7 +441,7 @@
         <div class="fields">
           <label class="field">
             <span class="label">Starting balance <span class="req" aria-label="required">*</span></span>
-            <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0,00"></span>
+            <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
             <span class="error" data-error="start"></span>
           </label>
           <div class="field">

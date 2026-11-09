@@ -6,7 +6,8 @@ from . import VERSION, accounts, backup, bank_import, budgets, export, outlook, 
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
-DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR", "update_check": "on", "skipped_version": ""}
+# number_format: "comma" (1.234,56), "point" (1,234.56) or "system" (the way this Mac writes numbers).
+DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR", "number_format": "system", "update_check": "on", "skipped_version": ""}
 
 
 def first(query, name, default=""):
@@ -323,7 +324,7 @@ def set_buffer(conn, _, body, __):
     else:
         months = body.get("months")
         if isinstance(months, bool) or not isinstance(months, (int, float)) or not 0 <= months <= 120:
-            raise ApiError("Enter a number of months, like 1,5.")
+            raise ApiError("Enter a number of months, like {1.5}.")
         values = {"buffer_mode": "months", "buffer_months": str(months)}
     conn.executemany(
         "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
@@ -386,7 +387,8 @@ def save_settings(conn, _, body, __):
     data = {k: str(v) for k, v in body.items() if k in DEFAULT_SETTINGS}
     if "currency" in data and not re.fullmatch(r"[A-Z]{3}", data["currency"]):
         raise ApiError("Choose a currency from the list.")
-    if data.get("update_check", "on") not in ("on", "off") or len(data.get("skipped_version", "")) > 20:
+    if data.get("update_check", "on") not in ("on", "off") or len(data.get("skipped_version", "")) > 20 \
+            or data.get("number_format", "system") not in ("system", "comma", "point"):
         raise ApiError(GENERIC_ERROR)
     conn.executemany(
         "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",

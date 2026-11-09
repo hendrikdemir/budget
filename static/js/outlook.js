@@ -2,9 +2,9 @@
 // and the plans it's based on: expected income and planned extra expenses.
 import { lineChart } from "./chart.js";
 import { monthPicker } from "./controls.js";
-import { currencySymbol, currentMonth, escapeHtml, inputAmount, isoDate, money, monthName, monthOnly, parseAmount, shiftMonth } from "./format.js";
+import { currencySymbol, currentMonth, escapeHtml, example, inputAmount, isoDate, money, monthName, monthOnly, parseAmount, shiftMonth } from "./format.js";
 import { openTransaction } from "./transaction.js";
-import { $, api, columnTips, confirmDialog, fieldError, tipHead, toast } from "./ui.js";
+import { $, api, columnTips, confirmDialog, fieldError, once, tipHead, toast } from "./ui.js";
 
 let plans = [];
 // Stay current when a transaction is added from this page.
@@ -115,7 +115,7 @@ function fromSavingsNotice({ month, short, short_if_spent: ifSpent, awaiting_inc
 function bufferText() {
   if (buffer.mode === "amount") return money(buffer.amount);
   if (buffer.months === 1) return "one month's budget";
-  return `${buffer.months.toLocaleString()} months of budget`;
+  return `${example(String(buffer.months))} months of budget`;
 }
 
 const bufferForm = $("#buffer-form");
@@ -127,7 +127,7 @@ function renderBufferMode() {
 }
 $("#buffer-edit").onclick = () => {
   bufferMode = buffer.mode;
-  bufferForm.months.value = buffer.months.toLocaleString();
+  bufferForm.months.value = example(String(buffer.months));
   bufferForm.amount.value = inputAmount(buffer.amount);
   fieldError(bufferForm, "months", "");
   fieldError(bufferForm, "amount", "");
@@ -143,17 +143,17 @@ $("#buffer-mode").onclick = (e) => {
   bufferForm[bufferMode].select();
 };
 bufferForm.oninput = (e) => fieldError(bufferForm, e.target.name, "");
-bufferForm.onsubmit = async (e) => {
+bufferForm.onsubmit = once(async (e) => {
   e.preventDefault();
-  const value = parseAmount(bufferForm[bufferMode].value); // months are parsed like amounts: "1,5" -> 150
+  const value = parseAmount(bufferForm[bufferMode].value); // months are parsed like amounts: "1.5" -> 150
   if (!(value >= 0)) {
-    return fieldError(bufferForm, bufferMode, bufferMode === "months" ? "Enter a number of months, like 1,5." : "Enter an amount, like 2500,00.");
+    return fieldError(bufferForm, bufferMode, bufferMode === "months" ? `Enter a number of months, like ${example("1.5")}.` : `Enter an amount, like ${example("2500.00")}.`);
   }
   await api("/api/buffer", { method: "PUT", body: bufferMode === "months" ? { mode: "months", months: value / 100 } : { mode: "amount", amount: value } });
   $("#buffer-dialog").close();
   toast("Buffer updated");
   renderOutlook();
-};
+});
 
 // ---- Plans (expected income and planned expenses) ----
 function planPeriod(p) {
@@ -206,16 +206,16 @@ async function reloadPlan() {
   renderPlanChanges();
   renderOutlook();
 }
-$("#change-add").onclick = async () => {
+$("#change-add").onclick = once(async () => {
   const amount = parseAmount($("#change-amount").value);
-  if (!(amount > 0)) return fieldError(planForm, "change", "Enter the new amount, like 1700,00.");
+  if (!(amount > 0)) return fieldError(planForm, "change", `Enter the new amount, like ${example("1700.00")}.`);
   if (changeMonth <= editingPlan.start_month) return fieldError(planForm, "change", `Choose a month after ${monthName(editingPlan.start_month)}, when this plan starts.`);
   await api("/api/plan-changes", { method: "POST", body: { plan_id: editingPlan.id, start_month: changeMonth, amount } });
   $("#change-amount").value = "";
   fieldError(planForm, "change", "");
   toast(`${editingPlan.name}: ${money(amount)} from ${monthName(changeMonth)}`);
   reloadPlan();
-};
+});
 $("#plan-changes").onclick = async (e) => {
   const btn = e.target.closest("[data-change]");
   if (!btn) return;
@@ -286,12 +286,12 @@ planForm.oninput = (e) => {
   fieldError(planForm, e.target.name, "");
   if (e.target.name === "every") renderPlanDates();
 };
-planForm.onsubmit = async (e) => {
+planForm.onsubmit = once(async (e) => {
   e.preventDefault();
   const amount = parseAmount(planForm.amount.value);
   let ok = true;
   if (!planForm.name.value.trim()) { fieldError(planForm, "name", "Give it a name, like Salary."); ok = false; }
-  if (!(amount > 0)) { fieldError(planForm, "amount", "Enter an amount above zero, like 1234,56."); ok = false; }
+  if (!(amount > 0)) { fieldError(planForm, "amount", `Enter an amount above zero, like ${example("1234.56")}.`); ok = false; }
   const end = planRepeat === "once" ? planStart : planEnd;
   const every = planRepeat === "every" ? everyValue() : 1;
   if (!(Number.isInteger(every) && every >= 1 && every <= 12)) { fieldError(planForm, "every", "Enter a number of months from 2 to 12."); ok = false; }
@@ -302,8 +302,8 @@ planForm.onsubmit = async (e) => {
   $("#plan-dialog").close();
   toast(editingPlan ? "Plan updated" : "Plan added");
   renderOutlook();
-};
-$("#plan-delete").onclick = async () => {
+});
+$("#plan-delete").onclick = once(async () => {
   if (!(await confirmDialog({
     title: `Delete “${editingPlan.name}”?`, message: "It's no longer included in your outlook. Your transactions aren't affected.",
     confirm: "Delete", danger: true,
@@ -311,5 +311,5 @@ $("#plan-delete").onclick = async () => {
   await api(`/api/plans/${editingPlan.id}`, { method: "DELETE" });
   $("#plan-dialog").close();
   renderOutlook();
-};
+});
 $("#plan-no-end").onclick = () => { planEnd = null; renderPlanDates(); };

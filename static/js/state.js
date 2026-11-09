@@ -2,7 +2,7 @@
 const now = new Date();
 
 export const state = {
-  settings: { theme: "system", currency: "EUR" },
+  settings: { theme: "system", currency: "EUR", number_format: "system" },
   month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`, // the month being viewed
   // Everything about the viewed month, from GET /api/month: categories, transactions,
   // groups (budget lines per category), totals, leftover and outlook.

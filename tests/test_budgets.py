@@ -1,5 +1,5 @@
 """Budgets: history "from a month onward", carry-over, totals and transactions."""
-from app import api
+from app import api, budgets
 from app.money import ApiError
 
 from .base import AppTest
@@ -20,6 +20,29 @@ class BudgetHistory(AppTest):
         api.remove_item(self.conn, int(rent[1:]), None, {"month": ["2026-04"]})
         self.assertEqual(self.line("2026-03", rent)["budget"], 95000)
         self.assertFalse(any(l["key"] == rent for g in self.month("2026-04")["groups"] for l in g["lines"]))
+
+    def test_splitting_a_category_into_items_keeps_earlier_months(self):
+        groceries = self.category("Groceries", 38000, month="2026-08")
+        self.change(f"c{groceries}", "2026-08", 38000, carry=True)
+        for month in ("08", "09", "10"):
+            self.add(30000, f"2026-{month}-10", f"c{groceries}")
+        before = [self.month(m)["totals"] for m in ("2026-09", "2026-10")]
+        food = self.item(groceries, "Food", 30000, month="2026-11")
+        self.assertEqual([self.month(m)["totals"] for m in ("2026-09", "2026-10")], before)
+        october = self.line("2026-10", f"c{groceries}")
+        self.assertEqual((october["budget"], october["carried_in"], october["spent"]), (38000, 16000, 30000))
+        # From November the item has the budget; the category's own steps aside, carry-over included.
+        november = self.month("2026-11")
+        self.assertEqual([(l["key"], l["budget"]) for g in november["groups"] for l in g["lines"]], [(food, 30000)])
+        self.assertEqual(november["totals"]["carried_in"], 0)
+        self.assertEqual(budgets.budget_total(self.conn, "2026-10"), 38000)
+        self.assertEqual(budgets.budget_total(self.conn, "2026-11"), 30000)
+
+    def test_a_category_made_for_items_is_no_budget_of_its_own(self):
+        home = self.category("Home", month="2026-01")  # no budget: it's there to hold items
+        rent = self.item(home, "Rent", 95000, month="2026-03")
+        self.assertEqual(self.month("2026-02")["groups"], [])
+        self.assertEqual([l["key"] for g in self.month("2026-03")["groups"] for l in g["lines"]], [rent])
 
 
 class CarryOver(AppTest):

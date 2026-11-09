@@ -2,7 +2,8 @@
 
 - A category (e.g. "Home") optionally holds items (e.g. "Electricity"). Budgets are set
   on items, or on the category itself when it has no items. Together: "budget lines",
-  keyed "i<id>" (item) or "c<id>" (category).
+  keyed "i<id>" (item) or "c<id>" (category). A category that gets items later keeps its
+  own budget in the months before: it only steps aside in months where an item has one.
 - Budgets have a history: each row in `budgets` applies from its start month until the
   next row for the same line; an amount of NULL means "ended". Changing a budget from a
   month onward never alters earlier months.
@@ -86,9 +87,18 @@ class Line:
         self.start = min(starts, default=None)
         self.carried = {}  # month -> leftover carried into it, for the months walked so far
         self.walked, self.carry = self.start, 0  # the next month to walk, and what's carried into it
+        self.items = []  # for a category's own line: the lines of its items
 
     def version_at(self, month):
         return next((v for v in reversed(self.versions) if v["start_month"] <= month), None)
+
+    def active_at(self, month):
+        """The budget in effect in `month`, or None: not started, ended, or (for a category's
+        own budget) set aside because one of its items has a budget that month."""
+        version = self.version_at(month)
+        if not version or version["amount_cents"] is None or any(i.active_at(month) for i in self.items):
+            return None
+        return version
 
     def carried_into(self, month):
         """Leftover carried into `month`: 0 before the line's first month."""
@@ -96,8 +106,8 @@ class Line:
             return 0
         while self.walked < month:
             self.carried[self.walked] = self.carry
-            version = self.version_at(self.walked)
-            if not version or version["amount_cents"] is None:
+            version = self.active_at(self.walked)
+            if not version:
                 self.carry = 0
             else:
                 left = version["amount_cents"] + self.extra.get(self.walked, 0) + self.carry - self.spent.get(self.walked, 0)
@@ -127,21 +137,25 @@ def budget_lines(conn):
             target.setdefault(key(r), {})[r["month"]] = r["cents"]
         for r in conn.execute("SELECT * FROM rollover_choices"):
             choices.setdefault(key(r), {})[r["month"]] = bool(r["carry"])
-        return {k: Line(versions.get(k, []), spent.get(k, {}), extra.get(k, {}), choices.get(k, {}), first)
-                for k in versions.keys() | choices.keys()}
+        lines = {k: Line(versions.get(k, []), spent.get(k, {}), extra.get(k, {}), choices.get(k, {}), first)
+                 for k in versions.keys() | choices.keys()}
+        for r in conn.execute("SELECT id, category_id FROM items"):
+            if ("item", r["id"]) in lines and ("category", r["category_id"]) in lines:
+                lines[("category", r["category_id"])].items.append(lines[("item", r["id"])])
+        return lines
     return conn.cached("lines", load)
 
 
 def categories_for(conn, month):
-    """All categories and items with, for `month`: the budget in effect (None = none), the
-    leftover carried in, extra budget from income, whether this month's leftover carries
-    over, and the budget history."""
+    """All categories and items with, for `month`: the budget in effect (None = none; for a
+    category also when its items have the budgets that month), the leftover carried in, extra
+    budget from income, whether this month's leftover carries over, and the budget history."""
     all_lines = budget_lines(conn)
 
     def line(kind, row):
         found = all_lines.get((kind, row["id"]))
-        current = found.version_at(month) if found else None
-        active = current is not None and current["amount_cents"] is not None
+        current = found.active_at(month) if found else None
+        active = current is not None
         default_carry = bool(active and current["rollover"])
         return {
             "id": row["id"],
@@ -158,6 +172,10 @@ def categories_for(conn, month):
     categories = {r["id"]: {**line("category", r), "items": []} for r in conn.execute("SELECT * FROM categories ORDER BY id")}
     for r in conn.execute("SELECT * FROM items ORDER BY id"):
         categories[r["category_id"]]["items"].append(line("item", r))
+    for c in categories.values():
+        # Whether the category is one budget line of its own this month. A category made to
+        # hold items has an empty budget itself (0): that's no line, with or before its items.
+        c["single"] = c["budget"] is not None and (c["budget"] > 0 or not c["items"])
     return list(categories.values())
 
 
@@ -165,8 +183,7 @@ def budget_total(conn, month):
     """The month's total budget, without carry-over or extra income: what it's planned to cost."""
     total = 0
     for c in categories_for(conn, month):
-        lines = c["items"] if c["items"] else [c]
-        total += sum(l["budget"] for l in lines if l["budget"] is not None)
+        total += sum(l["budget"] for l in [c, *c["items"]] if l["budget"] is not None)  # a category's own is None next to its items
     return total
 
 
@@ -215,26 +232,27 @@ def spent_by_line(items):
 
 
 def lines_for(category, spent):
-    """The budget lines of a category shown for a month. Categories with items show their
-    items; categories without items are a single line. Lines without a budget appear only
-    when something was spent on them."""
+    """The budget lines of a category shown for a month, and whether they're its items (True)
+    or the category as a single line (False). In a month where items have budgets, the items
+    are shown; otherwise the category itself, with the budget it had then. Lines without a
+    budget appear only when something was spent on them; spending on the category itself next
+    to its items is "Other"."""
     def line(prefix, row, name):
         key = f"{prefix}{row['id']}"
         return {"key": key, "name": name, "budget": row["budget"], "carried_in": row["carried_in"],
                 "extra": row["extra"], "carry": row["carry"], "spent": spent.get(key, 0)}
 
-    if not category["items"]:
-        lines = [line("c", category, None)]
-    else:
-        lines = [line("i", item, item["name"]) for item in category["items"]]
-    lines = [l for l in lines if l["budget"] is not None or l["spent"] > 0]
-    unassigned = spent.get(f"c{category['id']}", 0)  # spent on the category before it had items
-    if category["items"] and unassigned:
-        lines.append({"key": f"c{category['id']}", "name": "Other", "budget": None, "carried_in": 0,
-                      "extra": 0, "carry": False, "spent": unassigned})
+    shown = lambda l: l["budget"] is not None or l["spent"] > 0
+    own = line("c", category, None)
+    if not category["single"]:
+        own.update(budget=None, carried_in=0, extra=0, carry=False)
+    lines = [l for l in (line("i", item, item["name"]) for item in category["items"]) if shown(l)]
+    as_items = bool(lines) or (bool(category["items"]) and own["budget"] is None)
+    if shown(own):
+        lines.append({**own, "name": "Other"} if as_items else own)
     for l in lines:
         l["available"] = (l["budget"] or 0) + l["carried_in"] + l["extra"]
-    return lines
+    return lines, as_items
 
 
 def month_data(conn, month, exclude=None):
@@ -251,9 +269,9 @@ def _month_data(conn, month, exclude):
     spent, outside = spent_by_line(items)
     groups = []
     for c in categories:
-        lines = lines_for(c, spent)
+        lines, as_items = lines_for(c, spent)
         if lines:
-            groups.append({"id": c["id"], "name": c["name"], "has_items": bool(c["items"]), "lines": lines})
+            groups.append({"id": c["id"], "name": c["name"], "has_items": as_items, "lines": lines})
     all_lines = [l for g in groups for l in g["lines"]]
     total_spent = sum(t["amount"] for t in items if t["kind"] == "expense")
     moved = lambda kind: sum(t["amount"] for t in items if t["kind"] == kind)

@@ -43,6 +43,19 @@ class YearHistory(AppTest):
         h = accounts.year_history(self.conn, 2026)
         self.assertEqual([m["month"] for m in h["months"]], ["2026-01", "2026-02"])
 
+    def test_without_a_starting_point_it_starts_at_the_first_transaction(self):
+        self.conn.execute("DELETE FROM settings WHERE key LIKE '%_start_%'")
+        self.conn.execute("DELETE FROM expenses WHERE date < '2026-02-01'")
+        h = accounts.year_history(self.conn, 2026)
+        self.assertEqual(([m["month"] for m in h["months"]], h["empty"]), (["2026-02"], False))
+
+    def test_nothing_added_yet(self):
+        self.conn.execute("DELETE FROM settings")
+        self.conn.execute("DELETE FROM expenses")
+        h = accounts.year_history(self.conn, 2026)
+        self.assertEqual((h["months"], h["empty"], h["first_year"], h["last_year"]), ([], True, 2026, 2026))
+        self.assertEqual(budgets.budget_history(self.conn, 2026)["groups"], [])
+
     def test_a_year_before_tracking(self):
         h = accounts.year_history(self.conn, 2025)
         self.assertEqual(h["months"], [])

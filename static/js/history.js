@@ -26,8 +26,12 @@ export async function renderHistory() {
 
   // Only finished months: the one you're in is on the Overview until it's over.
   const done = h.months.length;
-  $("#history-note").textContent = !done ? `No finished months in ${year} yet. This month is on the Overview until it's over.`
-    : `${done === 12 ? "The whole year" : done === 1 ? monthOnly(h.months[0].month, "long") : `${monthOnly(h.months[0].month, "long")} – ${monthOnly(h.months[done - 1].month, "long")}`}. ${
+  $("#history-note").hidden = !done;
+  $("#history-empty").hidden = !!done;
+  $("#history-empty p").textContent = h.empty
+    ? "Nothing to look back on yet. Once you've added transactions or a starting balance, each month shows up here when it's over, with its income, spending and balances."
+    : `No finished months in ${year} yet. This month is on the Overview until it's over.`;
+  $("#history-note").textContent = !done ? "" : `${done === 12 ? "The whole year" : done === 1 ? monthOnly(h.months[0].month, "long") : `${monthOnly(h.months[0].month, "long")} – ${monthOnly(h.months[done - 1].month, "long")}`}. ${
       year === range.last ? "This month is added once it's over." : ""}`;
   renderBudgets(h.budgets);
   ["#history-summary", "#history-chart-card", "#history-table-card"].forEach((s) => ($(s).hidden = !done));
@@ -116,7 +120,7 @@ function renderBudgets(b) {
   const body = b.groups.map((g) => {
     const single = g.lines.length === 1 && g.lines[0].key === `c${g.id}`;
     if (single) return row(g.lines[0], g.name, "single");
-    return `<tr class="bh-cat"><td colspan="${b.months.length + 2}">${escapeHtml(g.name)}</td></tr>` + g.lines.map((l) => row(l, l.name, "")).join("");
+    return `<tr class="bh-cat"><td colspan="${b.months.length + 2}">${escapeHtml(g.name)}</td></tr>` + g.lines.map((l) => row(l, l.name ?? "As one budget", "")).join("");
   }).join("");
   const outside = b.outside ? row(b.outside, "Uncategorized", "single outside") : "";
   $("#history-budgets").innerHTML = head + `<tbody>${body}${outside}</tbody>`;

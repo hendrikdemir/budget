@@ -5,10 +5,10 @@ import { openManager } from "./budget-editor.js";
 import { menu, monthPicker } from "./controls.js";
 
 let exportList = { shown: [], everything: true }; // what the Export menu offers (renderTransactions)
-import { DATE_LOCALE, currentMonth, escapeHtml, isoDate, money, monthName, monthOnly, parseAmount, plural, shiftMonth, shortDate } from "./format.js";
+import { DATE_LOCALE, currentMonth, decimalComma, escapeHtml, isoDate, money, monthName, monthOnly, parseAmount, plural, shiftMonth, shortDate } from "./format.js";
 import { isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
 import { openTransaction } from "./transaction.js";
-import { $, api, confirmDialog, toast } from "./ui.js";
+import { $, api, confirmDialog, once, toast } from "./ui.js";
 
 // Data per month, shared with the transaction dialog; cleared whenever data changes.
 const monthCache = new Map();
@@ -338,7 +338,7 @@ function renderTransactions() {
   // This month's transactions (or every month's, when searching all months), narrowed by
   // the budget filter, the type filter and the search box.
   const { search, filter, selecting, selected } = state;
-  const decimal = (1.5).toLocaleString().includes(",") ? "," : ".";
+  const decimal = decimalComma() ? "," : ".";
   const monthly = state.data.transactions;
   const searching = search.query || search.type !== "all";
   const source = search.allMonths && searching && state.allTransactions ? state.allTransactions : monthly;
@@ -420,9 +420,9 @@ $("#select-btn").onclick = () => {
   state.selecting = true;
   renderTransactions();
 };
-// Export: the transactions in the list, or all of them, as CSV with this Mac's decimal separator.
+// Export: the transactions in the list, or all of them, as CSV with the decimal separator in use.
 menu($("#csv-btn"), () => {
-  const decimal = (1.5).toLocaleString().includes(",") ? "," : ".";
+  const decimal = decimalComma() ? "," : ".";
   const { shown, everything } = exportList;
   const list = everything ? `month=${state.month}` : `ids=${shown.map((t) => t.id).join(",")}`;
   return `<a class="opt" download href="/api/transactions-csv?${list}&decimal=${decimal}">
@@ -446,7 +446,7 @@ $("#select-cancel").onclick = () => {
   state.selected.clear();
   renderTransactions();
 };
-$("#select-delete").onclick = async () => {
+$("#select-delete").onclick = once(async () => {
   const what = plural(state.selected.size, "transaction");
   if (!(await confirmDialog({
     title: `Delete ${what}?`, message: "They're removed for good. Your budgets and balances update right away.",
@@ -457,7 +457,7 @@ $("#select-delete").onclick = async () => {
   state.selected.clear();
   toast(`Deleted ${what}`);
   load();
-};
+});
 
 // ---- Month navigation ----
 $("#prev-month").onclick = () => setMonth(shiftMonth(state.month, -1));

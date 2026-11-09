@@ -63,19 +63,22 @@ def balance(conn, account):
 def year_history(conn, year):
     """Looking back on `year`: per finished month the income, spending and their difference,
     and the expected bank and savings balance at its end (None before that account's tracking
-    started). Months before the first starting point are left out, as nothing was kept then. The
+    started). Months before the first starting point are left out, as nothing was kept then
+    (without a starting point: months before the first transaction). `empty` says there's
+    nothing at all to look back on yet: no starting point and no transaction. The
     month you're in isn't included: until it's over, its result says little (the income may
     not be in yet). Plus the totals of those months and which years have data."""
     from .budgets import month_data  # budgets doesn't need accounts, so no import cycle
     now = today()
     starts = [d for d in (starting_point(conn, a)[1] for a in ACCOUNT_EFFECTS) if d]
-    begin = min(starts)[:7] if starts else ""
+    first = conn.execute("SELECT MIN(substr(date, 1, 7)) AS m FROM expenses").fetchone()["m"]
+    begin = min(starts)[:7] if starts else first  # None: nothing has been added yet
     months = []
     for m in range(1, 13):
         month = f"{year}-{m:02d}"
         if month >= now[:7]:
             break
-        if month < begin:
+        if not begin or month < begin:
             continue
         end = (date(year + m // 12, m % 12 + 1, 1) - timedelta(days=1)).isoformat()
         totals = month_data(conn, month)["totals"]
@@ -93,10 +96,9 @@ def year_history(conn, year):
         first, last = at_start(account), next((m[account] for m in reversed(months) if m[account] is not None), None)
         return None if first is None or last is None else last - first
 
-    found = conn.execute("SELECT MIN(substr(date, 1, 4)) AS y FROM expenses").fetchone()["y"]
     return {
-        "year": year, "months": months,
-        "first_year": int(begin[:4] if begin else found or now[:4]), "last_year": int(now[:4]),
+        "year": year, "months": months, "empty": not begin,
+        "first_year": int((begin or now)[:4]), "last_year": int(now[:4]),
         "totals": {"income": sum(m["income"] for m in months), "spent": sum(m["spent"] for m in months),
                    "net": sum(m["net"] for m in months), "bank_change": change("bank"), "savings_change": change("savings")},
     }

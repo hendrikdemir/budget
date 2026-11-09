@@ -3,7 +3,7 @@
 import { combobox } from "./controls.js";
 import { DATE_LOCALE, escapeHtml, money, plural, shortDate } from "./format.js";
 import { load } from "./overview.js";
-import { $, api, toast } from "./ui.js";
+import { $, api, once, toast } from "./ui.js";
 
 const KINDS = { expense: "Expense", income: "Income", save: "To savings", withdraw: "From savings" };
 let rows = []; // [{ t, include, budget (combobox) }]
@@ -72,7 +72,7 @@ function update() {
 $("#bank-list").addEventListener("change", (e) => e.target.matches(".bank-include input") && update());
 $("#bank-list").addEventListener("input", (e) => e.target.matches(".bank-payee") && e.target.classList.remove("invalid"));
 
-$("#bank-add").onclick = async () => {
+$("#bank-add").onclick = once(async () => {
   const chosen = included();
   const missing = chosen.filter((r) => r.el.querySelector(".bank-payee") && !r.el.querySelector(".bank-payee").value.trim());
   missing.forEach((r) => r.el.querySelector(".bank-payee").classList.add("invalid"));
@@ -92,4 +92,4 @@ $("#bank-add").onclick = async () => {
   $("#bank-dialog").close();
   toast(`${plural(added, "transaction")} added`);
   load();
-};
+});

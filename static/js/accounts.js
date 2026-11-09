@@ -1,8 +1,8 @@
 // Bank and savings balances: the account rows on the overview and the account dialog
 // (expected balance, checks against the bank, starting point). Their history is on the History page.
 import { datePicker } from "./controls.js";
-import { currencySymbol, inputAmount, isoDate, money, parseAmount, shortDate } from "./format.js";
-import { $, api, fieldError, toast } from "./ui.js";
+import { currencySymbol, example, inputAmount, isoDate, money, parseAmount, shortDate } from "./format.js";
+import { $, api, fieldError, once, toast } from "./ui.js";
 
 const ACCOUNTS = { bank: "Bank account", savings: "Savings" };
 const balances = {}; // per account: { start, start_date, expected, checks: [{ id, date, actual, expected, difference }] }
@@ -84,29 +84,29 @@ document.querySelectorAll(".account-row").forEach((row) => (row.onclick = () => 
   (b.start === null ? startForm : checkForm).amount.focus();
 }));
 
-const BALANCE_HINT = "Enter the balance as a number, like 1234,56. Use a minus for a negative balance: -250,00.";
-checkForm.onsubmit = async (e) => {
+const balanceHint = () => `Enter the balance as a number, like ${example("1234.56")}. Use a minus for a negative balance: ${example("-250.00")}.`;
+checkForm.onsubmit = once(async (e) => {
   e.preventDefault();
   const amount = parseAmount(checkForm.amount.value);
-  if (Number.isNaN(amount)) return fieldError(checkForm, "check", BALANCE_HINT);
+  if (Number.isNaN(amount)) return fieldError(checkForm, "check", balanceHint());
   await api("/api/balance-checks", { method: "POST", body: { account, date: checkForm.date.value, amount } });
   checkForm.amount.value = "";
   await loadBalances();
   const result = balances[account].checks[0];
   toast(result.difference === null ? "Check saved" : result.difference === 0 ? "✓ The balance matches" : "The balance doesn't match");
-};
+});
 checkForm.oninput = () => fieldError(checkForm, "check", "");
 
-startForm.onsubmit = async (e) => {
+startForm.onsubmit = once(async (e) => {
   e.preventDefault();
   const amount = parseAmount(startForm.amount.value);
-  if (Number.isNaN(amount)) return fieldError(startForm, "start", BALANCE_HINT);
+  if (Number.isNaN(amount)) return fieldError(startForm, "start", balanceHint());
   await api("/api/balance", { method: "PUT", body: { account, date: startForm.date.value, amount } });
   $("#start-section").open = false;
   toast("Starting point saved");
   await loadBalances();
   checkForm.amount.focus();
-};
+});
 startForm.oninput = () => fieldError(startForm, "start", "");
 
 $("#check-list").onclick = async (e) => {

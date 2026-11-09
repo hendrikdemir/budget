@@ -114,6 +114,14 @@ class BudgetExportImport(AppTest):
         self.assertEqual(self.line("2026-11", self.food)["spent"], 4632 + 1000)
         self.assertEqual(self.line("2026-11", self.home)["spent"], 199)
 
+    def test_identical_transactions_stay_separate(self):
+        for _ in range(2):
+            self.add(350, "2026-11-09", self.food, payee="Cafe")  # on a budget
+            self.add(500, "2026-11-09", payee="Kiosk")            # outside any budget
+        found = [t for t in self.preview(".")["transactions"] if t["payee"] in ("Cafe", "Kiosk")]
+        self.assertEqual(sorted((t["payee"], t["amount"], t["line"]) for t in found),
+                         [("Cafe", 350, self.food)] * 2 + [("Kiosk", 500, None)] * 2)
+
     def test_unknown_budget_stays_outside(self):
         _, data = export.transactions_csv(self.conn, "2026-11", ",")
         data = data.replace("Household".encode(), b"Pets")

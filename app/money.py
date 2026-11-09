@@ -10,7 +10,8 @@ GENERIC_ERROR = "Something went wrong. Reload the page and try again."
 
 
 class ApiError(Exception):
-    """An error with a message meant for the user."""
+    """An error with a message meant for the user. A number in braces, like {12.50}, is an
+    example: the page writes it the way the user's numbers are written (12.50 or 12,50)."""
 
     def __init__(self, message, status=400):
         super().__init__(message)
@@ -27,9 +28,9 @@ def clean_name(value):
 def cents(value, allow_zero=False, signed=False):
     """An amount in cents from a request. Must be a whole number."""
     if isinstance(value, bool) or not isinstance(value, int):
-        raise ApiError("Enter the amount as a number, like 12,50.")
+        raise ApiError("Enter the amount as a number, like {12.50}.")
     if not signed and (value < 0 or (value == 0 and not allow_zero)):
-        raise ApiError("Enter an amount above zero, like 12,50." if not allow_zero else "Enter an amount of zero or more, like 12,50.")
+        raise ApiError("Enter an amount above zero, like {12.50}." if not allow_zero else "Enter an amount of zero or more, like {12.50}.")
     return value
 
 

@@ -101,20 +101,24 @@ class BudgetReader:
         return value[1:] if value[:1] == "'" and value[1:2] in ("=", "+", "-", "@") else value
 
     def read(self, rows):
-        found, last = [], None
+        found, last, rest = [], None, 0
         for row in rows:
             same = ("Date", "Left bank", "Type", "Payee", "Note", "Total")
             key = tuple(row[c] for c in same)
-            if key != last:
+            # A transaction's rows add up to its total: once they do, the next row starts a new
+            # one, even if it looks the same (two coffees at the same place on one day).
+            if key != last or rest <= 0:
                 day, left = row["Date"].strip(), row["Left bank"].strip()
                 date.fromisoformat(day)  # a ValueError for anything else
                 found.append({"date": day, "paid_date": left if left and left != day else None,
                               "amount": cents(row["Total"]), "kind": self.KINDS[row["Type"].strip()],
                               "payee": self.text(row["Payee"]), "description": self.text(row["Note"]), "parts": []})
-                last = key
+                last, rest = key, found[-1]["amount"]
+            amount = cents(row["Amount"]) if (row["Amount"] or "").strip() else rest
+            rest -= amount
             category = self.text(row["Category"])
             if category:
-                found[-1]["parts"].append({"category": category, "item": self.text(row["Item"]), "amount": cents(row["Amount"])})
+                found[-1]["parts"].append({"category": category, "item": self.text(row["Item"]), "amount": amount})
         return found
 
 
@@ -186,7 +190,7 @@ def preview(conn, data, known_payees):
             for item in c["items"]:
                 if item["budget"] is not None:
                     lines[f"i{item['id']}"] = {"value": f"i{item['id']}", "label": item["name"], "group": c["name"]}
-            if not c["items"] and c["budget"] is not None:
+            if c["single"]:
                 lines[f"c{c['id']}"] = {"value": f"c{c['id']}", "label": c["name"]}
     # Budgets by name (from a Budget export): one covering the whole amount is chosen like a
     # suggestion; a split is kept as it is. A budget that doesn't exist here is left out.

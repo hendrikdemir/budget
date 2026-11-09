@@ -54,15 +54,20 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 - **Money is whole cents everywhere**: database, API (requests and responses) and JS.
   Convert only for display (`money()`) and input (`parseAmount()` -> cents,
   `inputAmount()` for input fields). Never do money math in floats.
+- **Numbers are written the user's way**: 1.234,56 or 1,234.56, as this Mac does or as chosen in
+  Settings (`number_format`). Example numbers in messages and placeholders follow it too: use
+  `example("12.50")` in the page, and write `{12.50}` in a server error (the page converts it).
 - **Calculations belong on the server.** The browser renders what `/api/month`,
   `/api/projection` etc. return; it may only do small UI arithmetic (e.g. the
   transaction dialog's preview).
-- Budget lines are keyed `i<id>` (item) or `c<id>` (category without items).
+- Budget lines are keyed `i<id>` (item) or `c<id>` (category without items). A category that
+  gets items later keeps its own budget in the months before (`single` in `categories_for()`).
+- Wrap handlers that save something in `once()` (`ui.js`), so a double click can't save twice.
   Transactions are stored in the `expenses` table with `kind` expense/income/save/withdraw.
 - History-based data (budgets, plan amounts) changes "from a month onward"; earlier
   months must never change.
-- UI text is English, including month and day names (`DATE_LOCALE` in `format.js`); numbers
-  and amounts follow the browser's locale. Errors shown to the user are friendly and say what to do.
+- UI text is English, including month and day names (`DATE_LOCALE` in `format.js`). Errors
+  shown to the user are friendly and say what to do.
 - Styles: CSS custom properties in `static/style.css`, light and dark themes,
   one fixed palette of greens and slate blues (#c9e4ca, #87bba2, #55828b, #3b6064, #364958),
   a soft glow behind frosted cards, and red only for being over budget. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
