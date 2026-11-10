@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Budget: a calm, private budget app for your Mac</title>
+<meta name="description" content="Plan every euro, see what's left at a glance, and know whether your savings will hold up. No account, no subscription, no cloud.">
+<link rel="icon" href="icon.png">
+<style>
+  :root {
+    --bg: #f0f6f0;
+    --surface: rgba(250, 253, 250, 0.74);
+    --glow-a: rgba(135, 187, 162, 0.5);
+    --glow-b: rgba(85, 130, 139, 0.28);
+    --text: #1e2a31;
+    --muted: #4e6068;
+    --border: #cfe0d2;
+    --accent: #3b6064;
+    --accent-hover: #364958;
+    --on-accent: #ffffff;
+    --accent-soft: rgba(135, 187, 162, 0.22);
+    --shadow: 0 16px 40px rgba(54, 73, 88, 0.18);
+    --radius: 22px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b242b;
+      --surface: rgba(40, 53, 62, 0.62);
+      --glow-a: rgba(59, 96, 100, 0.6);
+      --glow-b: rgba(85, 130, 139, 0.3);
+      --text: #e9f3eb;
+      --muted: #a9c2b5;
+      --border: #3a4c57;
+      --accent: #87bba2;
+      --accent-hover: #c9e4ca;
+      --on-accent: #16262a;
+      --accent-soft: rgba(201, 228, 202, 0.08);
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(900px 600px at 15% -10%, var(--glow-a), transparent 70%),
+      radial-gradient(800px 600px at 95% 30%, var(--glow-b), transparent 70%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+  main { max-width: 1040px; margin: 0 auto; padding: 0 16px 48px; }
+  a { color: var(--accent); }
+  a:hover { color: var(--accent-hover); }
+
+  .hero { text-align: center; padding: 64px 0 32px; }
+  .hero img.icon { width: 112px; height: 112px; }
+  h1 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin: 12px 0 4px; letter-spacing: -0.02em; }
+  .tagline { font-size: clamp(1.15rem, 3vw, 1.4rem); margin: 0 auto 8px; max-width: 34em; }
+  .promise { color: var(--muted); margin: 0 0 28px; }
+
+  .download {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--accent); color: var(--on-accent);
+    font-size: 1.1rem; font-weight: 600; text-decoration: none;
+    padding: 15px 30px; border-radius: 999px; box-shadow: var(--shadow);
+    transition: transform .15s, background .15s;
+  }
+  .download:hover { background: var(--accent-hover); color: var(--on-accent); transform: translateY(-1px); }
+  .download svg { width: 20px; height: 20px; }
+  .meta { color: var(--muted); font-size: .9rem; margin: 14px 0 0; }
+
+  .shot { margin: 40px auto 0; }
+  .shot img { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: var(--shadow); }
+  .caption { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 10px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-top: 56px; }
+  .features h2 { font-size: 1.1rem; margin: 0 0 6px; }
+  .features p { margin: 0; color: var(--muted); font-size: .97rem; }
+
+  section.install { margin-top: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+  section.install h2 { margin: 0 0 10px; font-size: 1.5rem; }
+  section.install ol { padding-left: 1.3em; margin: 0 0 12px; }
+  section.install li { margin-bottom: 6px; }
+  section.install img { width: 100%; height: auto; border-radius: 12px; }
+  .note { color: var(--muted); font-size: .95rem; }
+
+  footer { text-align: center; color: var(--muted); font-size: .92rem; padding: 40px 16px 56px; }
+  footer .dev { background: var(--accent-soft); border-radius: 999px; padding: 10px 18px; display: inline-block; margin-bottom: 14px; }
+
+  @media (max-width: 720px) {
+    .hero { padding-top: 40px; }
+    section.install { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <img class="icon" src="icon.png" alt="">
+    <h1>Budget</h1>
+    <p class="tagline">A calm, private budget app for your Mac.</p>
+    <p class="promise">No account. No subscription. No cloud. Your data stays on your Mac.</p>
+    <a class="download" href="https://github.com/hendrikdemir/budget/releases/latest/download/Budget.dmg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+      Download for Mac
+    </a>
+    <p class="meta"><span id="version">Free</span> · for macOS</p>
+
+    <figure class="shot">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="screenshots/overview-dark.png">
+        <img src="screenshots/overview-light.png" alt="The Budget overview: spending this month, whether you're ready for next month, account balances and budgets">
+      </picture>
+      <figcaption class="caption">The real app, with made-up data.</figcaption>
+    </figure>
+  </header>
+
+  <div class="features">
+    <div class="card">
+      <h2>Your month at a glance</h2>
+      <p>See what you've spent and what's left in each budget. A budget only turns red when you go over it.</p>
+    </div>
+    <div class="card">
+      <h2>Ready for next month?</h2>
+      <p>Near the end of the month, Budget tells you exactly how much you're short or have spare.</p>
+    </div>
+    <div class="card">
+      <h2>Budgets that fit real life</h2>
+      <p>Group budgets in categories, carry leftovers over, and change amounts from a month on without changing the past.</p>
+    </div>
+    <div class="card">
+      <h2>Import from your bank</h2>
+      <p>Read your bank's CSV export (ING for now), review the suggestions, and skip transactions you've already added.</p>
+    </div>
+  </div>
+
+  <section class="install card">
+    <div>
+      <h2>Installing</h2>
+      <ol>
+        <li>Download <strong>Budget.dmg</strong> and open it.</li>
+        <li>Drag <strong>Budget</strong> to <strong>Applications</strong>.</li>
+        <li>Open Budget.</li>
+      </ol>
+      <p class="note">The first time, macOS says it can't open Budget, because the app isn't signed with a paid Apple Developer account. Click <strong>Done</strong>, open <strong>System Settings → Privacy &amp; Security</strong>, scroll down to <strong>Security</strong> and click <strong>Open Anyway</strong>. You only have to do this once.</p>
+    </div>
+    <img src="screenshots/open-anyway.png" alt="System Settings, Privacy &amp; Security: the Open Anyway button next to the message that Budget was blocked">
+  </section>
+</main>
+
+<footer>
+  <div class="dev">Developer? Budget is open source. <a href="https://github.com/hendrikdemir/budget">See the code on GitHub</a></div>
+  <div>Made by Hendrik Demir</div>
+</footer>
+
+<script>
+  // Shows the latest version next to the button; the button itself works without this.
+  fetch("https://api.github.com/repos/hendrikdemir/budget/releases/latest")
+    .then(r => r.ok ? r.json() : null)
+    .then(r => { if (r && r.tag_name) document.getElementById("version").textContent = "Free · Version " + r.tag_name.replace(/^v/, ""); })
+    .catch(() => {});
+</script>
+</body>
+</html>
