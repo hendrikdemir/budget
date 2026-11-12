@@ -93,6 +93,7 @@
   .more { margin-top: 56px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; align-items: center; }
   .more h2 { margin: 0 0 10px; font-size: 1.5rem; }
   .more p { color: var(--muted); margin: 0 0 12px; }
+  .more picture { display: block; }
   .more img { display: block; width: 100%; aspect-ratio: 2000 / 1450; object-fit: cover; object-position: top; border-radius: 14px; box-shadow: var(--shadow); }
   @media (max-width: 720px) { .more { grid-template-columns: 1fr; gap: 20px; } .features { grid-template-columns: 1fr; } }
   @media (min-width: 721px) and (max-width: 900px) { .features { grid-template-columns: 1fr 1fr; } }
@@ -162,7 +163,10 @@
       <p>Add the income you expect and costs you can see coming, like a yearly membership fee or car insurance.</p>
       <p>Budget shows your savings for the next 12 months, and how much you can freely spend while keeping a safety buffer.</p>
     </div>
-    <img src="screenshots/outlook.png" alt="The Outlook page: savings today, how much is free to spend, and a chart of expected savings for the next 12 months">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="screenshots/outlook.png">
+      <img src="screenshots/outlook-light.png" alt="The Outlook page: savings today, how much is free to spend, and a chart of expected savings for the next 12 months">
+    </picture>
   </section>
 
   <section class="install card">

@@ -111,6 +111,13 @@ def capture(url):
         page.wait_for_timeout(300)
         page.locator("#buffer-dialog").screenshot(path=OUT / "buffer.png")
         page.context.close()
+        # The outlook in the light theme, for the landing page.
+        page = page_for("light", height=1040)
+        page.goto(url + "#outlook")
+        page.wait_for_selector("#outlook-chart svg")
+        page.wait_for_timeout(500)
+        shot(page, "outlook-light")
+        page.context.close()
 
         # A finished month in review.
         page = page_for("light", height=900)
