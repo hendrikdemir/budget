@@ -81,7 +81,7 @@
     -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
     padding: 24px; box-shadow: var(--shadow);
   }
-  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-top: 56px; }
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 56px; }
   .features h2 { font-size: 1.1rem; margin: 0 0 6px; }
   .features p { margin: 0; color: var(--muted); font-size: .97rem; }
 
@@ -90,6 +90,12 @@
   section.install ol { padding-left: 1.3em; margin: 0 0 12px; }
   section.install li { margin-bottom: 6px; }
   section.install img { width: 100%; height: auto; border-radius: 12px; }
+  .more { margin-top: 56px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; align-items: center; }
+  .more h2 { margin: 0 0 10px; font-size: 1.5rem; }
+  .more p { color: var(--muted); margin: 0 0 12px; }
+  .more img { display: block; width: 100%; aspect-ratio: 2000 / 1450; object-fit: cover; object-position: top; border-radius: 14px; box-shadow: var(--shadow); }
+  @media (max-width: 720px) { .more { grid-template-columns: 1fr; gap: 20px; } .features { grid-template-columns: 1fr; } }
+  @media (min-width: 721px) and (max-width: 900px) { .features { grid-template-columns: 1fr 1fr; } }
   .note { color: var(--muted); font-size: .95rem; }
 
   footer { text-align: center; color: var(--muted); font-size: .92rem; padding: 40px 16px 56px; }
@@ -126,21 +132,38 @@
   <div class="features">
     <div class="card">
       <h2>Your month at a glance</h2>
-      <p>See what you've spent and what's left in each budget. A budget only turns red when you go over it.</p>
-    </div>
-    <div class="card">
-      <h2>Ready for next month?</h2>
-      <p>Near the end of the month, Budget tells you exactly how much you're short or have spare.</p>
+      <p>See what you've spent and what's left in each budget. Near the end of the month, Budget tells you exactly how much you're short or have spare.</p>
     </div>
     <div class="card">
       <h2>Budgets that fit real life</h2>
       <p>Group budgets in categories, carry leftovers over, and change amounts from a month on without changing the past.</p>
     </div>
     <div class="card">
+      <h2>See the effect before you save</h2>
+      <p>Add an expense, split it over several budgets, and see what's left in each one before you save.</p>
+    </div>
+    <div class="card">
       <h2>Import from your bank</h2>
       <p>Read your bank's CSV export (ING for now), review the suggestions, and skip transactions you've already added.</p>
     </div>
+    <div class="card">
+      <h2>Look back on your year</h2>
+      <p>See how each budget held up month by month, and spot what quietly got more expensive.</p>
+    </div>
+    <div class="card">
+      <h2>Safe on your Mac</h2>
+      <p>Budget makes a backup every day you use it. Save your own backup any time, and restore it on a new Mac.</p>
+    </div>
   </div>
+
+  <section class="more">
+    <div>
+      <h2>See the year ahead</h2>
+      <p>Add the income you expect and costs you can see coming, like a yearly membership fee or car insurance.</p>
+      <p>Budget shows your savings for the next 12 months, and how much you can freely spend while keeping a safety buffer.</p>
+    </div>
+    <img src="screenshots/outlook.png" alt="The Outlook page: savings today, how much is free to spend, and a chart of expected savings for the next 12 months">
+  </section>
 
   <section class="install card">
     <div>
