@@ -1,9 +1,8 @@
-"""Budget as a Mac app: the same app in its own window, with nothing else to start.
+"""Budget as a desktop app (Mac or Windows): the same app in its own window, with nothing else to start.
 
-Keeps the data in ~/Library/Application Support/nl.hendrikdemir.budget (or
-BUDGET_DATA_DIR, for testing).
+Keeps the data in ~/Library/Application Support/nl.hendrikdemir.budget on a Mac,
+%APPDATA%\\Budget on Windows (or BUDGET_DATA_DIR, for testing).
 """
-import fcntl
 import os
 import sys
 import threading
@@ -29,21 +28,37 @@ def start_server():
 def show_message(title, text):
     """A small window with only a message, for when Budget can't start."""
     from html import escape
-    html = (f"<body style='font:15px -apple-system,sans-serif;padding:28px;line-height:1.5;"
+    html = (f"<body style='font:15px -apple-system,'Segoe UI',sans-serif;padding:28px;line-height:1.5;"
             f"background:#f0f6f0;color:#1e2a31'><h2 style='margin-top:0'>{escape(title)}</h2>"
             f"<p>{escape(text)}</p></body>")
     webview.create_window("Budget", html=html, width=480, height=280)
     webview.start()
 
 
+def default_data_dir():
+    if sys.platform == "win32":
+        return Path(os.environ.get("APPDATA") or Path.home() / "AppData/Roaming") / "Budget"
+    return Path.home() / "Library/Application Support/nl.hendrikdemir.budget"
+
+
+def lock_single_copy(lock):
+    """Raises OSError when another copy already holds the lock."""
+    if sys.platform == "win32":
+        import msvcrt
+        msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
 def main():
-    data_dir = Path(os.environ.get("BUDGET_DATA_DIR") or Path.home() / "Library/Application Support/nl.hendrikdemir.budget")
+    data_dir = Path(os.environ.get("BUDGET_DATA_DIR") or default_data_dir())
     db.use_data_dir(data_dir)
 
     # One copy at a time: two would write to the same data.
     lock = open(data_dir / ".lock", "w")
     try:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_single_copy(lock)
     except OSError:
         sys.exit(0)
 
