@@ -44,7 +44,7 @@ class ReadingTheCode(unittest.TestCase):
     root = Path(__file__).resolve().parent.parent
 
     def test_finds_routes_settings_and_migrations(self):
-        api, db = (self.root / "app" / "api.py").read_text(), (self.root / "app" / "db.py").read_text()
+        api, db = (self.root / "app" / "api.py").read_text(encoding="utf-8"), (self.root / "app" / "db.py").read_text(encoding="utf-8")
         self.assertIn(("GET", "update", "False"), release.routes(api))
         self.assertIn(("PUT", "transactions", "True"), release.routes(api))
         self.assertIn("update_check", release.settings_keys(api))

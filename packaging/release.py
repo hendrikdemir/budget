@@ -112,11 +112,11 @@ def changes_since(tag):
 
 
 def current_version():
-    return VERSION_LINE.search(VERSION_FILE.read_text()).group(1)
+    return VERSION_LINE.search(VERSION_FILE.read_text(encoding="utf-8")).group(1)
 
 
 def set_version(version):
-    VERSION_FILE.write_text(VERSION_LINE.sub(f'VERSION = "{version}"', VERSION_FILE.read_text(), count=1))
+    VERSION_FILE.write_text(VERSION_LINE.sub(f'VERSION = "{version}"', VERSION_FILE.read_text(encoding="utf-8"), count=1), encoding="utf-8")
 
 
 def last_tag():
@@ -203,12 +203,12 @@ def write_notes(version, commits):
     NOTES_FILE.parent.mkdir(exist_ok=True)
     draft = "\n".join(f"- {c}" for c in commits if not c.startswith(("Revert", "Merge")))
     NOTES_FILE.write_text(
-        f"{draft}\n" if commits else "- \n")
+        f"{draft}\n" if commits else "- \n", encoding="utf-8")
     print(f"  A draft from the commits is in {NOTES_FILE.relative_to(ROOT)}.")
     print("  Budget shows these notes in its \"What's new\" box: rewrite them for users, short and plain.")
     subprocess.run(["open", "-t", str(NOTES_FILE)])
     ask("Save the file, then press Enter to go on")
-    notes = NOTES_FILE.read_text().strip()
+    notes = NOTES_FILE.read_text(encoding="utf-8").strip()
     if not notes or notes == "-":
         stop("The release notes are empty.")
     print("\n" + "\n".join(f"  {line}" for line in notes.splitlines()))
