@@ -114,6 +114,22 @@ def planned_in(all_plans, kind, month):
     return sum(amount_at(p, month) for p in all_plans if p["kind"] == kind and falls_in(p, month))
 
 
+def income_total(conn):
+    """Expected income this month from all plans, and the first month within the horizon
+    in which that total changes (or None)."""
+    all_plans = plans(conn)
+    month = current_month()
+    total = planned_in(all_plans, "income", month)
+    change = None
+    for _ in range(HORIZON):
+        month = next_month(month)
+        amount = planned_in(all_plans, "income", month)
+        if amount != total:
+            change = {"month": month, "amount": amount}
+            break
+    return {"month": current_month(), "amount": total, "change": change}
+
+
 # ---- Projection ----
 
 def buffer_setting(conn):

@@ -6,14 +6,15 @@ import { currencySymbol, currentMonth, escapeHtml, example, inputAmount, isoDate
 import { openTransaction } from "./transaction.js";
 import { $, api, columnTips, confirmDialog, fieldError, once, tipHead, toast } from "./ui.js";
 
-let plans = [];
+let plans = [], incomeTotal = null;
 // Stay current when a transaction is added from this page.
 document.addEventListener("data-changed", () => $("#outlook-view").hidden || renderOutlook());
 let buffer = { mode: "months", months: 1, amount: 0 }; // how much should stay in savings
 
 export async function renderOutlook() {
-  const [projection, allPlans] = await Promise.all([api("/api/projection"), api("/api/plans")]);
+  const [projection, allPlans, total] = await Promise.all([api("/api/projection"), api("/api/plans"), api("/api/income-total")]);
   plans = allPlans;
+  incomeTotal = total;
   renderPlans();
   $("#outlook-chart-card").hidden = !projection.visible;
   $("#outlook-table").closest(".card").hidden = !projection.visible;
@@ -180,6 +181,15 @@ function renderPlans() {
         </li>`).join("")
       : `<li class="plan-empty muted">${kind === "income" ? "No expected income yet. Add your salary and other regular income." : "No planned expenses."}</li>`;
   }
+  // Total expected income this month, with the next month it changes.
+  const t = incomeTotal;
+  if (t && plans.filter((p) => p.kind === "income").length > 1) {
+    $("#plans-income").insertAdjacentHTML("beforeend", `<li class="plan-total">
+      <span class="plan-name">Total</span>
+      <span class="muted">${t.change ? `${money(t.change.amount)} from ${monthName(t.change.month, "short")}` : ""}</span>
+      <span class="plan-amount">${money(t.amount)}</span>
+    </li>`);
+  }
 }
 
 const planForm = $("#plan-form");
@@ -201,7 +211,7 @@ function renderPlanChanges() {
       <button type="button" class="undo" data-change="${c.id}" aria-label="Remove this change">×</button></span>`)).join("");
 }
 async function reloadPlan() {
-  plans = await api("/api/plans");
+  [plans, incomeTotal] = await Promise.all([api("/api/plans"), api("/api/income-total")]);
   editingPlan = plans.find((p) => p.id === editingPlan.id);
   renderPlanChanges();
   renderOutlook();

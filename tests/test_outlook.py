@@ -108,3 +108,18 @@ class PlansEveryFewMonths(AppTest):
         self.assertEqual(outlook.plans(self.conn)[0]["changes"], [])
         with self.assertRaises(ApiError):
             api.add_plan_change(self.conn, None, {"plan_id": plan_id, "start_month": "2027-04", "amount": 300}, None)
+
+
+class IncomeTotal(AppTest):
+    def test_this_months_total_and_its_next_change(self):
+        api.save_plan(self.conn, None, {"kind": "income", "name": "Salary", "amount": 158886, "start_month": "2026-11"}, None)
+        api.save_plan(self.conn, None, {"kind": "income", "name": "Grant", "amount": 32452, "start_month": "2026-10"}, None)
+        api.save_plan(self.conn, None, {"kind": "expense", "name": "Tuition", "amount": 99999, "start_month": "2026-11"}, None)
+        plan_id = next(p["id"] for p in outlook.plans(self.conn) if p["name"] == "Salary")
+        api.add_plan_change(self.conn, None, {"plan_id": plan_id, "start_month": "2026-12", "amount": 252500}, None)
+        self.assertEqual(outlook.income_total(self.conn),
+                         {"month": "2026-11", "amount": 191338, "change": {"month": "2026-12", "amount": 284952}})
+
+    def test_no_change_when_it_stays_the_same(self):
+        api.save_plan(self.conn, None, {"kind": "income", "name": "Salary", "amount": 100, "start_month": "2026-11"}, None)
+        self.assertIsNone(outlook.income_total(self.conn)["change"])
