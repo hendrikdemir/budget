@@ -268,6 +268,10 @@ def list_plans(conn, _, __, ___):
     return outlook.plans(conn)
 
 
+def income_total(conn, _, __, ___):
+    return outlook.income_total(conn)
+
+
 def save_plan(conn, plan_id, body, _):
     kind = body.get("kind") if body.get("kind") in ("income", "expense") else None
     if not kind:
@@ -446,6 +450,7 @@ ROUTES = {
     ("POST", "balance-checks", False): add_balance_check,
     ("DELETE", "balance-checks", True): delete_balance_check,
     ("GET", "plans", False): list_plans,
+    ("GET", "income-total", False): income_total,
     ("POST", "plans", False): save_plan,
     ("PUT", "plans", True): save_plan,
     ("DELETE", "plans", True): delete_plan,
