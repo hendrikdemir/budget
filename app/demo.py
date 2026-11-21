@@ -81,7 +81,9 @@ def seed():
         api.set_balance_start(conn, None, {"account": "savings", "amount": 310000, "date": start}, None)
         bank = api.get_balance(conn, None, None, {"account": ["bank"]})["expected"]
         api.add_balance_check(conn, None, {"account": "bank", "date": TODAY.isoformat(), "amount": bank}, None)
-        api.save_plan(conn, None, {"kind": "income", "name": "Salary", "amount": 285000, "start_month": NEXT_MONTH}, None)
+        # The salary is expected from this month, so before payday (the 25th) Budget counts on it
+        # and the overview shows a normal month instead of a shortage.
+        api.save_plan(conn, None, {"kind": "income", "name": "Salary", "amount": 285000, "start_month": THIS_MONTH}, None)
         plan = conn.execute("SELECT id FROM plans").fetchone()["id"]
         api.add_plan_change(conn, None, {"plan_id": plan, "start_month": f"{YEAR + 1}-03", "amount": 300000}, None)
         for name, month, amount in (("Car service", NEXT_MONTH, 48000), ("Summer holiday", f"{YEAR + 1}-06", 180000),
