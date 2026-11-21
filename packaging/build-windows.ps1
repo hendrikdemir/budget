@@ -1,4 +1,5 @@
-# Builds dist\Budget\Budget.exe and dist\Budget-windows.zip. Run on Windows with Python 3 installed.
+# Builds dist\Budget\Budget.exe, the installer dist\Budget-setup.exe and dist\Budget-windows.zip.
+# Run on Windows with Python 3 and Inno Setup 6 installed (winget install JRSoftware.InnoSetup).
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
@@ -14,4 +15,11 @@ Copy-Item packaging\Budget.exe.config dist\Budget\Budget.exe.config
 
 if (Test-Path dist\Budget-windows.zip) { Remove-Item dist\Budget-windows.zip }
 Compress-Archive -Path dist\Budget -DestinationPath dist\Budget-windows.zip
-Write-Host "Built dist\Budget\Budget.exe and dist\Budget-windows.zip"
+$version = .venv-build\Scripts\python -c "from app import VERSION; print(VERSION)"
+$iscc = @("$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe", "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") |
+  Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $iscc) { throw "Inno Setup 6 isn't installed. Install it with: winget install JRSoftware.InnoSetup" }
+& $iscc /Q "/DVersion=$version" packaging\Budget.iss
+if ($LASTEXITCODE -ne 0) { throw "Building the installer failed" }
+
+Write-Host "Built dist\Budget\Budget.exe, dist\Budget-setup.exe and dist\Budget-windows.zip (version $version)"

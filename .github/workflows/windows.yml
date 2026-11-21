@@ -16,9 +16,32 @@ jobs:
           python-version: "3.12"
       - name: Tests
         run: python -m unittest
+      - name: Install Inno Setup
+        shell: pwsh
+        run: if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
       - name: Build
         shell: pwsh
         run: packaging\build-windows.ps1
+      - name: Test the installer
+        shell: pwsh
+        run: |
+          # Install silently for this user, check the files and the uninstaller, then uninstall.
+          Start-Process dist\Budget-setup.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER" -Wait
+          $app = "$env:LOCALAPPDATA\Programs\Budget"
+          foreach ($f in "Budget.exe", "Budget.exe.config", "_internal\static\index.html", "unins000.exe") {
+            if (-not (Test-Path "$app\$f")) { throw "Not installed: $f" }
+          }
+          $entry = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object DisplayName -eq "Budget"
+          if (-not $entry) { throw "Budget isn't listed under installed apps" }
+          Write-Host "Installed $($entry.DisplayVersion) in $app"
+          Start-Process "$app\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
+          Start-Sleep -Seconds 3
+          if (Test-Path "$app\Budget.exe") { throw "Uninstalling left Budget.exe behind" }
+          Write-Host "Uninstalled cleanly"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Budget-setup
+          path: dist/Budget-setup.exe
       - uses: actions/upload-artifact@v4
         with:
           name: Budget-windows
