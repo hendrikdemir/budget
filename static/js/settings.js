@@ -15,7 +15,7 @@ export function applySettings() {
   root.dataset.theme = dark ? "dark" : "light";
   document.querySelectorAll("#theme-options button").forEach((b) => b.classList.toggle("active", b.dataset.theme === settings.theme));
   currencyPicker.set(settings.currency);
-  // Without a choice, the way this Mac writes numbers is the one in use.
+  // Without a choice, the way this computer writes numbers is the one in use.
   document.querySelectorAll("#number-options button").forEach((b) => b.classList.toggle("active", b.dataset.format === (decimalComma() ? "comma" : "point")));
   document.querySelectorAll(".money-input input").forEach((input) => (input.placeholder = example("0.00")));
 }

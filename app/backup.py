@@ -1,4 +1,4 @@
-"""Exporting all data to one file, and importing such a file (for example on a new Mac).
+"""Exporting all data to one file, and importing such a file (for example on a new computer).
 
 An export is a copy of the SQLite database, with the extension .budget. An import first
 checks the file thoroughly, then replaces all data with it; the page offers to create a backup
