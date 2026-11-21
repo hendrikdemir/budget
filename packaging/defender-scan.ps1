@@ -11,14 +11,24 @@ $work = Join-Path $env:RUNNER_TEMP "scan"
 New-Item -ItemType Directory -Force $work | Out-Null
 
 function Flagged([string]$path) {
+  if (-not (Test-Path -LiteralPath $path)) { throw "missing $path" }
   $out = & $mp.FullName -Scan -ScanType 3 -File $path -DisableRemediation 2>&1 | Out-String
+  if ($env:SHOW_RAW) { Write-Host $out }
   return ($out -match "found \d+ threats" -and $out -notmatch "found no threats") -or ($LASTEXITCODE -eq 2)
 }
 
 # Control: the harmless EICAR test string must be detected, or the scanner isn't working.
 $eicar = Join-Path $work "eicar.txt"
-Set-Content -NoNewline $eicar ('X5O!P%@AP[4\PZX54(P^)7CC)7}$' + 'EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*')
+Set-Content -LiteralPath $eicar -NoNewline -Value ('X5O!P%@AP[4\PZX54(P^)7CC)7}$' + 'EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*')
+$env:SHOW_RAW = "1"
 Write-Host "Control (EICAR) flagged: $(Flagged $eicar)"
+Write-Host "Control (plain text) flagged: $(Flagged (Join-Path $PWD 'README.md'))"
+$env:SHOW_RAW = ""
+# The real build, as downloaded in the VM.
+& packaging\build-windows.ps1 | Out-Null
+$env:SHOW_RAW = "1"
+Write-Host "Build zip flagged: $(Flagged (Join-Path $PWD 'dist\Budget-windows.zip'))"
+$env:SHOW_RAW = ""
 
 $flagged = @()
 foreach ($f in Get-ChildItem static -Recurse -File) {
