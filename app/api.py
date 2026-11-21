@@ -6,7 +6,7 @@ from . import VERSION, accounts, backup, bank_import, budgets, export, outlook, 
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
 from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
 
-# number_format: "comma" (1.234,56), "point" (1,234.56) or "system" (the way this Mac writes numbers).
+# number_format: "comma" (1.234,56), "point" (1,234.56) or "system" (the way this computer writes numbers).
 DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR", "number_format": "system", "update_check": "on", "skipped_version": "",
                     "guide": "show"}  # the getting-started guide on the overview: "show" or "hidden"
 

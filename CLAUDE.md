@@ -71,7 +71,9 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
   shown to the user are friendly and say what to do.
 - Styles: CSS custom properties in `static/style.css`, light and dark themes,
   one fixed palette of greens and slate blues (#c9e4ca, #87bba2, #55828b, #3b6064, #364958),
-  a soft glow behind frosted cards, and red only for being over budget. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
+  a soft glow behind frosted cards, and red only for being over budget. One font everywhere: Geist,
+  shipped in `static/fonts/` (SIL Open Font License), so the app looks the same on every system
+  and never loads anything from the internet. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
 
 ## Keeping the installed app current
 

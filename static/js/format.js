@@ -22,7 +22,7 @@ export function monthEnd(ym) {
 }
 
 // Month and day names are English, like the rest of the interface. Numbers and amounts are
-// written the way this Mac does, or as chosen in Settings: 1.234,56 or 1,234.56.
+// written the way this computer does, or as chosen in Settings: 1.234,56 or 1,234.56.
 export const DATE_LOCALE = "en-GB";
 export const capitalize = (text) => text.replace(/^./, (c) => c.toUpperCase());
 export function monthName(ym, style = "long") {
@@ -39,7 +39,7 @@ export const shortDate = (iso) => new Intl.DateTimeFormat(DATE_LOCALE, { day: "n
   .formatToParts(new Date(iso + "T00:00")).map((p) => (p.type === "month" ? capitalize(p.value) : p.value)).join("");
 
 // How numbers are written. The setting number_format is "comma" (1.234,56), "point"
-// (1,234.56) or "system": the way this Mac writes them.
+// (1,234.56) or "system": the way this computer writes them.
 const systemComma = (1.5).toLocaleString().includes(",");
 export const decimalComma = () => state.settings.number_format === "comma" || (state.settings.number_format !== "point" && systemComma);
 const separators = () => (decimalComma() ? { decimal: ",", group: "." } : { decimal: ".", group: "," });
@@ -47,7 +47,7 @@ const separators = () => (decimalComma() ? { decimal: ",", group: "." } : { deci
 export const example = (text) => text.replace(".", separators().decimal);
 
 // Cents as money, e.g. 123456 -> "€ 1.234,56". A chosen number format only swaps the
-// separators: where the currency symbol goes still follows this Mac.
+// separators: where the currency symbol goes still follows this computer.
 export function money(cents, { whole = false } = {}) {
   const format = new Intl.NumberFormat(undefined, {
     style: "currency", currency: state.settings.currency, ...(whole ? { maximumFractionDigits: 0 } : {}),
