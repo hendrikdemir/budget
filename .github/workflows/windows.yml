@@ -1,4 +1,5 @@
-# Builds the Windows version and runs the tests on Windows. Download it from the run's Artifacts.
+# Builds the Windows version and runs the tests on Windows. Download it from the run's Artifacts
+# (one zip with the app folder; Budget-windows.zip from the build script is for releases).
 name: Windows build
 on:
   push:
@@ -21,4 +22,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Budget-windows
-          path: dist/Budget-windows.zip
+          path: dist/Budget/
