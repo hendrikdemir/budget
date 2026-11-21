@@ -4,11 +4,11 @@
 
 # Budget
 
-**A calm, private budget app for your Mac.**
+**A calm, private budget app for Mac and Windows.**
 
 Plan every euro, see what's left at a glance, and know whether your savings will hold up in the year ahead.
 
-No account. No subscription. No cloud. Your data stays on your Mac.
+No account. No subscription. No cloud. Your data stays on your computer.
 
 </div>
 
@@ -111,13 +111,13 @@ Add your expected income and planned costs, like a holiday or a new laptop, once
 
 <img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency, how numbers are written, backups and updates">
 
-Follow your Mac's light or dark mode, or choose one yourself, and pick your currency from every currency in the world. Numbers are written the way your Mac writes them, or the way you choose: 1.234,56 or 1,234.56. Amounts you type, and the examples in messages, follow the same choice.
+Follow your computer's light or dark mode, or choose one yourself, and pick your currency from every currency in the world. Numbers are written the way your computer writes them, or the way you choose: 1.234,56 or 1,234.56. Amounts you type, and the examples in messages, follow the same choice.
 
-### Backups and moving to a new Mac
+### Backups and moving to a new computer
 
 <img src="docs/screenshots/restore.png" width="420" alt="Restoring a backup: a file you created, or one of the automatic daily backups">
 
-**Create backup** saves all your data in one file, to keep safe or to move to a new Mac. Budget also keeps an automatic backup of each day you use it, the last 14. **Restore from backup** brings back either one: it checks the file first, shows what's in it and what it replaces, and offers to create a backup of your current data before it does.
+**Create backup** saves all your data in one file, to keep safe or to move to a new computer, Mac or Windows. Budget also keeps an automatic backup of each day you use it, the last 14. **Restore from backup** brings back either one: it checks the file first, shows what's in it and what it replaces, and offers to create a backup of your current data before it does.
 
 **Delete all data** empties Budget, for a fresh start. It only goes ahead after you create a backup, or tick that you don't need one, and it can't be undone.
 
@@ -125,13 +125,16 @@ Follow your Mac's light or dark mode, or choose one yourself, and pick your curr
 
 <img src="docs/screenshots/update.png" width="420" alt="A new version is available: what's new and how to install it">
 
-Once a day Budget asks GitHub whether there's a new version. Only GitHub is asked, and nothing about you or your data is sent. When there is one, a banner at the top says so, and **How to update** shows what's new and how to install it. Settings shows whether you have the latest version, and you can turn the check off there with **Check for new versions**.
+Once a day Budget asks GitHub whether there's a new version. Only GitHub is asked, and nothing about you or your data is sent. When there is one for your system, a banner at the top says so, and **How to update** shows what's new and how to install it on your Mac or Windows PC. Settings shows whether you have the latest version, and you can turn the check off there with **Check for new versions**.
 
 ## Installing
 
-1. Download `Budget.dmg` from the [Releases](../../releases) page.
-2. Open it and drag **Budget** to **Applications**.
-3. Open Budget. Nothing else needs to be installed.
+Download Budget from the [Releases](../../releases) page: `Budget.dmg` for a Mac, `Budget-setup.exe` for Windows. Nothing else needs to be installed.
+
+### On a Mac
+
+1. Open `Budget.dmg` and drag **Budget** to **Applications**.
+2. Open Budget.
 
 Budget isn't signed with a paid Apple Developer account, so the first time, macOS says it can't open it. Click **Done**, then allow it once:
 
@@ -145,7 +148,20 @@ The button only shows for about an hour after macOS blocked Budget. If it isn't 
 
 To update, quit Budget, download the new `Budget.dmg`, drag Budget to **Applications** again and choose **Replace**. Your data is kept outside the app, so it stays as it is.
 
-Budget currently runs on Macs with Apple Silicon.
+Budget runs on Macs with Apple Silicon.
+
+### On Windows
+
+1. Open `Budget-setup.exe` and follow the steps. Budget installs for you only, so no administrator is needed.
+2. Open Budget from the Start menu.
+
+Budget isn't signed with a paid certificate yet, so Windows may say it protected your PC. Click **More info**, then **Run anyway**. Your browser may also ask whether to keep the download: choose **Keep**.
+
+<img src="docs/screenshots/run-anyway.png" width="600" alt="The Windows protected your PC message: More info is clicked, and the Run anyway button is highlighted">
+
+To update, download the new `Budget-setup.exe` and open it: it closes Budget, installs the new version and opens it again. To remove Budget, use **Settings → Apps → Installed apps**. Your data is kept outside the app, so updating or removing it doesn't touch your data.
+
+Budget runs on 64-bit Windows 10 and 11.
 
 ### Getting started
 
@@ -155,13 +171,20 @@ A new Budget is empty. The Overview shows four steps to make it yours, in any or
 
 ## Your data
 
-Everything stays on your Mac, in `~/Library/Application Support/nl.hendrikdemir.budget`. Budget makes a backup automatically on each day you use it and keeps the last 14, in the `backups` folder there. You can restore them from **Settings → Restore from backup**. They're on the same Mac, so for a copy elsewhere, use **Create backup** or Time Machine.
+Everything stays on your computer:
 
-**Moving to a new Mac**
+- **Mac:** `~/Library/Application Support/nl.hendrikdemir.budget`
+- **Windows:** `%APPDATA%\Budget`
 
-1. On your old Mac, open Budget, click the gear icon to open **Settings**, and choose **Create backup**. Save the file.
-2. Move the file to your new Mac, for example with AirDrop.
-3. Install Budget on your new Mac, open **Settings**, choose **Restore from backup**, and then **Choose file…**.
+Budget makes a backup automatically on each day you use it and keeps the last 14, in the `backups` folder there. You can restore them from **Settings → Restore from backup**. They're on the same computer, so for a copy elsewhere, use **Create backup** (or Time Machine on a Mac).
+
+**Moving to a new computer**
+
+1. On your old computer, open Budget, click the gear icon to open **Settings**, and choose **Create backup**. Save the file.
+2. Move the file to your new computer, for example with AirDrop or a USB stick.
+3. Install Budget there, open **Settings**, choose **Restore from backup**, and then **Choose file…**.
+
+A backup works on both systems, so you can also move from a Mac to Windows or the other way around.
 
 The backup file holds all your financial data and isn't encrypted, so keep it somewhere safe and delete it when you no longer need it.
 
@@ -185,13 +208,21 @@ To try the update check without a real release, point it at a made-up one:
 BUDGET_RELEASES_URL=packaging/test-release.json python3 server.py --demo
 ```
 
-Build `dist/Budget.app` and `dist/Budget.dmg`:
+Build `dist/Budget.app` and `dist/Budget.dmg` on a Mac:
 
 ```bash
 packaging/build.sh
 ```
 
-Build and replace the copy in Applications (your data isn't affected):
+Build `dist\Budget-setup.exe` on Windows, with Python 3 and [Inno Setup 6](https://jrsoftware.org/isinfo.php) installed:
+
+```powershell
+packaging\build-windows.ps1
+```
+
+You don't need a Windows computer for this: every push to `main` and every release tag is built and tested on Windows by GitHub (`.github/workflows/windows.yml`). The installer is in the run's Artifacts.
+
+On a Mac, build and replace the copy in Applications (your data isn't affected):
 
 ```bash
 packaging/install.sh
@@ -209,7 +240,7 @@ Release a new version:
 python3 packaging/release.py
 ```
 
-It checks that everything is committed and the tests pass, suggests a patch, minor or major version from what changed since the last release, and drafts release notes for you to edit. It then builds `Budget.dmg` for you to try, tags and pushes the release, and publishes it on GitHub (with the [`gh`](https://cli.github.com) tool, or by opening the filled-in release page). Add `--dry-run` to only see the suggested version. Write `BREAKING` in a commit message to make the next release a major one. Apps on an older version show the new one within a day.
+It checks that everything is committed and the tests pass, suggests a patch, minor or major version from what changed since the last release, and drafts release notes for you to edit. It asks which systems the release is for: both, or only the Mac or Windows for a fix that only matters there (apps only hear about releases with a file for their own system). It then builds `Budget.dmg` for you to try, tags and pushes the release, waits for GitHub's Windows build of the tag and downloads `Budget-setup.exe` for you to try, and publishes the release on GitHub with the [`gh`](https://cli.github.com) tool. Add `--dry-run` to only see the suggested version. Write `BREAKING` in a commit message to make the next release a major one. Apps on an older version show the new one within a day.
 
 Update the screenshots, using made-up data:
 
@@ -219,11 +250,11 @@ Update the screenshots, using made-up data:
 
 | Path | Contents |
 | --- | --- |
-| `desktop.py` | The Mac app: starts the server and opens the window |
+| `desktop.py` | The desktop app (Mac and Windows): starts the server and opens the window |
 | `server.py` | Starts the server for development |
 | `app/` | Server side: database, budgets, balances, outlook, bank imports, backups and API |
 | `static/` | The page: HTML, CSS and JavaScript modules |
-| `packaging/` | App build, icon and screenshots |
+| `packaging/` | App builds (Mac and Windows installer), icon, release script and screenshots |
 | `tests/` | Tests for the calculations, bank imports and the server |
 
 ## License

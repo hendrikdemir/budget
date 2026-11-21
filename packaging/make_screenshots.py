@@ -164,6 +164,9 @@ def capture(url):
         page.set_content(OPEN_ANYWAY)
         page.wait_for_timeout(200)
         page.locator(".window").screenshot(path=OUT / "open-anyway.png")
+        page.set_content(RUN_ANYWAY)  # the same for Windows' SmartScreen message
+        page.wait_for_timeout(200)
+        page.locator(".window").screenshot(path=OUT / "run-anyway.png")
         page.close()
         browser.close()
 
@@ -220,6 +223,33 @@ OPEN_ANYWAY = """<!doctype html><meta charset="utf-8"><style>
     </div>
     <p class="hint">Click Open Anyway, then confirm with your password or Touch ID.</p>
   </div>
+</div>"""
+
+
+# A simplified "Windows protected your PC" message, after clicking More info.
+RUN_ANYWAY = """<!doctype html><meta charset="utf-8"><style>
+  * { box-sizing: border-box; margin: 0; }
+  body { padding: 24px; background: #f0f6f0; font: 14px/1.45 "Segoe UI", -apple-system, sans-serif;
+         -webkit-font-smoothing: antialiased; }
+  .window { width: 712px; background: #1f5a96; color: #fff; padding: 30px 36px 24px;
+            border: 1px solid #174876; box-shadow: 0 18px 40px rgba(54, 73, 88, .22); }
+  h1 { font-size: 30px; font-weight: 300; margin-bottom: 18px; }
+  p { max-width: 560px; margin-bottom: 14px; color: #e8f0f8; }
+  .info { display: grid; grid-template-columns: 90px 1fr; gap: 4px 12px; margin: 18px 0 30px; color: #e8f0f8; }
+  .link { text-decoration: underline; color: #fff; opacity: .75; }
+  .buttons { display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,.18); padding-top: 18px; }
+  .btn { position: relative; border: 2px solid #fff; padding: 6px 26px; font-weight: 600; white-space: nowrap; }
+  .btn.main { background: #fff; color: #1f5a96; }
+  .btn.ring::after { content: ""; position: absolute; inset: -8px; border: 3px solid #e2574c; border-radius: 4px; }
+  .hint { margin: 14px 0 0; font-size: 13px; color: #c9e4ca; text-align: right; font-weight: 600; }
+</style>
+<div class="window">
+  <h1>Windows protected your PC</h1>
+  <p>Microsoft Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at risk.</p>
+  <p class="link">More info</p>
+  <div class="info"><span>App:</span><span>Budget-setup.exe</span><span>Publisher:</span><span>Unknown publisher</span></div>
+  <div class="buttons"><span class="btn ring">Run anyway</span><span class="btn main">Don't run</span></div>
+  <p class="hint">Click More info first; then Run anyway appears.</p>
 </div>"""
 
 

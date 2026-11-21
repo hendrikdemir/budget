@@ -1,9 +1,9 @@
-# Builds the Windows version and runs the tests on Windows. Download it from the run's Artifacts
-# (one zip with the app folder; Budget-windows.zip from the build script is for releases).
+# Builds the Windows app and installer and tests them on Windows, for every push to main and every
+# release tag. Download them from the run's Artifacts (Budget-setup: the installer; Budget-windows: the app folder).
 name: Windows build
 on:
   push:
-    branches: [windows-support]
+    branches: [main]
     tags: ["v*"]  # a release: packaging/release.py downloads the installer from this run
   workflow_dispatch:
 
@@ -11,8 +11,8 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Tests
@@ -39,11 +39,11 @@ jobs:
           Start-Sleep -Seconds 3
           if (Test-Path "$app\Budget.exe") { throw "Uninstalling left Budget.exe behind" }
           Write-Host "Uninstalled cleanly"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Budget-setup
           path: dist/Budget-setup.exe
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Budget-windows
           path: dist/Budget/

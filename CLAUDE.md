@@ -4,22 +4,28 @@ Guidance for working on this repository.
 
 ## What this is
 
-A single-user, local budget app, delivered as a Mac app (`Budget.app`). `desktop.py` starts
-the server on 127.0.0.1 and shows the page in a window (pywebview, so Safari's WebKit engine).
-Its data is in `~/Library/Application Support/nl.hendrikdemir.budget`.
+A single-user, local budget app for Mac and Windows: `Budget.app` (in `Budget.dmg`) and an installer,
+`Budget-setup.exe`. `desktop.py` starts the server on 127.0.0.1 and shows the page in a window
+(pywebview: Safari's WebKit on the Mac, Edge's WebView2 on Windows). Its data is in
+`~/Library/Application Support/nl.hendrikdemir.budget` on a Mac and `%APPDATA%\Budget` on Windows.
 
 `python3 server.py` runs the same app in a browser on port 8000, with separate data in this
 folder (`budget.db`, `backups/`). With `--demo` it uses a made-up household in `.demo-data/`
 (`app/demo.py`), which is what the preview in `.claude/launch.json` shows. With `--empty` it starts
 without any data, as a new user sees it (the `budget-empty` preview; emptied at every start). The app itself needs only the Python standard library;
-pywebview and PyInstaller are used for the Mac app. There is no web build step.
+pywebview and PyInstaller are used for the desktop app. There is no web build step.
 
 ## Layout
 
-- `desktop.py`: the Mac app. `server.py`: development entry point.
-- `packaging/`: `build.sh` builds `dist/Budget.app` and `dist/Budget.dmg`. The version is `VERSION` in
-  `app/__init__.py`. Don't change it by hand: `release.py` sets it when releasing (it suggests
-  patch/minor/major from what changed), builds, tags `v<VERSION>`, pushes and publishes the GitHub release.
+- `desktop.py`: the desktop app (Mac and Windows). `server.py`: development entry point.
+- `packaging/`: `build.sh` builds `dist/Budget.app` and `dist/Budget.dmg` (Mac). `build-windows.ps1`
+  builds the Windows app and its Inno Setup installer `dist\Budget-setup.exe` (`Budget.iss`); GitHub
+  builds and tests it on Windows for every push to main and every release tag
+  (`.github/workflows/windows.yml`). The version is `VERSION` in `app/__init__.py`. Don't change it by
+  hand: `release.py` sets it when releasing (it suggests patch/minor/major from what changed, and asks
+  which systems the release is for), builds, tags `v<VERSION>`, pushes and publishes the GitHub release.
+- `docs/`: the website (GitHub Pages) and the screenshots. Its download buttons look up the newest
+  release with each system's file, like the app's update check.
 - `app/web.py`: HTTP server. Routes `/api/<resource>[/<id>]` to `app/api.py` `ROUTES`,
   everything else to `static/`. Sends `Cache-Control: no-cache`.
   It only answers the app's own page (checks Host, Origin and Content-Type), so websites open
@@ -56,7 +62,7 @@ pywebview and PyInstaller are used for the Mac app. There is no web build step.
 - **Money is whole cents everywhere**: database, API (requests and responses) and JS.
   Convert only for display (`money()`) and input (`parseAmount()` -> cents,
   `inputAmount()` for input fields). Never do money math in floats.
-- **Numbers are written the user's way**: 1.234,56 or 1,234.56, as this Mac does or as chosen in
+- **Numbers are written the user's way**: 1.234,56 or 1,234.56, as this computer does or as chosen in
   Settings (`number_format`). Example numbers in messages and placeholders follow it too: use
   `example("12.50")` in the page, and write `{12.50}` in a server error (the page converts it).
 - **Calculations belong on the server.** The browser renders what `/api/month`,
@@ -103,6 +109,9 @@ each change what's out of date. When updating:
 The Mac app uses WebKit, which behaves differently from Chrome: test real mouse clicks there (not
 `element.click()`). For example, WebKit cancels a click on a button whose text changed during the
 mouse press. `packaging/make_screenshots.py` shows how to drive WebKit with Playwright.
+The Windows app uses Edge's WebView2 (Chromium) instead. There's no Windows computer here: the
+Windows build on GitHub runs the tests and installs and uninstalls the installer; the owner tries
+builds in a Windows VM. Paths, file names and text files must work on both (read and write as UTF-8).
 
 Run the tests with `python3 -m unittest` (standard library only, about 2 seconds). They live in
 `tests/` and cover budgets, the outlook, bank imports and the server's protection, with made-up

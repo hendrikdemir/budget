@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Budget: a calm, private budget app for your Mac</title>
+<title>Budget: a calm, private budget app for Mac and Windows</title>
 <meta name="description" content="Plan every euro, see what's left at a glance, and know whether your savings will hold up. No account, no subscription, no cloud.">
 <link rel="icon" href="icon.png">
 <style>
+  @font-face { font-family: "Geist"; src: url("fonts/Geist.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
   :root {
     --bg: #f0f6f0;
     --surface: rgba(250, 253, 250, 0.74);
@@ -43,7 +44,7 @@
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font: 17px/1.55 "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     color: var(--text);
     background:
       radial-gradient(900px 600px at 15% -10%, var(--glow-a), transparent 70%),
@@ -70,6 +71,10 @@
   }
   .download:hover { background: var(--accent-hover); color: var(--on-accent); transform: translateY(-1px); }
   .download svg { width: 20px; height: 20px; }
+  .downloads { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+  .download.secondary { background: var(--surface); color: var(--accent); border: 1px solid var(--border); box-shadow: none;
+                        -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+  .download.secondary:hover { background: var(--accent-soft); color: var(--accent-hover); }
   .meta { color: var(--muted); font-size: .9rem; margin: 14px 0 0; }
 
   .shot { margin: 40px auto 0; }
@@ -85,8 +90,11 @@
   .features h2 { font-size: 1.1rem; margin: 0 0 6px; }
   .features p { margin: 0; color: var(--muted); font-size: .97rem; }
 
-  section.install { margin-top: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; padding: 48px 56px; }
-  section.install h2 { margin: 0 0 10px; font-size: 1.5rem; }
+  section.install { margin-top: 56px; padding: 48px 56px; }
+  section.install h2 { margin: 0 0 24px; font-size: 1.5rem; }
+  section.install h3 { margin: 0 0 10px; font-size: 1.15rem; }
+  .systems { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+  .systems img { margin-top: 8px; }
   section.install ol { padding-left: 1.3em; margin: 0 0 12px; }
   section.install li { margin-bottom: 6px; }
   section.install img { width: 100%; height: auto; border-radius: 12px; }
@@ -104,7 +112,8 @@
 
   @media (max-width: 720px) {
     .hero { padding-top: 40px; }
-    section.install { grid-template-columns: 1fr; gap: 28px; padding: 28px 24px; }
+    section.install { padding: 28px 24px; }
+    .systems { grid-template-columns: 1fr; gap: 36px; }
   }
 </style>
 </head>
@@ -113,13 +122,19 @@
   <header class="hero">
     <img class="icon" src="icon.png" alt="">
     <h1>Budget</h1>
-    <p class="tagline">A calm, private budget app for your Mac.</p>
-    <p class="promise">No account. No subscription. No cloud. Your data stays on your Mac.</p>
-    <a class="download" href="https://github.com/hendrikdemir/budget/releases/latest/download/Budget.dmg">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
-      Download for Mac
-    </a>
-    <p class="meta"><span id="version">Free</span> · for macOS</p>
+    <p class="tagline">A calm, private budget app for Mac and Windows.</p>
+    <p class="promise">No account. No subscription. No cloud. Your data stays on your computer.</p>
+    <div class="downloads">
+      <a class="download" id="download-mac" href="https://github.com/hendrikdemir/budget/releases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+        Download for Mac
+      </a>
+      <a class="download secondary" id="download-windows" href="https://github.com/hendrikdemir/budget/releases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+        Download for Windows
+      </a>
+    </div>
+    <p class="meta" id="version">Free · macOS on Apple Silicon · Windows 10 and 11 (64-bit)</p>
 
     <figure class="shot">
       <picture>
@@ -152,8 +167,8 @@
       <p>See how each budget held up month by month, and spot what quietly got more expensive.</p>
     </div>
     <div class="card">
-      <h2>Safe on your Mac</h2>
-      <p>Budget makes a backup every day you use it. Save your own backup any time, and restore it on a new Mac.</p>
+      <h2>Safe on your computer</h2>
+      <p>Budget makes a backup every day you use it. Save your own backup any time, and restore it on a new computer, Mac or Windows.</p>
     </div>
   </div>
 
@@ -170,16 +185,29 @@
   </section>
 
   <section class="install card">
-    <div>
-      <h2>Installing</h2>
-      <ol>
-        <li>Download <strong>Budget.dmg</strong> and open it.</li>
-        <li>Drag <strong>Budget</strong> to <strong>Applications</strong>.</li>
-        <li>Open Budget.</li>
-      </ol>
-      <p class="note">The first time, macOS says it can't open Budget, because the app isn't signed with a paid Apple Developer account. Click <strong>Done</strong>, open <strong>System Settings → Privacy &amp; Security</strong>, scroll down to <strong>Security</strong> and click <strong>Open Anyway</strong>. You only have to do this once.</p>
+    <h2>Installing</h2>
+    <div class="systems">
+      <div id="install-mac">
+        <h3>On a Mac</h3>
+        <ol>
+          <li>Download <strong>Budget.dmg</strong> and open it.</li>
+          <li>Drag <strong>Budget</strong> to <strong>Applications</strong>.</li>
+          <li>Open Budget.</li>
+        </ol>
+        <p class="note">The first time, macOS says it can't open Budget, because the app isn't signed with a paid Apple Developer account. Click <strong>Done</strong>, open <strong>System Settings → Privacy &amp; Security</strong>, scroll down to <strong>Security</strong> and click <strong>Open Anyway</strong>. You only have to do this once.</p>
+        <img src="screenshots/open-anyway.png" alt="System Settings, Privacy &amp; Security: the Open Anyway button next to the message that Budget was blocked">
+      </div>
+      <div id="install-windows">
+        <h3>On Windows</h3>
+        <ol>
+          <li>Download <strong>Budget-setup.exe</strong> and open it.</li>
+          <li>Follow the steps. Budget installs for you only, no administrator needed.</li>
+          <li>Open Budget from the Start menu.</li>
+        </ol>
+        <p class="note">Budget isn't signed with a paid certificate yet, so Windows may warn that it protected your PC. Click <strong>More info</strong>, then <strong>Run anyway</strong>. Your browser may also ask whether to keep the download: choose <strong>Keep</strong>.</p>
+        <img src="screenshots/run-anyway.png" alt="The Windows protected your PC message: More info is clicked, and the Run anyway button is highlighted">
+      </div>
     </div>
-    <img src="screenshots/open-anyway.png" alt="System Settings, Privacy &amp; Security: the Open Anyway button next to the message that Budget was blocked">
   </section>
 </main>
 
@@ -189,10 +217,36 @@
 </footer>
 
 <script>
-  // Shows the latest version next to the button; the button itself works without this.
-  fetch("https://api.github.com/repos/hendrikdemir/budget/releases/latest")
-    .then(r => r.ok ? r.json() : null)
-    .then(r => { if (r && r.tag_name) document.getElementById("version").textContent = "Free · Version " + r.tag_name.replace(/^v/, ""); })
+  // The visitor's own system first. Without the lookup below, both buttons open the Releases page.
+  const onWindows = /Windows/.test(navigator.userAgent);
+  if (onWindows) {
+    const mac = document.getElementById("download-mac"), windows = document.getElementById("download-windows");
+    mac.classList.add("secondary"); windows.classList.remove("secondary");
+    mac.before(windows);
+    document.getElementById("install-mac").before(document.getElementById("install-windows"));
+  }
+  // A release can be for one system only (it has that system's file), like in the app's update
+  // check (app/updates.py): each button gets the newest release with its own file.
+  const FILES = { mac: "Budget.dmg", windows: "Budget-setup.exe" };
+  const version = (tag) => (tag.match(/^v?(\d+)\.(\d+)\.(\d+)$/) || []).slice(1).map(Number);
+  const newer = (a, b) => { for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i]; return false; };
+  fetch("https://api.github.com/repos/hendrikdemir/budget/releases?per_page=30")
+    .then((r) => (r.ok ? r.json() : []))
+    .then((releases) => {
+      const found = {};
+      for (const release of releases) {
+        const v = version(release.tag_name || "");
+        if (release.draft || release.prerelease || v.length !== 3) continue;
+        for (const [system, name] of Object.entries(FILES)) {
+          const file = (release.assets || []).find((a) => a.name === name);
+          if (file && (!found[system] || newer(v, found[system].v))) found[system] = { v, url: file.browser_download_url };
+        }
+      }
+      for (const system in found) document.getElementById(`download-${system}`).href = found[system].url;
+      const shown = (onWindows ? ["windows", "mac"] : ["mac", "windows"]).filter((s) => found[s]);
+      if (shown.length) document.getElementById("version").textContent = "Free · Version " + found[shown[0]].v.join(".")
+        + " · macOS on Apple Silicon · Windows 10 and 11 (64-bit)";
+    })
     .catch(() => {});
 </script>
 </body>
