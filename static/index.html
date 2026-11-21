@@ -478,13 +478,18 @@
         <div id="update-notes" class="update-notes"></div>
       </div>
       <span class="label">How to update</span>
-      <ol class="update-steps">
+      <ol class="update-steps" data-platform="mac">
         <li>Click <strong>Download</strong> below. Budget.dmg is saved in your Downloads folder.</li>
         <li>Quit Budget (Budget menu › Quit, or ⌘Q).</li>
         <li>Open Budget.dmg and drag Budget onto the Applications folder. Choose <strong>Replace</strong>.</li>
         <li>Open Budget. If macOS says it can't check the app, open System Settings › Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>.</li>
       </ol>
-      <p class="muted update-safe">Your budgets, transactions and settings are kept outside the app, so replacing it doesn't touch them.</p>
+      <ol class="update-steps" data-platform="windows" hidden>
+        <li>Click <strong>Download</strong> below. Budget-setup.exe is saved in your Downloads folder.</li>
+        <li>Open Budget-setup.exe. It closes Budget, installs the new version and opens it again.</li>
+        <li>If Windows says it protected your PC, click <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+      </ol>
+      <p class="muted update-safe">Your budgets, transactions and settings are kept outside the app, so updating it doesn't touch them.</p>
       <div class="dialog-foot">
         <button type="button" id="update-skip" class="link-btn">Skip this version</button>
         <span class="spacer"></span>

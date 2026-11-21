@@ -9,16 +9,24 @@ Steps:
    (see suggest_bump), which you confirm or change.
 3. Drafts release notes from the commits, for you to edit. They're shown in the app's
    "What's new" box, so write them for users.
-4. Sets VERSION in app/__init__.py and builds dist/Budget.dmg, which you try before going on.
-   Stopping before this point puts VERSION back.
-5. Commits "Release X.Y.Z", tags vX.Y.Z and pushes both.
-6. Publishes the GitHub release with Budget.dmg. With the gh tool (brew install gh) it does
-   this itself; otherwise it opens the new-release page, filled in, and shows Budget.dmg in Finder.
+4. Asks which systems the release is for: both, or only the Mac or Windows (for a fix that only
+   matters on one). Apps only hear about releases with a file for their own system (app/updates.py).
+5. Sets VERSION in app/__init__.py and, for the Mac, builds dist/Budget.dmg, which you try before
+   going on. Stopping before this point puts VERSION back.
+6. Commits "Release X.Y.Z", tags vX.Y.Z and pushes both.
+7. For Windows: the pushed tag starts the Windows build on GitHub (.github/workflows/windows.yml);
+   the script waits for it, downloads Budget-setup.exe into dist/ and asks you to try it.
+8. Publishes the GitHub release with the files for the chosen systems. With the gh tool
+   (brew install gh) it does this itself; otherwise it opens the new-release page, filled in.
+   A Windows release needs gh.
 
 The tag is always "v" + VERSION: the app's update check compares the two.
 """
 import re
+import shutil
 import subprocess
+import tempfile
+import time
 import sys
 import urllib.parse
 from pathlib import Path
@@ -28,6 +36,8 @@ VERSION_FILE = ROOT / "app" / "__init__.py"
 NOTES_FILE = ROOT / "dist" / "release-notes.md"
 REMOTE, BRANCH = "github", "main"
 REPO_URL = "https://github.com/hendrikdemir/budget"
+SYSTEMS = {"both": ("mac", "windows"), "mac": ("mac",), "windows": ("windows",)}
+FILES = {"mac": ROOT / "dist" / "Budget.dmg", "windows": ROOT / "dist" / "Budget-setup.exe"}  # names the app looks for
 VERSION_LINE = re.compile(r'^VERSION = "([^"]+)"', re.M)
 
 
@@ -215,6 +225,49 @@ def write_notes(version, commits):
     return notes
 
 
+def has_gh():
+    return subprocess.run(["which", "gh"], capture_output=True).returncode == 0
+
+
+def choose_systems():
+    step("Choosing the systems")
+    print("  both: the normal case · mac or windows: a fix that only matters there.")
+    print("  Apps on the other system won't hear about this release; the next one for both brings them everything.")
+    answer = ask("For which systems (both/mac/windows)", "both").lower()
+    if answer not in SYSTEMS:
+        stop(f"{answer!r} isn't both, mac or windows.")
+    if "windows" in SYSTEMS[answer] and not has_gh():
+        stop("A Windows release needs the gh tool (brew install gh, then gh auth login), to get the Windows build.")
+    return SYSTEMS[answer]
+
+
+def windows_installer(tag):
+    """Waits for GitHub's Windows build of the tag and downloads Budget-setup.exe into dist/."""
+    step("Getting the Windows installer")
+    print("  The pushed tag started the Windows build on GitHub; waiting for it (a few minutes).")
+    run_id = None
+    for _ in range(30):  # the run shows up a few seconds after the push
+        found = subprocess.run(["gh", "run", "list", "--workflow", "windows.yml", "--branch", tag, "--limit", "1",
+                                "--json", "databaseId", "-q", ".[0].databaseId"], cwd=ROOT, capture_output=True, text=True)
+        run_id = found.stdout.strip()
+        if run_id:
+            break
+        time.sleep(5)
+    if not run_id:
+        stop(f"The Windows build for {tag} didn't start. Look at the Actions tab on GitHub; the tag is pushed but nothing is released.")
+    if subprocess.run(["gh", "run", "watch", run_id, "--exit-status"], cwd=ROOT, stdout=subprocess.DEVNULL).returncode:
+        stop(f"The Windows build failed: {REPO_URL}/actions/runs/{run_id}. The tag is pushed but nothing is released.")
+    with tempfile.TemporaryDirectory() as folder:
+        if subprocess.run(["gh", "run", "download", run_id, "--name", "Budget-setup", "--dir", folder], cwd=ROOT).returncode:
+            stop("Couldn't download the Windows installer. The tag is pushed but nothing is released.")
+        shutil.copy(Path(folder) / "Budget-setup.exe", FILES["windows"])
+    print(f"  Downloaded {FILES['windows'].relative_to(ROOT)}. Try it on Windows: install it over the current")
+    print("  version, check that your data is still there and that Settings says Budget " + tag[1:] + ".")
+    subprocess.run(["open", "-R", str(FILES["windows"])])
+    if not confirm("Does it work, and should it be released?"):
+        stop(f"Not released. The tag {tag} is pushed; run release.py again for a next version once it's fixed.")
+
+
 def build_and_try(version):
     step(f"Building Budget {version}")
     if subprocess.run([str(ROOT / "packaging" / "build.sh")], cwd=ROOT).returncode:
@@ -227,7 +280,7 @@ def build_and_try(version):
         stop("Not released.")
 
 
-def publish(version, notes):
+def publish(version, notes, systems):
     tag = f"v{version}"
     step(f"Committing, tagging and pushing {tag}")
     if git("status", "--porcelain", "--", "app/__init__.py"):  # unchanged for a first release at VERSION
@@ -235,11 +288,13 @@ def publish(version, notes):
     git("tag", "-a", tag, "-m", f"Budget {version}\n\n{notes}")
     git("push", "--quiet", REMOTE, BRANCH, tag)
     print(f"  Pushed {BRANCH} and {tag}.")
+    if "windows" in systems:
+        windows_installer(tag)
 
     step("Publishing the GitHub release")
-    dmg = ROOT / "dist" / "Budget.dmg"
-    if subprocess.run(["which", "gh"], capture_output=True).returncode == 0:
-        result = subprocess.run(["gh", "release", "create", tag, str(dmg), "--title", f"Budget {version}",
+    files = [str(FILES[system]) for system in systems]
+    if has_gh():
+        result = subprocess.run(["gh", "release", "create", tag, *files, "--title", f"Budget {version}",
                                  "--notes-file", str(NOTES_FILE), "--verify-tag"], cwd=ROOT)
         if result.returncode == 0:
             print(f"  Released: {REPO_URL}/releases/tag/{tag}")
@@ -247,7 +302,7 @@ def publish(version, notes):
         print("  gh couldn't publish it; do it on the website instead.")
     query = urllib.parse.urlencode({"tag": tag, "title": f"Budget {version}", "body": notes})
     subprocess.run(["open", f"{REPO_URL}/releases/new?{query}"])
-    subprocess.run(["open", "-R", str(dmg)])
+    subprocess.run(["open", "-R", str(FILES["mac"])])
     print("  The new-release page is open in your browser, with the tag, title and notes filled in.")
     print("  Drag Budget.dmg (shown in Finder) into it, keep the name Budget.dmg, and click Publish release.")
     print("  Leave \"Set as a pre-release\" off: the app's update check skips pre-releases.")
@@ -263,18 +318,20 @@ def main():
         return
     if git("tag", "--list", f"v{version}"):
         stop(f"The tag v{version} already exists.")
+    systems = choose_systems()
     notes = write_notes(version, commits if previous else ["First release"])
     original = current_version()
     set_version(version)
     try:
-        build_and_try(version)
+        if "mac" in systems:
+            build_and_try(version)
     except BaseException:
         set_version(original)  # stopped before anything was committed: leave no trace
         print(f"  VERSION is back to {original}.")
         raise
-    publish(version, notes)
+    publish(version, notes, systems)
     print(f"\nDone. Apps on an older version will show that Budget {version} is available within a day.")
-    if confirm("Also install this version in Applications?"):
+    if "mac" in systems and confirm("Also install this version in Applications?"):
         subprocess.run([str(ROOT / "packaging" / "install.sh")], cwd=ROOT)
 
 

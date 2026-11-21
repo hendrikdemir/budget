@@ -22,6 +22,24 @@ class UpdateCheck(AppTest):
         version = mock.patch.object(updates, "VERSION", "1.0.0")
         version.start()
         self.addCleanup(version.stop)
+        self.on("mac")
+
+    def on(self, platform):
+        patch = mock.patch.object(updates, "PLATFORM", platform)
+        patch.start()
+        self.addCleanup(patch.stop)
+        updates._cache.update(until=0, release=None)
+
+    @staticmethod
+    def release(tag, files=("Budget.dmg", "Budget-setup.exe")):
+        return {"tag_name": tag, "html_url": f"https://github.com/hendrikdemir/budget/releases/tag/{tag}",
+                "body": f"What's new in {tag}.",
+                "assets": [{"name": f, "browser_download_url": f"https://github.com/hendrikdemir/budget/releases/download/{tag}/{f}"}
+                           for f in files]}
+
+    def publish_list(self, *releases):
+        self.release_file.write_text(json.dumps(list(releases)))
+        updates._cache.update(until=0, release=None)
 
     def publish(self, tag, **extra):
         release = {"tag_name": tag, "html_url": f"https://github.com/hendrikdemir/budget/releases/tag/{tag}",
@@ -91,6 +109,45 @@ class UpdateCheck(AppTest):
         self.check()
         self.release_file.write_text(json.dumps({"tag_name": "v9.0.0"}))  # cache not reset
         self.assertEqual(self.check()["version"], "1.2.0")
+
+    def test_each_system_gets_its_own_download(self):
+        self.publish_list(self.release("v1.2.0"))
+        self.assertTrue(self.check()["download"].endswith("/v1.2.0/Budget.dmg"))
+        self.assertEqual(self.check()["platform"], "mac")
+        self.on("windows")
+        result = self.check()
+        self.assertTrue(result["download"].endswith("/v1.2.0/Budget-setup.exe"))
+        self.assertEqual(result["platform"], "windows")
+
+    def test_a_release_for_one_system_isnt_offered_to_the_other(self):
+        self.publish_list(self.release("v1.2.0", files=["Budget-setup.exe"]))  # a Windows-only fix
+        self.assertEqual(self.check(), {"available": False, "checked": True})  # Mac: "you have the latest version"
+        self.on("windows")
+        self.assertTrue(self.check()["available"])
+        self.publish_list(self.release("v1.2.0", files=["Budget.dmg"]))  # and the other way around
+        self.assertEqual(self.check(), {"available": False, "checked": True})
+        self.on("mac")
+        self.assertTrue(self.check()["available"])
+
+    def test_the_newest_release_for_this_system_counts(self):
+        # GitHub lists the newest first: 1.3.0 is Windows-only, so a Mac gets 1.2.0.
+        self.publish_list(self.release("v1.3.0", files=["Budget-setup.exe"]), self.release("v1.2.0"),
+                          self.release("v1.1.0", files=["Budget.dmg"]))
+        result = self.check()
+        self.assertEqual((result["version"], result["notes"]), ("1.2.0", "What's new in v1.2.0."))
+        self.on("windows")
+        self.assertEqual(self.check()["version"], "1.3.0")
+
+    def test_drafts_and_prereleases_in_the_list_are_skipped(self):
+        self.publish_list({**self.release("v2.0.0"), "draft": True}, {**self.release("v1.5.0"), "prerelease": True},
+                          self.release("v1.2.0"))
+        self.assertEqual(self.check()["version"], "1.2.0")
+
+    def test_a_similar_file_name_doesnt_count(self):
+        self.publish_list(self.release("v1.2.0", files=["Budget-1.2.0.dmg.sha256", "Budget-setup.exe.zip"]))
+        self.assertFalse(self.check()["available"])
+        self.on("windows")
+        self.assertFalse(self.check()["available"])
 
 
 class NewerData(AppTest):

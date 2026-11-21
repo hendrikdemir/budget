@@ -29,6 +29,8 @@ function openUpdate() {
   $("#update-notes").textContent = release.notes; // plain text, never HTML from the internet
   $("#update-notes-block").hidden = !release.notes;
   $("#update-download").href = release.download;
+  const platform = release.platform === "windows" ? "windows" : "mac";
+  document.querySelectorAll(".update-steps").forEach((steps) => (steps.hidden = steps.dataset.platform !== platform));
   $("#update-skip").hidden = release.skipped;
   $("#settings").open && $("#settings").close();
   $("#update-dialog").showModal();

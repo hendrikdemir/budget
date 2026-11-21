@@ -4,6 +4,7 @@ name: Windows build
 on:
   push:
     branches: [windows-support]
+    tags: ["v*"]  # a release: packaging/release.py downloads the installer from this run
   workflow_dispatch:
 
 jobs:

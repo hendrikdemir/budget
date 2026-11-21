@@ -1,28 +1,37 @@
 """Checking GitHub for a newer release of Budget, so the page can say an update is available.
 
 Budget doesn't install updates itself: the page shows what's new and how to install it by hand.
-The check asks GitHub's public API for the latest release (an anonymous request, nothing about
+The check asks GitHub's public API for the recent releases (an anonymous request, nothing about
 the user is sent), at most once a day, and only when "Check for updates" is on. Without internet,
 or when GitHub doesn't answer, there's simply no update to show.
 
+Mac and Windows share one version number, but a release can be for one of them only: it's for a
+system when it has that system's file (Budget.dmg, Budget-setup.exe). Each app looks for the newest
+release with its own file, so a Windows-only fix never tells Mac users to update, and the next
+release for both brings them everything.
+
 For testing, BUDGET_RELEASES_URL points the check elsewhere, e.g. at a file:// with a made-up
-release, e.g. packaging/test-release.json.
+release, e.g. packaging/test-release.json (one release, or a list like GitHub's).
 """
 import json
 import os
 import re
 import ssl
+import sys
 import time
 import urllib.request
 from pathlib import Path
 
 from . import VERSION
 
-RELEASES_URL = "https://api.github.com/repos/hendrikdemir/budget/releases/latest"
+RELEASES_URL = "https://api.github.com/repos/hendrikdemir/budget/releases?per_page=30"
 RELEASES_PAGE = "https://github.com/hendrikdemir/budget/releases"
 CHECK_EVERY = 24 * 60 * 60  # seconds
 RETRY_AFTER_FAILURE = 60 * 60
 MAX_NOTES = 4000  # characters of release notes to show
+
+PLATFORM = "windows" if sys.platform == "win32" else "mac"
+DOWNLOADS = {"mac": "Budget.dmg", "windows": "Budget-setup.exe"}  # a release's file for each system
 
 _cache = {"until": 0, "release": None}
 
@@ -48,8 +57,19 @@ def ssl_context():
         return ssl.create_default_context()
 
 
+def _for_this_system(data):
+    """A published release as (version, data, download link), if it's for this system; else None."""
+    if not isinstance(data, dict) or data.get("draft") or data.get("prerelease"):
+        return None
+    version = parse_version(data.get("tag_name"))
+    assets = [a for a in data.get("assets") or [] if isinstance(a, dict)]
+    download = next((a.get("browser_download_url") for a in assets if a.get("name") == DOWNLOADS[PLATFORM]), None)
+    return (version, data, download) if version and download else None
+
+
 def fetch_release():
-    """The latest release as {version, notes, page, download}, or None if it can't be read."""
+    """The newest release for this system as {version, notes, page, download, platform};
+    {"version": None} when GitHub answered but has none for this system; None if it can't be read."""
     url = os.environ.get("BUDGET_RELEASES_URL") or RELEASES_URL
     if "://" not in url:  # a file path, for testing
         url = Path(url).resolve().as_uri()
@@ -59,22 +79,24 @@ def fetch_release():
     })
     try:
         with urllib.request.urlopen(request, timeout=5, context=ssl_context()) as response:
-            data = json.loads(response.read(1_000_000))
+            data = json.loads(response.read(2_000_000))
     except (OSError, ValueError):
         return None
-    if not isinstance(data, dict) or data.get("draft") or data.get("prerelease"):
+    if isinstance(data, dict):
+        data = [data]
+    if not isinstance(data, list):
         return None
-    version = parse_version(data.get("tag_name"))
-    if not version:
-        return None
-    page = _github_link(data.get("html_url"), RELEASES_PAGE)
-    assets = [a for a in data.get("assets") or [] if isinstance(a, dict)]
-    dmg = next((a.get("browser_download_url") for a in assets if str(a.get("name", "")).endswith(".dmg")), None)
+    candidates = [r for r in map(_for_this_system, data) if r]
+    if not candidates:
+        return {"version": None}
+    version, newest, download = max(candidates, key=lambda r: r[0])
+    page = _github_link(newest.get("html_url"), RELEASES_PAGE)
     return {
         "version": ".".join(map(str, version)),
-        "notes": str(data.get("body") or "").strip()[:MAX_NOTES],
+        "notes": str(newest.get("body") or "").strip()[:MAX_NOTES],
         "page": page,
-        "download": _github_link(dmg, page),
+        "download": _github_link(download, page),
+        "platform": PLATFORM,
     }
 
 
@@ -96,6 +118,6 @@ def check(enabled, skipped=""):
     release = latest_release()
     if not release:
         return {"available": False, "checked": False}
-    if parse_version(release["version"]) <= parse_version(VERSION):
+    if not release["version"] or parse_version(release["version"]) <= parse_version(VERSION):
         return {"available": False, "checked": True}
     return {"available": True, "current": VERSION, "skipped": release["version"] == skipped, **release}
