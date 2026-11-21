@@ -3,7 +3,12 @@ $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
 if (-not (Test-Path .venv-build)) { python -m venv .venv-build }
-.venv-build\Scripts\pip install --quiet pyinstaller pywebview certifi
+# PyInstaller's ready-made bootloader is shared with lots of malware, so antivirus often flags it.
+# Compiling our own (from the source package, which needs the C compiler from Visual Studio)
+# avoids most of those false alarms.
+$env:PYINSTALLER_COMPILE_BOOTLOADER = "1"
+.venv-build\Scripts\pip install --quiet --force-reinstall --no-cache-dir --no-binary pyinstaller pyinstaller
+.venv-build\Scripts\pip install --quiet pywebview certifi
 .venv-build\Scripts\pyinstaller --noconfirm --clean --distpath dist --workpath build packaging\Budget-windows.spec
 
 if (Test-Path dist\Budget-windows.zip) { Remove-Item dist\Budget-windows.zip }
