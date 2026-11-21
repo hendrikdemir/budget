@@ -10,6 +10,7 @@ $env:PYINSTALLER_COMPILE_BOOTLOADER = "1"
 .venv-build\Scripts\pip install --quiet --force-reinstall --no-cache-dir --no-binary pyinstaller pyinstaller
 .venv-build\Scripts\pip install --quiet pywebview certifi
 .venv-build\Scripts\pyinstaller --noconfirm --clean --distpath dist --workpath build packaging\Budget-windows.spec
+Copy-Item packaging\Budget.exe.config dist\Budget\Budget.exe.config
 
 if (Test-Path dist\Budget-windows.zip) { Remove-Item dist\Budget-windows.zip }
 Compress-Archive -Path dist\Budget -DestinationPath dist\Budget-windows.zip
