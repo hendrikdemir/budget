@@ -1,0 +1,13 @@
+# Temporary: scans static/js with Microsoft Defender to find what it flags. Not for merging.
+name: Defender scan
+on:
+  push:
+    branches: [defender-scan]
+jobs:
+  scan:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan
+        shell: pwsh
+        run: packaging\defender-scan.ps1
