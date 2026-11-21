@@ -9,6 +9,9 @@ YEAR = TODAY.year
 MONTHS = [f"{YEAR}-{m:02d}" for m in range(1, TODAY.month + 1)]
 THIS_MONTH, FIRST = MONTHS[-1], MONTHS[0]
 NEXT_MONTH = f"{YEAR + TODAY.month // 12}-{TODAY.month % 12 + 1:02d}"
+# The streaming service raises its price four months ago (from July in November), so its €18
+# budget goes over from then on: History shows a budget that no longer fits, as happens in real life.
+PRICE_RISE = MONTHS[max(1, len(MONTHS) - 5)] if len(MONTHS) > 1 else None
 
 # Budgets in euros: {category: {item: amount}}, or {category: amount} without items.
 BUDGETS = {
@@ -52,7 +55,7 @@ def seed():
             add(f"{month}-02", "Pulse Fitness", 3500, "Gym")
             add(f"{month}-03", "Bright Energy", random.randint(9500, 11800), "Energy")
             add(f"{month}-05", "FiberNet", 4500, "Internet")
-            add(f"{month}-06", "Streamly", 1800, "Streaming")
+            add(f"{month}-06", "Streamly", 2299 if PRICE_RISE and month >= PRICE_RISE else 1800, "Streaming")
             add(f"{month}-08", "Mobile Co", 2500, "Phone")
             add(f"{month}-25", "Northwind Ltd", 285000, note="Salary", kind="income")
             add(f"{month}-26", "", 85000, note="Monthly savings", kind="save")
