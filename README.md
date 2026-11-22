@@ -8,6 +8,8 @@
 
 Plan every euro, see what's left at a glance, and know whether your savings will hold up in the year ahead.
 
+Starts simple, even if you've never kept a budget, and grows with you. In English or Dutch.
+
 No account. No subscription. No cloud. Your data stays on your computer.
 
 </div>
@@ -23,6 +25,17 @@ No account. No subscription. No cloud. Your data stays on your computer.
 
 ## What it does
 
+### Starts simple, grows with you
+
+A new Budget shows just the basics: your budgets, what you spend, and History. When something more becomes useful, Budget offers it, one thing at a time, and **Not now** puts it away:
+
+- **Keep your bank balance** once you've used Budget for a couple of weeks or added income, so it can tell you when a transaction is missing.
+- **The Outlook and "Ready for next month?"** once you've kept Budget for a month.
+- **Carry leftovers over** when a budget had money left two months in a row.
+- **Track your savings** once you move money to or from them.
+
+Or choose **Extended** mode in Settings to show every feature at once. Small **?** buttons explain words like carry-over, safety buffer and free to spend in plain language.
+
 ### See your month at a glance
 
 Your spending, what's left in each budget, and anything spent outside your budgets, all on one page. Budgets go red only when you've overspent, so the page stays calm until something needs your attention.
@@ -31,15 +44,19 @@ Your spending, what's left in each budget, and anything spent outside your budge
 
 <img src="docs/screenshots/review.png" width="560" alt="A finished month in review: the result, income, spending and what happened to the leftovers">
 
-**Ready for next month?** In the last week of the month, Budget compares your bank balance, plus the income you still expect this month, with what next month needs and tells you exactly how much is short or spare. Once your income is in, one click moves the difference to or from your savings.
+**Ready for next month?** (Extended mode) In the last week of the month, Budget compares your bank balance, plus the income you still expect this month, with what next month needs and tells you exactly how much is short or spare. Once your income is in, one click moves the difference to or from your savings.
 
 ### Budgets that fit real life
 
 <img src="docs/screenshots/budgets.png" alt="The budget list with categories, items and remaining amounts">
 
+**Start from your income.** Enter what comes in each month and **Edit budgets** shows whether your budgets fit: what's left to save or plan, or how much you'd spend more than you earn. A new Budget suggests a few common budgets to start from: fill in an amount for the ones you need.
+
+<img src="docs/screenshots/starter.png" width="560" alt="Edit budgets: the income compared with the budgets, and suggested budgets with some amounts filled in">
+
 - **Categories and items**, such as Home › Rent, Energy and Internet, or a single budget like Fun money.
 - **Budgets that change over time.** Raise the rent from next month and earlier months stay exactly as they were.
-- **Carry leftovers over** to next month, by default or case by case, and see how much came along.
+- **Carry leftovers over** to next month, by default or case by case, and see how much came along (Extended mode).
 - **Split a budget into items later.** Turn Groceries into Food and Household from this month on; the months before keep the single budget they had.
 
 ### Add a transaction and see the effect first
@@ -103,15 +120,15 @@ The History page shows a year at a glance: what came in, what went out and what 
 
 <img src="docs/screenshots/outlook.png" alt="The Outlook: projected savings for the next twelve months">
 
-Add your expected income and planned costs, like a holiday or a new laptop, once, monthly, or every few months (like tuition paid every other month), and Budget projects your savings for the next 12 months. If your bank account won't cover next month's budget, it tells you how much to take from your savings. It keeps a safety buffer in your savings and shows how much you can **freely spend** without dipping below it in any month ahead. The chart marks the lowest point ahead, so you can see where that amount comes from, and small bars show what each month adds or takes. You choose the buffer: a number of months of budget, or a fixed amount.
+In Extended mode, add your expected income and planned costs, like a holiday or a new laptop, once, monthly, or every few months (like tuition paid every other month), and Budget projects your savings for the next 12 months. If your bank account won't cover next month's budget, it tells you how much to take from your savings. It keeps a safety buffer in your savings and shows how much you can **freely spend** without dipping below it in any month ahead. The chart marks the lowest point ahead, so you can see where that amount comes from, and small bars show what each month adds or takes. You choose the buffer: a number of months of budget, or a fixed amount.
 
 <img src="docs/screenshots/buffer.png" width="420" alt="Choosing the savings buffer: months of budget or a fixed amount">
 
 ### Make it yours
 
-<img src="docs/screenshots/appearance.png" width="420" alt="Settings with theme, currency, how numbers are written, backups and updates">
+<img src="docs/screenshots/appearance.png" width="420" alt="Settings with language, mode, theme, currency, how numbers are written, backups and updates">
 
-Follow your computer's light or dark mode, or choose one yourself, and pick your currency from every currency in the world. Numbers are written the way your computer writes them, or the way you choose: 1.234,56 or 1,234.56. Amounts you type, and the examples in messages, follow the same choice.
+Budget speaks English and Dutch: it follows your computer's language, or the one you choose. Choose **Simple** or **Extended** mode. Follow your computer's light or dark mode, or choose one yourself, and pick your currency from every currency in the world. Numbers are written the way your computer writes them, or the way you choose: 1.234,56 or 1,234.56. Amounts you type, and the examples in messages, follow the same choice.
 
 ### Backups and moving to a new computer
 
@@ -165,9 +182,9 @@ Budget runs on 64-bit Windows 10 and 11.
 
 ### Getting started
 
-<img src="docs/screenshots/guide.png" alt="The getting-started guide: balances done, then budgets, a first transaction and expected income">
+<img src="docs/screenshots/guide.png" alt="The getting-started guide: set up your budgets, then add what you spend">
 
-A new Budget is empty. The Overview shows four steps to make it yours, in any order: enter your bank and savings balances, set up your budgets, add what you spend (by hand or from your bank), and add the income you expect. Each step is ticked off by itself, and the guide goes away when all four are done. **Hide** puts it away sooner.
+A new Budget is empty and in Simple mode. The Overview shows two steps: set up your budgets, starting from your income (Budget suggests common ones), and add what you spend, by hand or from your bank. Each step is ticked off by itself, and the guide goes away when both are done. **Hide** puts it away sooner. Your bank balance and the rest are offered once they're useful. In Extended mode, entering your bank balance is a step too.
 
 ## Your data
 
@@ -242,6 +259,12 @@ python3 packaging/release.py
 
 It checks that everything is committed and the tests pass, suggests a patch, minor or major version from what changed since the last release, and drafts release notes for you to edit. It asks which systems the release is for: both, or only the Mac or Windows for a fix that only matters there (apps only hear about releases with a file for their own system). It then builds `Budget.dmg` for you to try, tags and pushes the release, waits for GitHub's Windows build of the tag and downloads `Budget-setup.exe` for you to try, and publishes the release on GitHub with the [`gh`](https://cli.github.com) tool. Add `--dry-run` to only see the suggested version. Write `BREAKING` in a commit message to make the next release a major one. Apps on an older version show the new one within a day.
 
+Texts are in `static/lang/<code>.json` under named keys, in [i18next](https://www.i18next.com)'s JSON format; `en.json` is the source. To add a language, add its file and list it in `static/js/i18n.js` and `app/i18n.py`. The tests check that every language has every text:
+
+```bash
+python3 -m tests.test_i18n nl  # what Dutch is still missing
+```
+
 Update the screenshots, using made-up data:
 
 ```bash
@@ -253,7 +276,7 @@ Update the screenshots, using made-up data:
 | `desktop.py` | The desktop app (Mac and Windows): starts the server and opens the window |
 | `server.py` | Starts the server for development |
 | `app/` | Server side: database, budgets, balances, outlook, bank imports, backups and API |
-| `static/` | The page: HTML, CSS and JavaScript modules |
+| `static/` | The page: HTML, CSS, JavaScript modules and the language files (`lang/`) |
 | `packaging/` | App builds (Mac and Windows installer), icon, release script and screenshots |
 | `tests/` | Tests for the calculations, bank imports and the server |
 

@@ -128,7 +128,7 @@ Windows build on GitHub runs the tests and installs and uninstalls the installer
 builds in a Windows VM. Paths, file names and text files must work on both (read and write as UTF-8).
 
 Run the tests with `python3 -m unittest` (standard library only, about 2 seconds). They live in
-`tests/` and cover budgets, the outlook, bank imports and the server's protection, with made-up
+`tests/` and cover budgets, the outlook, bank imports, the server's protection and the language files, with made-up
 data and a fixed "today" (`tests/base.py`). Add a test when changing a calculation or adding a
 bank reader. The tests don't cover the page itself: after a change, also run the app and check the affected screens
 in the browser (light and dark, desktop and mobile width). Test the built app too when

@@ -136,7 +136,7 @@ def capture(url):
         page.context.close()
 
         # Settings.
-        page = page_for("light", height=880)
+        page = page_for("light", height=1020)
         page.click("#settings-btn")
         page.wait_for_timeout(300)
         page.evaluate("document.activeElement.blur()")
@@ -259,15 +259,25 @@ NEWER = {"tag_name": "v9.9.0", "body": "- See how this month compares with the s
 
 
 def capture_guide(url):
-    """The getting-started guide, as a new user sees it after the first step."""
+    """A new user's start, in Simple mode: the getting-started guide, and Edit budgets with the
+    income entered and a few of the suggested budgets filled in."""
     with sync_playwright() as p:
         browser = p.webkit.launch()
-        page = browser.new_context(viewport={"width": 1000, "height": 800}, device_scale_factor=2,
+        page = browser.new_context(viewport={"width": 1000, "height": 1100}, device_scale_factor=2,
                                    color_scheme="light", locale="en-GB").new_page()
         page.goto(url)
         page.wait_for_selector("#guide:not([hidden]) .guide-step")
         page.wait_for_timeout(600)
         page.locator("#guide").screenshot(path=OUT / "guide.png")
+        page.click("#manage-btn")
+        page.wait_for_selector("#starter:not([hidden]) .starter-row")
+        amounts = page.locator("#starter .starter-row .amount")
+        for i, amount in ((0, "950"), (1, "140"), (3, "45"), (4, "380"), (6, "150")):
+            amounts.nth(i).fill(amount)
+        page.evaluate("document.activeElement.blur()")
+        page.wait_for_timeout(700)  # the income comparison follows the amounts
+        page.mouse.move(0, 0)
+        page.locator("#manager").screenshot(path=OUT / "starter.png")
         browser.close()
 
 
@@ -324,13 +334,12 @@ def main():
         threading.Thread(target=server.serve_forever, daemon=True).start()
         capture(f"http://127.0.0.1:{server.server_address[1]}/")
         server.shutdown()
-    # A new user's first steps: nothing but the balances yet.
+    # A new user's first steps: nothing but the income yet.
     with tempfile.TemporaryDirectory() as folder:
         db.use_data_dir(Path(folder))
         db.migrate()
         with db.session() as conn:
-            for account, amount in (("bank", 250000), ("savings", 1160000)):
-                api.set_balance_start(conn, None, {"account": account, "amount": amount, "date": date.today().isoformat()}, None)
+            api.set_income(conn, None, {"month": date.today().isoformat()[:7], "amount": 285000, "name": "Income"}, None)
         server = make_server(0)
         threading.Thread(target=server.serve_forever, daemon=True).start()
         capture_guide(f"http://127.0.0.1:{server.server_address[1]}/")
