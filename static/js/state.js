@@ -2,7 +2,7 @@
 const now = new Date();
 
 export const state = {
-  settings: { theme: "system", currency: "EUR", number_format: "system" },
+  settings: { theme: "system", currency: "EUR", number_format: "system", mode: "simple" },
   month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`, // the month being viewed
   // Everything about the viewed month, from GET /api/month: categories, transactions,
   // groups (budget lines per category), totals, leftover and outlook.
@@ -21,3 +21,5 @@ export const splitKey = (s) => (s.item_id ? `i${s.item_id}` : `c${s.category_id}
 // The part of a transaction not on any budget line.
 export const uncategorized = (t) => t.amount - t.splits.reduce((sum, s) => sum + s.amount, 0);
 export const isTransfer = (t) => t.kind === "save" || t.kind === "withdraw";
+// Simple mode (Settings › Mode): only the basics are shown. Extended mode shows every feature.
+export const isSimple = () => state.settings.mode !== "full";

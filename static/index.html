@@ -9,46 +9,46 @@
 <body>
   <header class="topbar">
     <h1>Budget</h1>
-    <nav class="tabs" aria-label="Pages">
-      <a href="#" data-view="overview">Overview</a>
-      <a href="#history" data-view="history">History</a>
-      <a href="#outlook" data-view="outlook">Outlook</a>
+    <nav class="tabs" data-i18n-aria-label="app.pages">
+      <a href="#" data-view="overview" data-i18n="app.overview"></a>
+      <a href="#history" data-view="history" data-i18n="app.history"></a>
+      <a href="#outlook" data-view="outlook" class="full-only" data-i18n="app.outlook"></a>
     </nav>
     <div class="actions">
-      <button id="settings-btn" class="icon-btn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button id="settings-btn" class="icon-btn" data-i18n-aria-label="common.settings" data-i18n-title="common.settings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </header>
 
   <div class="update-banner-wrap">
     <div id="update-banner" class="card update-banner" role="status" hidden>
-      <span><strong id="update-banner-text"></strong> <span class="muted">Your data stays as it is.</span></span>
+      <span><strong id="update-banner-text"></strong> <span class="muted" data-i18n="updates.yourDataStaysAsIt"></span></span>
       <span class="spacer"></span>
-      <button type="button" id="update-how" class="primary-btn">How to update</button>
-      <button type="button" id="update-later" class="icon-btn" aria-label="Hide until Budget restarts" title="Hide until Budget restarts">×</button>
+      <button type="button" id="update-how" class="primary-btn" data-i18n="updates.howToUpdate"></button>
+      <button type="button" id="update-later" class="icon-btn" data-i18n-aria-label="updates.hideUntilBudgetRestarts" data-i18n-title="updates.hideUntilBudgetRestarts">×</button>
     </div>
   </div>
 
   <main id="overview-view">
     <nav class="toolbar">
       <div class="month-switch">
-        <button id="prev-month" class="pop-nav" aria-label="Previous month">‹</button>
+        <button id="prev-month" class="pop-nav" data-i18n-aria-label="common.previousMonth">‹</button>
         <button id="month-btn" class="month-btn"></button>
-        <button id="next-month" class="pop-nav" aria-label="Next month">›</button>
+        <button id="next-month" class="pop-nav" data-i18n-aria-label="common.nextMonth">›</button>
       </div>
-      <button id="today-btn" class="ghost-btn" hidden>This month</button>
+      <button id="today-btn" class="ghost-btn" hidden data-i18n="overview.thisMonth"></button>
       <span class="spacer"></span>
-      <button id="income-btn" class="ghost-btn">+ Income</button>
-      <button id="add-btn" class="primary-btn">+ Expense</button>
+      <button id="income-btn" class="ghost-btn" data-i18n="overview.addIncome"></button>
+      <button id="add-btn" class="primary-btn" data-i18n="overview.addExpense"></button>
     </nav>
 
     <section class="card guide" id="guide" hidden>
       <div class="section-head">
-        <h3>Getting started</h3>
+        <h3 data-i18n="overview.gettingStarted"></h3>
         <span id="guide-progress" class="muted"></span>
         <span class="spacer"></span>
-        <button type="button" id="guide-hide" class="link-btn">Hide</button>
+        <button type="button" id="guide-hide" class="link-btn" data-i18n="overview.hide"></button>
       </div>
-      <p class="muted guide-intro">Four steps to make Budget yours, in any order. Each one is ticked off by itself.</p>
+      <p class="muted guide-intro" data-i18n="overview.guideIntro"></p>
       <ol id="guide-steps" class="guide-steps"></ol>
     </section>
 
@@ -64,6 +64,8 @@
       <div id="total-review" class="total-review" hidden></div>
     </section>
 
+    <section class="card offer" id="offer" hidden></section>
+
     <section class="card result-card">
       <div class="section-head"><h3 id="result-title"></h3></div>
       <div id="result-rows" class="result-rows"></div>
@@ -71,75 +73,76 @@
 
     <section class="card accounts">
       <button class="account-row" data-account="bank">
-        <span class="label">Bank account</span>
+        <span class="label" data-i18n="common.bankAccount"></span>
         <span class="balance-amount"></span>
         <span class="balance-status muted"></span>
-        <span class="balance-action">Check ›</span>
+        <span class="balance-action" data-i18n="common.check"></span>
       </button>
       <button class="account-row" data-account="savings">
-        <span class="label">Savings</span>
+        <span class="label" data-i18n="common.savings"></span>
         <span class="balance-amount"></span>
         <span class="balance-status muted"></span>
-        <span class="balance-action">Check ›</span>
+        <span class="balance-action" data-i18n="common.check"></span>
       </button>
     </section>
 
     <section class="card">
       <div class="section-head">
-        <h3>Budgets</h3>
+        <h3 data-i18n="common.budgets"></h3>
+        <button type="button" class="help-tip" data-help="budgets">?</button>
         <span id="carried-total" class="carried-total" hidden></span>
         <span class="spacer"></span>
-        <button id="expand-all" class="link-btn" hidden>Expand all</button>
-        <button id="manage-btn" class="link-btn">Edit</button>
+        <button id="expand-all" class="link-btn" hidden data-i18n="overview.expandAll"></button>
+        <button id="manage-btn" class="link-btn" data-i18n="overview.edit"></button>
       </div>
       <div id="budgets" class="budget-list"></div>
     </section>
 
     <section class="card">
       <div class="section-head">
-        <h3>Transactions</h3>
+        <h3 data-i18n="overview.transactions"></h3>
         <span id="filter" class="filter-chip" hidden></span>
         <span class="spacer"></span>
         <span id="count" class="muted"></span>
-        <button id="bank-import-btn" class="link-btn" title="Add transactions from a file your bank exported">Import</button>
-        <button id="csv-btn" class="link-btn" title="Download transactions as a CSV file for a spreadsheet">Export</button>
-        <button id="select-btn" class="link-btn">Select</button>
+        <button id="bank-import-btn" class="link-btn" data-i18n-title="overview.addTransactionsFromAFile" data-i18n="common.import"></button>
+        <button id="csv-btn" class="link-btn" data-i18n-title="overview.downloadTransactionsAsACsv" data-i18n="overview.export"></button>
+        <button id="select-btn" class="link-btn" data-i18n="overview.select"></button>
         <input type="file" id="bank-file" accept=".csv,text/csv" hidden>
       </div>
       <div class="tx-filters">
         <label class="search">
           <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <input id="search" type="search" placeholder="Search transactions" aria-label="Search transactions" autocomplete="off">
+          <input id="search" type="search" data-i18n-placeholder="overview.searchTransactions" data-i18n-aria-label="overview.searchTransactions" autocomplete="off">
         </label>
-        <div class="segmented small" id="type-filter" aria-label="Type">
-          <button type="button" data-type="all" class="active">All</button>
-          <button type="button" data-type="expense">Expenses</button>
-          <button type="button" data-type="income">Income</button>
-          <button type="button" data-type="transfer">Savings</button>
+        <div class="segmented small" id="type-filter" data-i18n-aria-label="overview.type">
+          <button type="button" data-type="all" class="active" data-i18n="overview.all"></button>
+          <button type="button" data-type="expense" data-i18n="overview.expenses"></button>
+          <button type="button" data-type="income" data-i18n="common.income"></button>
+          <button type="button" data-type="transfer" data-i18n="common.savings"></button>
         </div>
-        <label class="all-months" title="Search in every month, not only the one you're viewing">
-          <input type="checkbox" id="all-months"> Search all months
+        <label class="all-months" data-i18n-title="overview.searchInEveryMonthNot">
+          <input type="checkbox" id="all-months"> <span data-i18n="overview.searchAllMonths"></span>
         </label>
       </div>
       <div id="selection-bar" class="selection-bar" hidden>
         <span id="selection-count"></span>
         <span class="spacer"></span>
-        <button id="select-all" class="link-btn">Select all</button>
-        <button id="select-cancel" class="ghost-btn">Cancel</button>
-        <a id="select-export" class="ghost-btn" download>Export</a>
-        <button id="select-delete" class="danger-btn" disabled>Delete</button>
+        <button id="select-all" class="link-btn" data-i18n="overview.selectAll"></button>
+        <button id="select-cancel" class="ghost-btn" data-i18n="common.cancel"></button>
+        <a id="select-export" class="ghost-btn" download data-i18n="overview.export"></a>
+        <button id="select-delete" class="danger-btn" disabled data-i18n="common.delete"></button>
       </div>
       <ul id="expenses" class="day-list"></ul>
-      <p id="empty" class="muted empty" hidden>No spending recorded this month.</p>
+      <p id="empty" class="muted empty" hidden data-i18n="overview.noSpendingRecordedThisMonth"></p>
     </section>
   </main>
 
   <main id="history-view" hidden>
     <nav class="toolbar">
       <div class="month-switch">
-        <button id="history-prev" class="pop-nav" aria-label="Previous year">‹</button>
+        <button id="history-prev" class="pop-nav" data-i18n-aria-label="common.previousYear">‹</button>
         <b id="history-year" class="month-btn year-label"></b>
-        <button id="history-next" class="pop-nav" aria-label="Next year">›</button>
+        <button id="history-next" class="pop-nav" data-i18n-aria-label="common.nextYear">›</button>
       </div>
     </nav>
     <p id="history-note" class="muted history-note"></p>
@@ -147,23 +150,23 @@
     <section class="card history-summary" id="history-summary"></section>
     <section class="card" id="history-chart-card">
       <div class="section-head">
-        <h3>Balances</h3>
+        <h3 data-i18n="history.balances"></h3>
         <span class="spacer"></span>
         <span class="legend">
-          <span><i class="swatch-line"></i>Savings</span>
-          <span><i class="swatch-line bank"></i>Bank account</span>
-          <span><i class="swatch-bar"></i>Result per month</span>
+          <span><i class="swatch-line"></i><span data-i18n="history.savings"></span></span>
+          <span><i class="swatch-line bank"></i><span data-i18n="common.bankAccount"></span></span>
+          <span><i class="swatch-bar"></i><span data-i18n="common.resultPerMonth"></span></span>
         </span>
       </div>
       <div id="history-chart" class="hist-plot"></div>
-      <p id="history-chart-empty" class="muted" hidden>Set a starting point for your bank account or savings on the overview to see their balances here.</p>
+      <p id="history-chart-empty" class="muted" hidden data-i18n="history.chartNeedsStartingBalance"></p>
     </section>
     <section class="card" id="history-budgets-card">
-      <div class="section-head"><h3>Budgets</h3></div>
+      <div class="section-head"><h3 data-i18n="common.budgets"></h3></div>
       <div class="table-wrap"><table id="history-budgets" class="outlook-table budget-history"></table></div>
     </section>
     <section class="card" id="history-table-card">
-      <div class="section-head"><h3>Month by month</h3></div>
+      <div class="section-head"><h3 data-i18n="common.monthByMonth"></h3></div>
       <div class="table-wrap"><table id="history-table" class="outlook-table"></table></div>
     </section>
   </main>
@@ -173,39 +176,40 @@
 
     <section class="card" id="outlook-chart-card">
       <div class="section-head">
-        <h3>Savings outlook</h3>
+        <h3 data-i18n="outlook.savingsOutlook"></h3>
+        <button type="button" class="help-tip" data-help="outlook">?</button>
         <span class="spacer"></span>
         <span class="legend">
-          <span><i class="swatch-line good"></i>Above <i class="swatch-line bad"></i>below buffer</span>
+          <span><i class="swatch-line good"></i><span data-i18n="outlook.legendAbove"></span> <i class="swatch-line bad"></i><span data-i18n="outlook.legendBelowBuffer"></span></span>
           <span><i class="swatch-line dashed"></i><span id="buffer-label"></span></span>
-          <span><i class="swatch-bar"></i>Result per month</span>
+          <span><i class="swatch-bar"></i><span data-i18n="common.resultPerMonth"></span></span>
         </span>
-        <button id="buffer-edit" class="link-btn">Change buffer</button>
+        <button id="buffer-edit" class="link-btn" data-i18n="outlook.changeSafetyBuffer"></button>
       </div>
       <div id="outlook-chart" class="hist-plot"></div>
     </section>
 
     <section class="card">
-      <div class="section-head"><h3>Month by month</h3></div>
+      <div class="section-head"><h3 data-i18n="common.monthByMonth"></h3></div>
       <div class="table-wrap"><table id="outlook-table" class="outlook-table"></table></div>
     </section>
 
     <section class="card">
       <div class="section-head">
-        <h3>Expected income</h3>
+        <h3 data-i18n="outlook.expectedIncome"></h3>
         <span class="spacer"></span>
-        <button class="link-btn" data-add-plan="income">+ Add income</button>
+        <button class="link-btn" data-add-plan="income" data-i18n="outlook.addIncome"></button>
       </div>
       <ul id="plans-income" class="plan-list"></ul>
     </section>
 
     <section class="card">
       <div class="section-head">
-        <h3>Planned expenses</h3>
+        <h3 data-i18n="outlook.plannedExpenses"></h3>
         <span class="spacer"></span>
-        <button class="link-btn" data-add-plan="expense">+ Add expense</button>
+        <button class="link-btn" data-add-plan="expense" data-i18n="outlook.addExpense"></button>
       </div>
-      <p class="muted hint plan-hint">Extra costs on top of your budgets, like tuition fees.</p>
+      <p class="muted hint plan-hint" data-i18n="outlook.extraCostsOnTopOf"></p>
       <ul id="plans-expense" class="plan-list"></ul>
     </section>
   </main>
@@ -213,29 +217,29 @@
   <dialog id="buffer-dialog">
     <form id="buffer-form" novalidate>
       <div class="dialog-head">
-        <h2>Savings buffer</h2>
-        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+        <h2 data-i18n="outlook.safetyBufferTitle"></h2>
+        <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
       </div>
-      <p class="muted hint">How much should always stay in your savings? Anything above this counts as free to spend.</p>
+      <p class="muted hint" data-i18n="outlook.howMuchShouldAlwaysStay"></p>
       <div class="segmented kind-switch" id="buffer-mode">
-        <button type="button" data-mode="months">Months of budget</button>
-        <button type="button" data-mode="amount">Fixed amount</button>
+        <button type="button" data-mode="months" data-i18n="outlook.bufferModeMonths"></button>
+        <button type="button" data-mode="amount" data-i18n="outlook.fixedAmount"></button>
       </div>
       <div class="fields">
         <label class="field wide" id="buffer-months-field">
-          <span class="label">Number of months <span class="req" aria-label="required">*</span></span>
+          <span class="label"><span data-i18n="outlook.numberOfMonths"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
           <input name="months" inputmode="decimal" placeholder="1">
           <span class="error" data-error="months"></span>
         </label>
         <label class="field wide" id="buffer-amount-field">
-          <span class="label">Amount <span class="req" aria-label="required">*</span></span>
+          <span class="label"><span data-i18n="common.amount"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
           <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
           <span class="error" data-error="amount"></span>
         </label>
       </div>
       <div class="dialog-foot">
-        <button type="button" class="ghost-btn" data-close>Cancel</button>
-        <button class="primary-btn">Save</button>
+        <button type="button" class="ghost-btn" data-close data-i18n="common.cancel"></button>
+        <button class="primary-btn" data-i18n="common.save"></button>
       </div>
     </form>
   </dialog>
@@ -243,60 +247,60 @@
   <dialog id="plan-dialog">
     <form id="plan-form" novalidate>
       <div class="dialog-head">
-        <h2 id="plan-title">Expected income</h2>
-        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+        <h2 id="plan-title" data-i18n="outlook.expectedIncome"></h2>
+        <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
       </div>
       <div class="fields">
         <label class="field wide">
-          <span class="label">Name <span class="req" aria-label="required">*</span></span>
-          <input name="name" placeholder="e.g. Salary">
+          <span class="label"><span data-i18n="common.name"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
+          <input name="name" data-i18n-placeholder="outlook.eGSalary">
           <span class="error" data-error="name"></span>
         </label>
         <label class="field">
-          <span class="label">Amount <span class="req" aria-label="required">*</span></span>
+          <span class="label"><span data-i18n="common.amount"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
           <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
           <span class="error" data-error="amount"></span>
         </label>
         <div class="field wide">
-          <span class="label">Repeats</span>
+          <span class="label" data-i18n="outlook.repeats"></span>
           <div class="segmented" id="repeat-options">
-            <button type="button" data-repeat="once">Once</button>
-            <button type="button" data-repeat="monthly">Monthly</button>
-            <button type="button" data-repeat="every">Custom</button>
+            <button type="button" data-repeat="once" data-i18n="outlook.once"></button>
+            <button type="button" data-repeat="monthly" data-i18n="outlook.monthly"></button>
+            <button type="button" data-repeat="every" data-i18n="outlook.custom"></button>
           </div>
         </div>
         <label class="field" id="plan-every-field" hidden>
-          <span class="label">How often <span class="req" aria-label="required">*</span></span>
-          <span class="every-input">Every <input name="every" inputmode="numeric" value="2" aria-label="Number of months"> months</span>
+          <span class="label"><span data-i18n="outlook.howOften"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
+          <span class="every-input"><span data-i18n="outlook.every"></span> <input name="every" inputmode="numeric" value="2" data-i18n-aria-label="outlook.numberOfMonths"> <span data-i18n="outlook.months"></span></span>
           <span class="error" data-error="every"></span>
         </label>
         <div class="field">
-          <span class="label" id="plan-start-label">From <span class="req" aria-label="required">*</span></span>
+          <span class="label" id="plan-start-label"><span data-i18n="outlook.fromLabel"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
           <button type="button" id="plan-start" class="input-like"></button>
         </div>
         <div class="field" id="plan-end-field">
-          <span class="label">Until <span class="optional">optional</span></span>
+          <span class="label"><span data-i18n="outlook.until"></span> <span class="optional" data-i18n="common.optional"></span></span>
           <button type="button" id="plan-end" class="input-like"></button>
-          <button type="button" id="plan-no-end" class="link-btn">No end</button>
+          <button type="button" id="plan-no-end" class="link-btn" data-i18n="outlook.noEnd"></button>
           <span class="error" data-error="end"></span>
         </div>
         <p class="field wide muted plan-when" id="plan-when" hidden></p>
         <div class="field wide" id="plan-changes-field" hidden>
-          <span class="label">Amount changes <span class="optional">optional</span></span>
+          <span class="label"><span data-i18n="outlook.amountChanges"></span> <span class="optional" data-i18n="common.optional"></span></span>
           <div id="plan-changes" class="history plan-changes"></div>
           <div class="change-row">
             <button type="button" id="change-month" class="input-like"></button>
-            <span class="money-input"><span class="currency"></span><input id="change-amount" inputmode="decimal" placeholder="New amount"></span>
-            <button type="button" id="change-add" class="ghost-btn">Add</button>
+            <span class="money-input"><span class="currency"></span><input id="change-amount" inputmode="decimal" data-i18n-placeholder="outlook.newAmount"></span>
+            <button type="button" id="change-add" class="ghost-btn" data-i18n="common.add"></button>
           </div>
           <span class="error" data-error="change"></span>
         </div>
       </div>
       <div class="dialog-foot">
-        <button type="button" id="plan-delete" class="ghost-btn danger-text" hidden>Delete</button>
+        <button type="button" id="plan-delete" class="ghost-btn danger-text" hidden data-i18n="common.delete"></button>
         <span class="spacer"></span>
-        <button type="button" class="ghost-btn" data-close>Cancel</button>
-        <button class="primary-btn">Save</button>
+        <button type="button" class="ghost-btn" data-close data-i18n="common.cancel"></button>
+        <button class="primary-btn" data-i18n="common.save"></button>
       </div>
     </form>
   </dialog>
@@ -304,164 +308,171 @@
   <dialog id="expense-dialog">
     <form id="add-form" novalidate>
       <div class="dialog-head">
-        <h2 id="expense-title">New expense</h2>
-        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+        <h2 id="expense-title" data-i18n="transaction.newExpense"></h2>
+        <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
       </div>
       <div class="segmented kind-switch" id="kind-options">
-        <button type="button" data-kind="expense">Expense</button>
-        <button type="button" data-kind="income">Income</button>
-        <button type="button" data-kind="transfer">Savings</button>
+        <button type="button" data-kind="expense" data-i18n="common.expense"></button>
+        <button type="button" data-kind="income" data-i18n="common.income"></button>
+        <button type="button" data-kind="transfer" data-i18n="common.savings"></button>
       </div>
       <div class="fields">
         <label class="field">
-          <span class="label">Amount <span class="req" aria-label="required">*</span></span>
+          <span class="label"><span data-i18n="common.amount"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
           <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
           <span class="error" data-error="amount"></span>
         </label>
         <div class="field">
-          <span class="label">Date <span class="req" aria-label="required">*</span></span>
+          <span class="label"><span data-i18n="transaction.date"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
           <button type="button" id="date-btn" class="input-like"></button>
           <input type="hidden" name="date">
         </div>
-        <div class="field wide paid-field">
-          <button type="button" id="paid-toggle" class="link-btn">Left your bank on a different day?</button>
+        <div class="field wide paid-field full-only">
+          <button type="button" id="paid-toggle" class="link-btn" data-i18n="transaction.leftYourBankOnA"></button>
           <div id="paid-row" class="paid-row" hidden>
-            <span class="label">Left your bank on</span>
+            <span class="label" data-i18n="transaction.leftYourBankOn"></span>
             <button type="button" id="paid-btn" class="input-like"></button>
             <input type="hidden" name="paid_date">
-            <button type="button" id="paid-clear" class="link-btn">Same day</button>
+            <button type="button" id="paid-clear" class="link-btn" data-i18n="transaction.sameDay"></button>
           </div>
         </div>
         <div class="field wide" id="transfer-field" hidden>
-          <span class="label">Direction</span>
+          <span class="label" data-i18n="transaction.direction"></span>
           <div class="segmented" id="direction-options">
-            <button type="button" data-direction="save">To savings</button>
-            <button type="button" data-direction="withdraw">From savings</button>
+            <button type="button" data-direction="save" data-i18n="common.toSavings"></button>
+            <button type="button" data-direction="withdraw" data-i18n="common.fromSavings"></button>
           </div>
           <div id="leftover-hint" class="leftover-hint"></div>
         </div>
         <label class="field wide" id="payee-field">
-          <span class="label"><span id="payee-label">Paid to</span> <span class="req" aria-label="required">*</span></span>
-          <input name="payee" placeholder="e.g. Supermarket">
+          <span class="label"><span id="payee-label" data-i18n="common.paidTo"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
+          <input name="payee" data-i18n-placeholder="transaction.eGSupermarket">
           <span class="error" data-error="payee"></span>
         </label>
         <div class="field wide" id="budget-field">
-          <span class="label"><span id="budget-label">Budget</span> <span class="optional">optional</span></span>
+          <span class="label"><span id="budget-label">Budget</span> <span class="optional" data-i18n="common.optional"></span></span>
           <div id="splits" class="single"></div>
           <div id="impact" class="impact"></div>
           <span class="error" data-error="splits"></span>
-          <button type="button" id="add-split" class="link-btn">+ Split across budgets</button>
+          <button type="button" id="add-split" class="link-btn" data-i18n="transaction.splitAcrossBudgets"></button>
         </div>
         <label class="field wide">
-          <span class="label">Note <span class="optional">optional</span></span>
-          <input name="description" placeholder="e.g. Weekly shop">
+          <span class="label"><span data-i18n="common.note"></span> <span class="optional" data-i18n="common.optional"></span></span>
+          <input name="description" data-i18n-placeholder="transaction.eGWeeklyShop">
         </label>
       </div>
       <div class="dialog-foot">
-        <button type="button" id="expense-delete" class="ghost-btn danger-text" hidden>Delete</button>
+        <button type="button" id="expense-delete" class="ghost-btn danger-text" hidden data-i18n="common.delete"></button>
         <span class="spacer"></span>
-        <button type="button" class="ghost-btn" data-close>Cancel</button>
-        <button class="primary-btn" id="expense-submit">Add expense</button>
+        <button type="button" class="ghost-btn" data-close data-i18n="common.cancel"></button>
+        <button class="primary-btn" id="expense-submit" data-i18n="transaction.addExpense"></button>
       </div>
     </form>
   </dialog>
 
   <dialog id="manager" class="wide">
     <div class="dialog-head">
-      <h2>Edit budgets</h2>
-      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      <h2 data-i18n="budgets.editBudgets"></h2>
+      <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
     </div>
-    <p class="muted hint">
-      Monthly budgets from <b id="manager-month"></b> onward. Earlier months keep their budgets.
-      Changes are saved automatically.
-    </p>
+    <p class="muted hint" data-i18n-html="budgets.intro"></p>
+    <div id="budget-fit" class="budget-fit"></div>
+    <div id="starter" class="starter" hidden></div>
     <div id="manager-body"></div>
     <form id="add-category" class="mgr-row">
-      <input name="name" placeholder="New category, e.g. Discretionary" required>
-      <input name="budget" inputmode="decimal" placeholder="Budget">
-      <label class="carry-default" title="Carry leftovers to next month by default"><input type="checkbox" name="rollover" aria-label="Carry leftovers to next month"></label>
-      <button class="icon-btn" aria-label="Add category"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <input name="name" data-i18n-placeholder="budgets.newCategoryEGDiscretionary" required>
+      <input name="budget" inputmode="decimal" data-i18n-placeholder="common.budget">
+      <label class="carry-default full-only" data-i18n-title="budgets.carryByDefault"><input type="checkbox" name="rollover" data-i18n-aria-label="budgets.carryLeftovers"></label>
+      <button class="icon-btn" data-i18n-aria-label="budgets.addCategory"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     </form>
   </dialog>
 
   <dialog id="settings">
     <form method="dialog">
       <div class="dialog-head">
-        <h2>Settings</h2>
-        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+        <h2 data-i18n="common.settings"></h2>
+        <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
       </div>
-      <span class="label">Theme</span>
+      <span class="label" data-i18n="settings.language"></span>
+      <select id="language-select" data-i18n-aria-label="settings.language"></select>
+      <span class="label" data-i18n="settings.mode"></span>
+      <div class="segmented" id="mode-options">
+        <button type="button" data-mode="simple" data-i18n="settings.modeSimple"></button>
+        <button type="button" data-mode="full" data-i18n="settings.modeExtended"></button>
+      </div>
+      <p class="muted data-hint" id="mode-hint"></p>
+      <span class="label" data-i18n="settings.theme"></span>
       <div class="segmented" id="theme-options">
-        <button type="button" data-theme="system">System</button>
-        <button type="button" data-theme="light">Light</button>
-        <button type="button" data-theme="dark">Dark</button>
+        <button type="button" data-theme="system" data-i18n="settings.system"></button>
+        <button type="button" data-theme="light" data-i18n="settings.light"></button>
+        <button type="button" data-theme="dark" data-i18n="settings.dark"></button>
       </div>
-      <span class="label">Currency</span>
-      <input id="currency-input" placeholder="Search by name or code, e.g. euro" aria-label="Currency">
-      <span class="label">Numbers</span>
-      <div class="segmented" id="number-options" aria-label="How numbers are written">
+      <span class="label" data-i18n="settings.currency"></span>
+      <input id="currency-input" data-i18n-placeholder="settings.searchByNameOrCode" data-i18n-aria-label="settings.currency">
+      <span class="label" data-i18n="settings.numbers"></span>
+      <div class="segmented" id="number-options" data-i18n-aria-label="settings.howNumbersAreWritten">
         <button type="button" data-format="comma">1.234,56</button>
         <button type="button" data-format="point">1,234.56</button>
       </div>
-      <span class="label">Backup</span>
-      <p class="muted data-hint">All your data in one file, to keep safe or to move to another computer.</p>
+      <span class="label" data-i18n="settings.backup"></span>
+      <p class="muted data-hint" data-i18n="settings.allYourDataInOne"></p>
       <div class="data-actions">
-        <a id="export-btn" class="ghost-btn" href="/api/export" download>Create backup</a>
-        <button type="button" id="import-btn" class="ghost-btn">Restore from backup</button>
+        <a id="export-btn" class="ghost-btn" href="/api/export" download data-i18n="common.createBackup"></a>
+        <button type="button" id="import-btn" class="ghost-btn" data-i18n="common.restoreFromBackup"></button>
       </div>
-      <button type="button" id="clear-btn" class="link-btn danger-text clear-link">Delete all data…</button>
-      <span class="label">Updates</span>
-      <label class="update-check"><input type="checkbox" id="update-check"> Check for new versions</label>
+      <button type="button" id="clear-btn" class="link-btn danger-text clear-link" data-i18n="settings.deleteAllData"></button>
+      <span class="label" data-i18n="settings.updates"></span>
+      <label class="update-check"><input type="checkbox" id="update-check"> <span data-i18n="settings.checkForNewVersions"></span></label>
       <p class="muted data-hint" id="update-hint"></p>
       <input type="file" id="import-file" accept=".budget" hidden>
       <div class="dialog-foot">
         <span id="app-version" class="app-version muted"></span>
         <span class="spacer"></span>
-        <button class="primary-btn">Done</button>
+        <button class="primary-btn" data-i18n="settings.done"></button>
       </div>
     </form>
   </dialog>
 
   <dialog id="balance-dialog">
     <div class="dialog-head">
-      <h2 id="balance-title">Bank account</h2>
-      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      <h2><span id="balance-title" data-i18n="common.bankAccount"></span> <button type="button" class="help-tip" data-help="balance">?</button></h2>
+      <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
     </div>
     <div id="balance-summary" class="balance-summary"></div>
     <form id="check-form" novalidate>
-      <p class="muted hint">Enter what your bank shows, to see whether all your transactions are registered.</p>
+      <p class="muted hint" data-i18n="accounts.enterWhatYourBankShows"></p>
       <div class="fields">
         <label class="field">
-          <span class="label">Balance in your bank <span class="req" aria-label="required">*</span></span>
+          <span class="label"><span data-i18n="accounts.balanceInYourBank"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
           <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
           <span class="error" data-error="check"></span>
         </label>
         <div class="field">
-          <span class="label">At the end of <span class="req" aria-label="required">*</span></span>
+          <span class="label"><span data-i18n="accounts.atTheEndOf"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
           <button type="button" id="check-date-btn" class="input-like"></button>
           <input type="hidden" name="date">
         </div>
       </div>
-      <div class="dialog-foot"><button class="primary-btn">Check balance</button></div>
+      <div class="dialog-foot"><button class="primary-btn" data-i18n="accounts.checkBalance"></button></div>
     </form>
     <ul id="check-list" class="check-list"></ul>
     <details id="start-section" class="start-section">
-      <summary>Starting point</summary>
+      <summary><span data-i18n="accounts.startingBalance"></span> <button type="button" class="help-tip" data-help="starting-point">?</button></summary>
       <form id="start-form" novalidate>
-        <p class="muted hint">Your balance at the start of a day. Every transaction you register from that day on is counted on top of it, so you don't need to enter your full history.</p>
+        <p class="muted hint" data-i18n="accounts.yourBalanceAtTheStart"></p>
         <div class="fields">
           <label class="field">
-            <span class="label">Starting balance <span class="req" aria-label="required">*</span></span>
+            <span class="label"><span data-i18n="accounts.startingBalance"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
             <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" placeholder="0.00"></span>
             <span class="error" data-error="start"></span>
           </label>
           <div class="field">
-            <span class="label">At the start of <span class="req" aria-label="required">*</span></span>
+            <span class="label"><span data-i18n="accounts.atTheStartOf"></span> <span class="req" data-i18n-aria-label="common.required">*</span></span>
             <button type="button" id="start-date-btn" class="input-like"></button>
             <input type="hidden" name="date">
           </div>
         </div>
-        <div class="dialog-foot"><button class="ghost-btn">Save starting point</button></div>
+        <div class="dialog-foot"><button class="ghost-btn" data-i18n="accounts.saveStartingBalance"></button></div>
       </form>
     </details>
   </dialog>
@@ -470,31 +481,31 @@
     <form method="dialog">
       <div class="dialog-head">
         <h2 id="update-title"></h2>
-        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+        <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
       </div>
       <p class="muted hint" id="update-current"></p>
       <div id="update-notes-block">
-        <span class="label">What's new</span>
+        <span class="label" data-i18n="updates.whatsNew"></span>
         <div id="update-notes" class="update-notes"></div>
       </div>
-      <span class="label">How to update</span>
+      <span class="label" data-i18n="updates.howToUpdate"></span>
       <ol class="update-steps" data-platform="mac">
-        <li>Click <strong>Download</strong> below. Budget.dmg is saved in your Downloads folder.</li>
-        <li>Quit Budget (Budget menu › Quit, or ⌘Q).</li>
-        <li>Open Budget.dmg and drag Budget onto the Applications folder. Choose <strong>Replace</strong>.</li>
-        <li>Open Budget. If macOS says it can't check the app, open System Settings › Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>.</li>
+        <li data-i18n-html="updates.clickDownloadBelowBudgetDmg"></li>
+        <li data-i18n="updates.quitBudgetBudgetMenuQuit"></li>
+        <li data-i18n-html="updates.openBudgetDmgAndDrag"></li>
+        <li data-i18n-html="updates.openBudgetIfMacosSays"></li>
       </ol>
       <ol class="update-steps" data-platform="windows" hidden>
-        <li>Click <strong>Download</strong> below. Budget-setup.exe is saved in your Downloads folder.</li>
-        <li>Open Budget-setup.exe. It closes Budget, installs the new version and opens it again.</li>
-        <li>If Windows says it protected your PC, click <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+        <li data-i18n-html="updates.clickDownloadBelowBudgetSetup"></li>
+        <li data-i18n="updates.openBudgetSetupExeIt"></li>
+        <li data-i18n-html="updates.ifWindowsSaysItProtected"></li>
       </ol>
-      <p class="muted update-safe">Your budgets, transactions and settings are kept outside the app, so updating it doesn't touch them.</p>
+      <p class="muted update-safe" data-i18n="updates.yourBudgetsTransactionsAndSettings"></p>
       <div class="dialog-foot">
-        <button type="button" id="update-skip" class="link-btn">Skip this version</button>
+        <button type="button" id="update-skip" class="link-btn" data-i18n="updates.skipThisVersion"></button>
         <span class="spacer"></span>
-        <button value="later" class="ghost-btn">Later</button>
-        <a id="update-download" class="primary-btn" target="_blank" rel="noopener">Download</a>
+        <button value="later" class="ghost-btn" data-i18n="updates.later"></button>
+        <a id="update-download" class="primary-btn" target="_blank" rel="noopener" data-i18n="updates.download"></a>
       </div>
     </form>
   </dialog>
@@ -504,26 +515,26 @@
       <h2></h2>
       <p class="muted"></p>
       <div class="dialog-foot">
-        <button value="cancel" class="ghost-btn">Cancel</button>
-        <button value="ok" class="primary-btn">OK</button>
+        <button value="cancel" class="ghost-btn" data-i18n="common.cancel"></button>
+        <button value="ok" class="primary-btn" data-i18n="common.ok"></button>
       </div>
     </form>
   </dialog>
 
   <dialog id="restore-dialog" class="small">
     <div class="dialog-head">
-      <h2>Restore from backup</h2>
-      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      <h2 data-i18n="common.restoreFromBackup"></h2>
+      <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
     </div>
     <div class="careful-step">
-      <div><b>A backup you created</b><span class="muted">A .budget file, for example from another computer.</span></div>
-      <button type="button" id="restore-file" class="ghost-btn">Choose file…</button>
+      <div><b data-i18n="backup.aBackupYouCreated"></b><span class="muted" data-i18n="backup.aBudgetFileForExample"></span></div>
+      <button type="button" id="restore-file" class="ghost-btn" data-i18n="backup.chooseFile"></button>
     </div>
-    <span class="label restore-label">Automatic backups</span>
-    <p class="muted restore-hint">Budget keeps a copy of your data from each day you use it, made when you first open or change Budget that day. It keeps the last 14.</p>
+    <span class="label restore-label" data-i18n="backup.automaticBackups"></span>
+    <p class="muted restore-hint" data-i18n="backup.budgetKeepsACopyOf"></p>
     <ul id="auto-backups" class="auto-backups"></ul>
     <div class="dialog-foot">
-      <button type="button" class="ghost-btn" data-close>Cancel</button>
+      <button type="button" class="ghost-btn" data-close data-i18n="common.cancel"></button>
     </div>
   </dialog>
 
@@ -531,32 +542,32 @@
   <dialog id="careful-dialog" class="small">
     <div class="dialog-head">
       <h2 id="careful-title"></h2>
-      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
     </div>
     <p id="careful-text" class="careful-text"></p>
     <div class="careful-step">
-      <div><b>First, create a backup</b><span class="muted">Of your data as it is now, so you can bring it back with Restore from backup.</span></div>
-      <a id="careful-backup" class="ghost-btn" href="/api/export" download>Create backup</a>
+      <div><b data-i18n="backup.firstCreateABackup"></b><span class="muted" data-i18n="backup.ofYourDataAsIt"></span></div>
+      <a id="careful-backup" class="ghost-btn" href="/api/export" download data-i18n="common.createBackup"></a>
     </div>
-    <p id="careful-done" class="careful-done" hidden>✓ Backup created. Check that the file is saved before you continue.</p>
+    <p id="careful-done" class="careful-done" hidden data-i18n="backup.backupCreatedCheckThatThe"></p>
     <label class="careful-skip"><input type="checkbox" id="careful-skip"> <span id="careful-skip-text"></span></label>
     <div class="dialog-foot">
-      <button type="button" class="ghost-btn" data-close>Cancel</button>
+      <button type="button" class="ghost-btn" data-close data-i18n="common.cancel"></button>
       <button type="button" class="danger-btn" id="careful-confirm" disabled></button>
     </div>
   </dialog>
 
   <dialog id="bank-dialog" class="xwide">
     <div class="dialog-head">
-      <h2 id="bank-title">Review transactions</h2>
-      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      <h2 id="bank-title" data-i18n="import.reviewTransactions"></h2>
+      <button type="button" class="icon-btn" data-close data-i18n-aria-label="common.close">×</button>
     </div>
     <p id="bank-hint" class="muted bank-hint"></p>
     <ul id="bank-list" class="bank-list"></ul>
     <p id="bank-error" class="error"></p>
     <div class="dialog-foot">
-      <button type="button" class="ghost-btn" data-close>Cancel</button>
-      <button type="button" class="primary-btn" id="bank-add">Add</button>
+      <button type="button" class="ghost-btn" data-close data-i18n="common.cancel"></button>
+      <button type="button" class="primary-btn" id="bank-add" data-i18n="common.add"></button>
     </div>
   </dialog>
 

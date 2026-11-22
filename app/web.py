@@ -7,7 +7,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import db
+from . import db, i18n
 from .api import ROUTES
 from .money import ApiError, GENERIC_ERROR
 
@@ -30,6 +30,8 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def send_json(self, data, status=200):
+        if status >= 400 and isinstance(data.get("error"), str) and data["error"].startswith("errors."):
+            data = {"error": i18n.translate(data["error"], self.language())}  # a key, from the code here
         body = json.dumps(data).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
@@ -44,6 +46,10 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def language(self):
+        """The page's language, which it sends with every request."""
+        return i18n.choose(self.headers.get("X-Budget-Language"))
 
     def from_this_app(self, method):
         """Only the app's own page may use this server. It listens on this computer only, but
@@ -65,7 +71,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def handle_api(self, method):
         if not self.from_this_app(method):
-            return self.send_json({"error": "Only the Budget app itself can do this."}, 403)
+            return self.send_json({"error": "errors.notThisApp"}, 403)
         url = urlparse(self.path)
         parts = url.path.strip("/").split("/")[1:]  # drop "api"
         handler = ROUTES.get((method, parts[0] if parts else "", len(parts) > 1))
@@ -83,17 +89,14 @@ class Handler(SimpleHTTPRequestHandler):
             else:
                 self.send_json(result)
         except ApiError as e:
-            self.send_json({"error": str(e)}, e.status)
+            self.send_json({"error": e.text(self.language())}, e.status)
         except ValueError:
             self.send_json({"error": GENERIC_ERROR}, 400)
         except sqlite3.IntegrityError as e:
-            message = ("That name is already taken. Choose a different name." if "UNIQUE" in str(e)
-                       else "This can't be deleted because transactions are booked on it. "
-                            "Move those transactions to another budget or delete them first.")
-            self.send_json({"error": message}, 409)
+            self.send_json({"error": "errors.nameTaken" if "UNIQUE" in str(e) else "errors.inUse"}, 409)
         except Exception:  # anything unexpected: tell the user, log the details here
             traceback.print_exc()
-            self.send_json({"error": "Something unexpected went wrong, so this wasn't saved. Please try again."}, 500)
+            self.send_json({"error": "errors.unexpected"}, 500)
 
     def do_GET(self):
         if self.path.startswith("/api/"):
@@ -112,6 +115,12 @@ class Handler(SimpleHTTPRequestHandler):
         self.handle_api("DELETE")
 
 
+class Server(ThreadingHTTPServer):
+    # The page loads its ~20 scripts at once. With Python's default of 5 waiting connections,
+    # the system refuses some of them (connection reset) and the page stays empty.
+    request_queue_size = 64
+
+
 def make_server(port):
     """A server on this computer only. Call serve_forever() on it to start."""
-    return ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    return Server(("127.0.0.1", port), Handler)

@@ -2,13 +2,18 @@
 Amounts in requests and responses are whole cents."""
 import re
 
-from . import VERSION, accounts, backup, bank_import, budgets, export, outlook, updates
+from . import VERSION, accounts, i18n, backup, bank_import, budgets, export, outlook, updates
 from .budgets import end_budget, has_history_before, is_active, set_budget, target_column, version_at
-from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month
+from .money import ApiError, GENERIC_ERROR, cents, clean_date, clean_month, clean_name, current_month, previous_month
 
 # number_format: "comma" (1.234,56), "point" (1,234.56) or "system" (the way this computer writes numbers).
+# language: "system" (as this computer) or a code from i18n.LANGUAGES. mode: "simple" shows the
+# basics, "full" every feature (new data starts simple; data from before modes existed is full,
+# see db._v3_mode). offers_dismissed: the offers of features put away with Not now, "a,b".
 DEFAULT_SETTINGS = {"theme": "system", "currency": "EUR", "number_format": "system", "update_check": "on", "skipped_version": "",
-                    "guide": "show"}  # the getting-started guide on the overview: "show" or "hidden"
+                    "guide": "show",  # the getting-started guide on the overview: "show" or "hidden"
+                    "language": "system", "mode": "simple", "offers_dismissed": ""}
+OFFERS = ("bank", "outlook", "carry", "savings")
 
 
 def first(query, name, default=""):
@@ -38,7 +43,7 @@ def save_transaction(conn, transaction_id, body, _):
     day = clean_date(body.get("date"))
     payee = "" if transfer else str(body.get("payee", "")).strip()
     if not payee and not transfer:
-        raise ApiError("Enter who paid you." if kind == "income" else "Enter who you paid.")
+        raise ApiError("errors.payerMissing" if kind == "income" else "errors.payeeMissing")
     amount = cents(body.get("amount"))
     splits = []
     for split in [] if transfer else body.get("splits") or []:
@@ -48,10 +53,10 @@ def save_transaction(conn, transaction_id, body, _):
         else:
             row = conn.execute("SELECT id AS category_id FROM categories WHERE id = ?", (split.get("category_id"),)).fetchone()
         if not row:
-            raise ApiError("That budget doesn't exist anymore. Choose one from the list, or leave it empty.")
+            raise ApiError("errors.budgetGone")
         splits.append((row["category_id"], item_id, cents(split.get("amount"))))
     if sum(s[2] for s in splits) > amount:
-        raise ApiError("The budget parts add up to more than the total amount. Lower one of the parts.")
+        raise ApiError("errors.splitsTooHigh")
     paid_date = clean_date(body["paid_date"]) if body.get("paid_date") else None
     if paid_date == day:
         paid_date = None
@@ -115,7 +120,9 @@ def bank_import_add(conn, _, body, __):
         try:
             save_transaction(conn, None, {**t, "splits": splits}, None)
         except ApiError as e:
-            raise ApiError(f"{t.get('payee') or 'The savings transfer'} on {t.get('date')}: {e} Nothing was added yet.")
+            if t.get("payee"):
+                raise ApiError("errors.importFailed", payee=t["payee"], date=t.get("date"), error=e)
+            raise ApiError("errors.importTransferFailed", date=t.get("date"), error=e)
     return {"added": len(items)}
 
 
@@ -132,7 +139,7 @@ def create_category(conn, _, body, __):
         item_ids = [r["id"] for r in conn.execute("SELECT id FROM items WHERE category_id = ?", (cat_id,))]
         lines = [("item_id", i) for i in item_ids] or [("category_id", cat_id)]
         if any(is_active(conn, col, i, month) for col, i in lines):
-            raise ApiError(f"You already have a category called “{name}”.")
+            raise ApiError("errors.categoryExists", name=name)
     else:
         cat_id = conn.execute("INSERT INTO categories (name) VALUES (?)", (name,)).lastrowid
     set_budget(conn, "category_id", cat_id, month, amount, bool(body.get("rollover")))
@@ -168,7 +175,7 @@ def create_item(conn, _, body, __):
     if existing:
         # Bring back a removed item, keeping its history.
         if is_active(conn, "item_id", existing["id"], month):
-            raise ApiError(f"“{name}” already exists in this category.")
+            raise ApiError("errors.itemExists", name=name)
         item_id = existing["id"]
     else:
         item_id = conn.execute("INSERT INTO items (category_id, name) VALUES (?, ?)", (category_id, name)).lastrowid
@@ -279,10 +286,10 @@ def save_plan(conn, plan_id, body, _):
     start = clean_month(body.get("start_month"))
     end = clean_month(body["end_month"]) if body.get("end_month") else None
     if end and end < start:
-        raise ApiError("The end month is before the start month. Choose a later end month.")
+        raise ApiError("errors.endBeforeStart")
     every = body.get("every_months", 1)
     if not isinstance(every, int) or not 1 <= every <= 12:
-        raise ApiError("Choose how often it repeats: every 1 to 12 months.")
+        raise ApiError("errors.repeatRange")
     values = (kind, clean_name(body.get("name")), cents(body.get("amount")), start, end, 1 if end == start else every)
     if plan_id is None:
         conn.execute("INSERT INTO plans (kind, name, amount_cents, start_month, end_month, every_months) VALUES (?, ?, ?, ?, ?, ?)", values)
@@ -302,12 +309,12 @@ def delete_plan(conn, plan_id, _, __):
 def add_plan_change(conn, _, body, __):
     plan = conn.execute("SELECT * FROM plans WHERE id = ?", (body.get("plan_id"),)).fetchone()
     if not plan:
-        raise ApiError("This plan no longer exists. Reload the page and try again.")
+        raise ApiError("errors.planGone")
     month = clean_month(body.get("start_month"))
     if plan["every_months"] > 1:
-        raise ApiError("A custom plan has one amount. To change it, edit the amount.")
+        raise ApiError("errors.customPlanOneAmount")
     if month <= plan["start_month"]:
-        raise ApiError("Choose a month after the plan starts.")
+        raise ApiError("errors.changeAfterStart")
     conn.execute("DELETE FROM plan_changes WHERE plan_id = ? AND start_month = ?", (plan["id"], month))
     conn.execute("INSERT INTO plan_changes (plan_id, start_month, amount_cents) VALUES (?, ?, ?)",
                  (plan["id"], month, cents(body.get("amount"))))
@@ -330,7 +337,7 @@ def set_buffer(conn, _, body, __):
     else:
         months = body.get("months")
         if isinstance(months, bool) or not isinstance(months, (int, float)) or not 0 <= months <= 120:
-            raise ApiError("Enter a number of months, like {1.5}.")
+            raise ApiError("errors.bufferMonths")
         values = {"buffer_mode": "months", "buffer_months": str(months)}
     conn.executemany(
         "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
@@ -377,18 +384,122 @@ def clear_data(conn, _, body, __):
 def get_setup(conn, _, __, ___):
     """What's been set up so far, for the getting-started guide on the overview: a starting
     balance per account, a budget, a transaction and an expected income. `hidden` once the
-    user put the guide away."""
+    user put the guide away. `offers`: features that would be useful now (see offers())."""
     has = lambda sql: conn.execute(sql).fetchone() is not None
-    return {
-        "steps": {
-            "bank": accounts.starting_point(conn, "bank")[0] is not None,
-            "savings": accounts.starting_point(conn, "savings")[0] is not None,
-            "budgets": has("SELECT 1 FROM budgets WHERE amount_cents > 0"),
-            "transaction": has("SELECT 1 FROM expenses"),
-            "income": has("SELECT 1 FROM plans WHERE kind = 'income'"),
-        },
-        "hidden": get_settings(conn, None, None, None)["guide"] == "hidden",
+    settings = get_settings(conn, None, None, None)
+    steps = {
+        "bank": accounts.starting_point(conn, "bank")[0] is not None,
+        "savings": accounts.starting_point(conn, "savings")[0] is not None,
+        "budgets": has("SELECT 1 FROM budgets WHERE amount_cents > 0"),
+        "transaction": has("SELECT 1 FROM expenses"),
+        "income": has("SELECT 1 FROM plans WHERE kind = 'income'"),
     }
+    return {"steps": steps, "hidden": settings["guide"] == "hidden", "offers": offers(conn, settings, steps)}
+
+
+def offers(conn, settings, steps):
+    """Features to offer now, most useful first, while only the basics are shown (mode simple):
+    each when its moment has come, and not after the user put it away with Not now.
+    - bank: Budget has been kept for two weeks, or income was added, but the bank balance isn't
+      tracked: keeping it shows when a transaction is missing (and the Outlook needs it).
+    - outlook: a month has been kept and the bank balance is known, so "Ready for next month?"
+      and the Outlook can say something.
+    - carry: a budget had money left in each of the last two months (the one most left), so
+      carrying it over to the next month may suit it.
+    - savings: money was moved to or from savings, but the savings balance isn't tracked.
+    """
+    dismissed = set(settings["offers_dismissed"].split(","))
+    month = current_month()
+    found = []
+    if settings["mode"] == "simple":
+        span = conn.execute("SELECT julianday(MAX(date)) - julianday(MIN(date)) AS days FROM expenses").fetchone()["days"]
+        if not steps["bank"] and ((span or 0) >= 14 or conn.execute("SELECT 1 FROM expenses WHERE kind = 'income'").fetchone()):
+            found.append({"id": "bank"})
+        if steps["bank"] and conn.execute("SELECT 1 FROM expenses WHERE date < ?", (f"{month}-01",)).fetchone():
+            found.append({"id": "outlook"})
+        last = previous_month(month)
+        before = previous_month(last)
+        if conn.execute("SELECT 1 FROM expenses WHERE date >= ? AND date < ?", (f"{before}-01", f"{month}-01")).fetchone():
+            left = {}
+            for m in (before, last):
+                for g in budgets.month_data(conn, m)["groups"]:
+                    for l in g["lines"]:
+                        if l["budget"] and not l["carry"] and l["spent"] < l["available"]:
+                            name = f"{g['name']} · {l['name']}" if g["has_items"] else g["name"]
+                            left.setdefault(l["key"], []).append((name, l["available"] - l["spent"]))
+            both = [v for v in left.values() if len(v) == 2]
+            if both:
+                best = max(both, key=lambda v: v[0][1] + v[1][1])
+                found.append({"id": "carry", "name": best[1][0], "months": [before, last]})
+    if not steps["savings"] and conn.execute("SELECT 1 FROM expenses WHERE kind IN ('save', 'withdraw')").fetchone():
+        found.append({"id": "savings"})
+    return [o for o in found if o["id"] not in dismissed]
+
+
+# ---- Setting up budgets ----
+
+def budget_fit(conn, _, __, query):
+    """Whether the budgets fit the income, for the budget editor: the month's expected income
+    (from the income plans), its budgets (without carry-over), its planned extra costs, and
+    what's left of the income after both. `plan` is the income plan to change when there's
+    just one, repeating monthly; `spending` the average spent per month over the last three
+    months with transactions, to help choose amounts."""
+    month = clean_month(first(query, "month", current_month()))
+    all_plans = outlook.plans(conn)
+    income = outlook.planned_in(all_plans, "income", month)
+    planned = outlook.planned_in(all_plans, "expense", month)
+    total = budgets.budget_total(conn, month)
+    income_plans = [p for p in all_plans if p["kind"] == "income" and outlook.falls_in(p, month)]
+    plan = income_plans[0] if len(income_plans) == 1 and income_plans[0]["every_months"] == 1 \
+        and income_plans[0]["end_month"] != income_plans[0]["start_month"] else None
+    months = [r["m"] for r in conn.execute(
+        "SELECT DISTINCT substr(date, 1, 7) AS m FROM expenses WHERE kind = 'expense' AND date < ? ORDER BY m DESC LIMIT 3",
+        (f"{month}-01",))]
+    spending = None
+    if months:
+        spent = sum(budgets.month_data(conn, m)["totals"]["spent"] for m in months)
+        spending = {"months": len(months), "average": spent // len(months)}
+    return {"month": month, "income": income, "budgets": total, "planned": planned, "left": income - total - planned,
+            "income_plans": len(income_plans), "plan": plan and {"id": plan["id"]}, "spending": spending}
+
+
+def set_income(conn, _, body, __):
+    """The monthly income from the budget editor: a new monthly income plan from `month` when
+    there is none yet, or a new amount for the one there is, from `month` on (earlier months
+    keep theirs)."""
+    month, amount = clean_month(body.get("month")), cents(body.get("amount"))
+    plan_id = body.get("plan_id")
+    if plan_id is None:
+        conn.execute("INSERT INTO plans (kind, name, amount_cents, start_month, end_month, every_months) VALUES ('income', ?, ?, ?, NULL, 1)",
+                     (clean_name(body.get("name")), amount, month))
+        return {"ok": True}
+    plan = conn.execute("SELECT * FROM plans WHERE id = ? AND kind = 'income'", (plan_id,)).fetchone()
+    if not plan:
+        raise ApiError("errors.planGone")
+    if month <= plan["start_month"]:
+        conn.execute("UPDATE plans SET amount_cents = ?, start_month = ? WHERE id = ?", (amount, month, plan_id))
+        conn.execute("DELETE FROM plan_changes WHERE plan_id = ?", (plan_id,))
+    else:
+        conn.execute("DELETE FROM plan_changes WHERE plan_id = ? AND start_month >= ?", (plan_id, month))
+        conn.execute("INSERT INTO plan_changes (plan_id, start_month, amount_cents) VALUES (?, ?, ?)", (plan_id, month, amount))
+    return {"ok": True}
+
+
+def add_starter_budgets(conn, _, body, __):
+    """Several budgets at once, from the suggestions for a new user, from `month`: categories
+    with one budget, {name, budget}, or with items, {name, items: [{name, budget}]}. All or
+    none: one that can't be added (a name already in use) adds nothing."""
+    month = clean_month(body.get("month"))
+    chosen = [b for b in body.get("budgets") or [] if "items" not in b or b["items"]]
+    if not chosen:
+        raise ApiError("errors.noStarterBudgets")
+    for b in chosen:
+        name = clean_name(b.get("name"))
+        create_category(conn, None, {"name": name, "budget": 0 if "items" in b else b.get("budget"), "month": month}, None)
+        category_id = conn.execute("SELECT id FROM categories WHERE name = ?", (name,)).fetchone()["id"]
+        for item in b.get("items") or []:
+            create_item(conn, None, {"category_id": category_id, "name": item.get("name"), "budget": item.get("budget"), "month": month}, None)
+    return {"added": sum(len(b.get("items") or [1]) for b in chosen)}
 
 
 # ---- Settings ----
@@ -411,10 +522,13 @@ def get_settings(conn, _, __, ___):
 def save_settings(conn, _, body, __):
     data = {k: str(v) for k, v in body.items() if k in DEFAULT_SETTINGS}
     if "currency" in data and not re.fullmatch(r"[A-Z]{3}", data["currency"]):
-        raise ApiError("Choose a currency from the list.")
+        raise ApiError("errors.chooseCurrency")
     if data.get("update_check", "on") not in ("on", "off") or len(data.get("skipped_version", "")) > 20 \
             or data.get("number_format", "system") not in ("system", "comma", "point") \
-            or data.get("guide", "show") not in ("show", "hidden"):
+            or data.get("guide", "show") not in ("show", "hidden") \
+            or data.get("language", "system") not in ("system", *i18n.LANGUAGES) \
+            or data.get("mode", "simple") not in ("simple", "full") \
+            or not set(filter(None, data.get("offers_dismissed", "").split(","))) <= set(OFFERS):
         raise ApiError(GENERIC_ERROR)
     conn.executemany(
         "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
@@ -466,6 +580,9 @@ ROUTES = {
     ("POST", "auto-backup-restore", False): restore_auto_backup,
     ("POST", "clear-data", False): clear_data,
     ("GET", "setup", False): get_setup,
+    ("GET", "budget-fit", False): budget_fit,
+    ("PUT", "income", False): set_income,
+    ("POST", "starter-budgets", False): add_starter_budgets,
     ("GET", "version", False): get_version,
     ("GET", "update", False): check_update,
     ("GET", "settings", False): get_settings,

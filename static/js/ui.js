@@ -1,5 +1,6 @@
 // Small helpers shared by every part of the page: the API, toasts and modals.
 import { example } from "./format.js";
+import { language, t } from "./i18n.js";
 
 export const $ = (sel) => document.querySelector(sel);
 
@@ -24,21 +25,21 @@ export async function api(path, options = {}) {
   try {
     const file = options.body instanceof ArrayBuffer; // an imported file is sent as it is
     res = await fetch(path, {
-      headers: { "Content-Type": file ? "application/octet-stream" : "application/json" },
+      headers: { "Content-Type": file ? "application/octet-stream" : "application/json", "X-Budget-Language": language },
       ...options,
       body: file ? options.body : options.body && JSON.stringify(options.body),
     });
     data = await res.json();
   } catch {
     // The server isn't answering (stopped, or restarted mid-request).
-    alertDialog("Budget isn't responding right now. Your data is safe. Quit Budget and open it again.",
-      "Can't reach the app");
+    alertDialog(t("common.budgetIsntRespondingRightNow"),
+      t("common.cantReachTheApp"));
     throw new Error("Server not reachable");
   }
   if (!res.ok) {
     // Example numbers arrive as {12.50}: written the user's way here.
     if (data.error) data.error = data.error.replace(/\{(-?\d+\.\d+)\}/g, (_, number) => example(number));
-    alertDialog(data.error || "Something went wrong. Reload the page and try again.");
+    alertDialog(data.error || t("common.somethingWentWrongReloadThe"));
     throw new Error(data.error);
   }
   return data;
@@ -72,7 +73,7 @@ export function toast(message, seconds = 2.2) {
 
 // Confirm / alert modals in the app's own style (instead of the browser's popups).
 // Resolves true when confirmed; Escape or Cancel resolve false.
-export function confirmDialog({ title, message = "", confirm = "OK", cancel = "Cancel", danger = false }) {
+export function confirmDialog({ title, message = "", confirm = t("common.ok"), cancel = t("common.cancel"), danger = false }) {
   const d = $("#confirm-dialog");
   d.querySelector("h2").textContent = title;
   d.querySelector("p").textContent = message;
@@ -87,7 +88,7 @@ export function confirmDialog({ title, message = "", confirm = "OK", cancel = "C
   ok.focus();
   return new Promise((resolve) => (d.onclose = () => resolve(d.returnValue === "ok")));
 }
-export const alertDialog = (message, title = "That didn't work") => confirmDialog({ title, message, cancel: null });
+export const alertDialog = (message, title = t("common.thatDidntWork")) => confirmDialog({ title, message, cancel: null });
 
 // Shows (or clears, with an empty message) the error under a form field.
 export function fieldError(form, name, message) {

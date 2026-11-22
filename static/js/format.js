@@ -1,5 +1,6 @@
 // Formatting and parsing. Money is whole cents everywhere; it's only turned into euros
 // (or the chosen currency) for display, and parsed back into cents from user input.
+import { locale } from "./i18n.js";
 import { state } from "./state.js";
 
 export const pad = (n) => String(n).padStart(2, "0");
@@ -21,22 +22,24 @@ export function monthEnd(ym) {
   return isoDate(new Date(y, m, 0));
 }
 
-// Month and day names are English, like the rest of the interface. Numbers and amounts are
-// written the way this computer does, or as chosen in Settings: 1.234,56 or 1,234.56.
-export const DATE_LOCALE = "en-GB";
+// Month and day names are in the interface's language (i18n.js), written as in a sentence:
+// "November 2026" in English, "november 2026" in Dutch. cap() for the start of a label.
+// Numbers and amounts are written the way this computer does, or as chosen in Settings:
+// 1.234,56 or 1,234.56.
+export const DATE_LOCALE = locale;
 export const capitalize = (text) => text.replace(/^./, (c) => c.toUpperCase());
+export const cap = capitalize;
 export function monthName(ym, style = "long") {
   const [y, m] = ym.split("-").map(Number);
-  return capitalize(new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style, year: "numeric" }));
+  return new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style, year: "numeric" }).replace(".", "");
 }
 // Just the month: "October" (long) or "Oct" (short).
 export function monthOnly(ym, style = "short") {
   const [y, m] = ym.split("-").map(Number);
-  return capitalize(new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style }));
+  return new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style }).replace(".", "");
 }
 // "29 Oct" style dates.
-export const shortDate = (iso) => new Intl.DateTimeFormat(DATE_LOCALE, { day: "numeric", month: "short" })
-  .formatToParts(new Date(iso + "T00:00")).map((p) => (p.type === "month" ? capitalize(p.value) : p.value)).join("");
+export const shortDate = (iso) => new Date(iso + "T00:00").toLocaleDateString(DATE_LOCALE, { day: "numeric", month: "short" }).replace(".", "");
 
 // How numbers are written. The setting number_format is "comma" (1.234,56), "point"
 // (1,234.56) or "system": the way this computer writes them.
@@ -80,4 +83,3 @@ export const inputAmount = (cents) => `${cents < 0 ? "-" : ""}${Math.floor(Math.
 export function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
-export const plural = (n, word) => `${n} ${n === 1 ? word : `${word}s`}`;

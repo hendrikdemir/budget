@@ -152,8 +152,15 @@ def _v2_plan_interval(conn):
         conn.execute("ALTER TABLE plans ADD COLUMN every_months INTEGER NOT NULL DEFAULT 1")
 
 
+def _v3_mode(conn):
+    """Version 3: Budget can show only the basics (setting mode "simple", the default for new
+    data). Data from before keeps every feature it had: mode "full"."""
+    if conn.execute("SELECT 1 FROM expenses UNION ALL SELECT 1 FROM budgets UNION ALL SELECT 1 FROM plans LIMIT 1").fetchone():
+        conn.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('mode', 'full')")
+
+
 # MIGRATIONS[n] upgrades the database from version n to n + 1.
-MIGRATIONS = [_v1_baseline, _v2_plan_interval]
+MIGRATIONS = [_v1_baseline, _v2_plan_interval, _v3_mode]
 
 
 class TooNewError(Exception):

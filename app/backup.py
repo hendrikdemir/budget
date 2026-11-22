@@ -16,11 +16,11 @@ from . import db
 from .money import ApiError
 
 MAX_SIZE = 200 * 1024 * 1024
-KEEP_SETTINGS = ("theme", "currency", "number_format", "update_check")  # how Budget looks stays when all data is deleted
+KEEP_SETTINGS = ("theme", "currency", "number_format", "update_check", "language")  # how Budget looks stays when all data is deleted
 REQUIRED_TABLES = {"categories", "items", "budgets", "expenses", "splits", "settings"}
-NOT_A_BACKUP = "This isn't a Budget backup. Choose a file that ends in .budget, made with Create backup."
-DAMAGED = "This backup file is damaged, so it can't be imported. Your data hasn't changed. Try exporting it again."
-TOO_NEW = "This backup was made with a newer version of Budget. Update Budget, then import it again. Your data hasn't changed."
+NOT_A_BACKUP = "errors.notABackup"
+DAMAGED = "errors.backupDamaged"
+TOO_NEW = "errors.backupTooNew"
 
 
 def export_file():
@@ -141,7 +141,7 @@ def _auto_path(name):
     """The automatic backup called `name`, or a friendly error if there's no such backup."""
     path = db.BACKUP_DIR / str(name)
     if not re.fullmatch(r"budget-\d{4}-\d{2}-\d{2}\.db", str(name)) or not path.exists():
-        raise ApiError("That automatic backup isn't there anymore. Close Settings and try again.")
+        raise ApiError("errors.autoBackupGone")
     return path
 
 

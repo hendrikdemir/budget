@@ -2,18 +2,20 @@
 import "./bank-import.js";
 import "./data.js";
 import "./guide.js";
+import "./help.js";
 import { renderHistory } from "./history.js";
 import { renderOutlook } from "./outlook.js";
 import { load } from "./overview.js";
 import { currentMonth, today } from "./format.js";
-import { state } from "./state.js";
-import { loadSettings } from "./settings.js";
+import { loadSettings, openSettings } from "./settings.js";
+import { isSimple, state } from "./state.js";
 import { openTransaction } from "./transaction.js";
 import { $ } from "./ui.js";
 import { checkForUpdate } from "./updates.js";
 
 function showPage() {
-  const page = { "#outlook": "outlook", "#history": "history" }[location.hash] || "overview";
+  // The Outlook is one of the features beyond the basics.
+  const page = { "#outlook": isSimple() ? null : "outlook", "#history": "history" }[location.hash] || "overview";
   for (const view of ["overview", "history", "outlook"]) $(`#${view}-view`).hidden = page !== view;
   document.querySelectorAll(".tabs a").forEach((a) => a.classList.toggle("active", a.dataset.view === page));
   if (page === "outlook") renderOutlook();
@@ -32,6 +34,13 @@ await loadSettings(() => {
 showPage();
 load();
 checkForUpdate();
+// After choosing another language the page reloads: open Settings again where the user was.
+try {
+  if (sessionStorage.getItem("budget.open-settings")) {
+    sessionStorage.removeItem("budget.open-settings");
+    openSettings();
+  }
+} catch {}
 
 // A new day while the app stayed open (say, the lid was closed overnight): "Today", the
 // current month and the expected balances are out of date, so load everything again. A

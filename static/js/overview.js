@@ -5,8 +5,12 @@ import { openManager } from "./budget-editor.js";
 import { menu, monthPicker } from "./controls.js";
 
 let exportList = { shown: [], everything: true }; // what the Export menu offers (renderTransactions)
-import { DATE_LOCALE, currentMonth, decimalComma, escapeHtml, isoDate, money, monthName, monthOnly, parseAmount, plural, shiftMonth, shortDate } from "./format.js";
-import { isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
+import { DATE_LOCALE, cap, currentMonth, decimalComma, escapeHtml, isoDate, money, monthName, monthOnly, parseAmount, shiftMonth, shortDate } from "./format.js";
+import { helpTip } from "./help.js";
+import { t } from "./i18n.js";
+
+const T = t; // where `t` is a transaction
+import { isSimple, isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
 import { openTransaction } from "./transaction.js";
 import { $, api, confirmDialog, once, toast } from "./ui.js";
 
@@ -19,7 +23,7 @@ export function monthData(ym, exclude = null) {
 }
 
 export async function load() {
-  $("#month-btn").textContent = monthName(state.month);
+  $("#month-btn").textContent = cap(monthName(state.month));
   $("#today-btn").hidden = state.month === currentMonth();
   monthCache.clear();
   [state.data, state.payees] = await Promise.all([monthData(state.month), api("/api/payees")]);
@@ -46,27 +50,29 @@ export function render() {
 // A finished month gets a review of how it went instead.
 function renderTotals() {
   const past = state.month < currentMonth();
-  $("#total-label").textContent = past ? `${monthName(state.month)} in review` : `Spent in ${monthName(state.month)}`;
+  $("#total-label").textContent = past ? cap(t("overview.inReview", { month: monthName(state.month) })) : t("overview.spentIn", { month: monthName(state.month) });
   ["#total-bar", "#total-sub"].forEach((s) => ($(s).hidden = false));
   $("#total-review").hidden = !past;
   if (past) return renderReview();
   const { spent, income, budget, outside, budget_spent: budgetSpent } = state.data.totals;
   const over = budgetSpent > budget;
-  const leftOrOver = over ? `${money(budgetSpent - budget)} over` : `${money(budget - budgetSpent)} left`;
+  const leftOrOver = over ? t("common.over", { amount: money(budgetSpent - budget) }) : t("common.left", { amount: money(budget - budgetSpent) });
   $("#total").textContent = money(spent);
-  $("#total-sub").textContent = outside ? `Budgets: ${money(budgetSpent)} of ${money(budget)} · ${leftOrOver}` : `of ${money(budget)} budgeted · ${leftOrOver}`;
+  $("#total-sub").textContent = outside
+    ? t("overview.budgetsOf", { spent: money(budgetSpent), budget: money(budget), left: leftOrOver })
+    : t("overview.ofBudgeted", { budget: money(budget), left: leftOrOver });
   // Spending outside budgets comes on top of the budgets, so if the rest of the budgets is
   // spent too, the month ends `outside` over. Not spending it lowers that.
   const overall = spent - budget;
   const name = monthOnly(state.month, "long");
-  const soFar = overall > 0 ? `so far it's ${money(overall)} more` : `so far you're still ${money(-overall)} under`;
+  const soFar = overall > 0 ? t("overview.soFarItsMore", { amount: money(overall) }) : t("overview.soFarYoureStillUnder", { amount: money(-overall) });
   $("#total-over").hidden = !outside;
   $("#total-over").innerHTML = budget - budgetSpent > 0
-    ? `<b>${money(outside)} spent outside your budgets.</b> If you use the rest of your budgets, ${name} costs that much more than budgeted; ${soFar}.`
-    : `<b>${money(outside)} spent outside your budgets</b>, so ${name} costs ${money(Math.max(0, overall))} more than budgeted.`;
+    ? t("overview.outsideBudgetsSoFar", { amount: money(outside), month: name, so_far: soFar })
+    : t("overview.outsideBudgetsOver", { amount: money(outside), month: name, more: money(Math.max(0, overall)) });
   $("#total-over").classList.toggle("warn", outside > 0);
   $("#total-income").hidden = !income;
-  $("#total-income").textContent = `Income this month: ${money(income)}`;
+  $("#total-income").textContent = t("overview.incomeThisMonth", { amount: money(income) });
   // Bar: spending within budgets, then outside them; the mark is where the total budget ends.
   const scale = Math.max(spent, budget) || 1;
   const bar = $("#total-bar");
@@ -81,19 +87,21 @@ function renderReview() {
   const { unspent, saved } = state.data.leftover;
   const nextName = monthOnly(shiftMonth(state.month, 1), "long");
   $("#total").textContent = `${net < 0 ? "−" : "+"}${money(Math.abs(net))}`;
-  $("#total-sub").textContent = net < 0 ? "More spent than earned" : "Left after income and spending";
+  $("#total-sub").textContent = net < 0 ? t("common.moreSpentThanEarned") : t("common.leftAfterIncomeAndSpending");
   ["#total-bar", "#total-over", "#total-income"].forEach((s) => ($(s).hidden = true));
   const stat = (label, value, of = "") => `<div class="review-stat"><span class="label">${label}</span><b>${value}</b>${of ? `<span class="of">${of}</span>` : ""}</div>`;
   const over = state.data.groups.flatMap((g) => g.lines.filter((l) => l.budget !== null && l.spent > l.available).map((l) => l.name || g.name));
   const notes = [
-    outside && `<b>${money(outside)}</b> spent outside your budgets`,
-    over.length && `<b>${plural(over.length, "budget")}</b> went over: ${escapeHtml(over.join(", "))}`,
-    (unspent || carried) && `<b>${money(unspent + carried)}</b> of your budgets wasn't used${carried ? `: ${money(carried)} carried over to ${nextName}` : ""}`,
-    saved > 0 && `<b>${money(saved)}</b> moved to savings`,
-    saved < 0 && `<b>${money(-saved)}</b> taken from savings`,
+    outside && t("overview.spentOutsideYourBudgets", { amount: money(outside) }),
+    over.length && t("overview.reviewOverBudget", { count: over.length, names: escapeHtml(over.join(", ")) }),
+    (unspent || carried) && (carried
+      ? t("overview.reviewUnusedCarried", { amount: money(unspent + carried), carried: money(carried), month: nextName })
+      : t("overview.reviewUnused", { amount: money(unspent + carried) })),
+    saved > 0 && t("overview.movedToSavings", { amount: money(saved) }),
+    saved < 0 && t("overview.takenFromSavings", { amount: money(-saved) }),
   ].filter(Boolean);
   $("#total-review").innerHTML = `
-    <div class="review-stats">${stat("Income", money(income))}${stat("Spent", money(spent))}${stat("Budgets used", money(budgetSpent), `of ${money(budget)}`)}</div>
+    <div class="review-stats">${stat(t("common.income"), money(income))}${stat(t("common.spent"), money(spent))}${stat(t("overview.budgetsUsed"), money(budgetSpent), t("common.of", { amount: money(budget) }))}</div>
     ${notes.length ? `<ul class="review-notes">${notes.map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}`;
 }
 
@@ -103,53 +111,55 @@ function renderResult() {
   const row = (label, value, cls = "", note = "") =>
     `<div class="result-row ${cls}"><span>${label}${note ? ` <span class="muted">${note}</span>` : ""}</span><span>${value}</span></div>`;
   const thisName = monthOnly(o.month, "long"), nextName = monthOnly(o.next, "long");
-  $("#result-title").textContent = `Ready for ${nextName}?`;
-  // Only for the month you're in, in its last week: earlier it's too early to say.
-  $(".result-card").hidden = o.when !== "current" || o.too_early;
+  $("#result-title").innerHTML = `${t("overview.readyFor", { month: nextName })} ${helpTip("ready")}`;
+  // Only for the month you're in, in its last week: earlier it's too early to say. It counts on
+  // the income planned in the Outlook, so it's one of the features beyond the basics.
+  $(".result-card").hidden = o.when !== "current" || o.too_early || isSimple();
   if (o.balance === null) {
-    $("#result-rows").innerHTML = `<p class="muted result-hint">Set up your bank account balance below to see whether you're ready for ${nextName}.</p>`;
+    $("#result-rows").innerHTML = `<p class="muted result-hint">${t("overview.setUpYourBankAccount", { month: nextName })}</p>`;
     return;
   }
   const awaiting = o.expected_income > 0 || o.no_income_yet;
-  const rows = [row(o.when === "past" ? `Bank balance on ${shortDate(o.end)}` : "Bank balance today", money(o.balance))];
-  if (o.expected_income) rows.push(row("Income still expected", money(o.expected_income), "", `${thisName} · from your Outlook plans`));
+  const rows = [row(o.when === "past" ? t("overview.bankBalanceOn", { date: shortDate(o.end) }) : t("overview.bankBalanceToday"), money(o.balance))];
+  if (o.expected_income) rows.push(row(t("overview.incomeStillExpected"), money(o.expected_income), "", t("overview.fromYourOutlookPlans", { month: thisName })));
   if (o.rest > 0) {
-    const split = awaiting ? "can still be spent" : o.keep_for_next && o.saveable ? `${money(o.keep_for_next)} for ${nextName}, ${money(o.saveable)} for savings`
-      : o.keep_for_next ? `all needed for ${nextName}` : "can go to savings";
-    rows.push(row(`Unspent ${thisName} budget`, money(o.rest), "", `not carried over · ${split}`));
+    const split = awaiting ? t("overview.canStillBeSpent")
+      : o.keep_for_next && o.saveable ? t("overview.forForSavings", { next: money(o.keep_for_next), month: nextName, saveable: money(o.saveable) })
+      : o.keep_for_next ? t("overview.allNeededFor", { month: nextName }) : t("overview.canGoToSavings");
+    rows.push(row(t("overview.unspentBudget", { month: thisName }), money(o.rest), "", t("overview.notCarriedOver", { split })));
   }
-  rows.push(row(`Needed on 1 ${nextName}`, money(o.needed), "strong",
-    o.prepaid ? `${money(o.budget)} budget − ${money(o.prepaid)} already paid` : `${nextName} budget`));
+  rows.push(row(t("overview.neededOn", { month: nextName }), money(o.needed), "strong",
+    o.prepaid ? t("overview.budgetAlreadyPaid", { budget: money(o.budget), paid: money(o.prepaid) }) : t("overview.budget", { month: nextName })));
 
   // The outcome: short (take from savings), only enough if the leftover isn't spent, or spare.
   // While this month's income is still to come it's a forecast, so there's nothing to move yet.
   const stillSpendable = o.when === "current" && o.short_if_spent > o.short;
-  const orIfSpent = stillSpendable ? ` Or ${money(o.short_if_spent)} if you spend the rest of ${thisName}'s budget.` : "";
+  const orIfSpent = stillSpendable ? ` ${t("overview.orIfYouSpendThe", { amount: money(o.short_if_spent), month: thisName })}` : "";
   let title, note = "", action = null;
   if (o.short > 0 && o.no_income_yet) {
-    title = `${money(o.short)} short for ${nextName} so far`;
-    note = `No income yet this month. Add your expected income in the Outlook to include it here.${orIfSpent}`;
+    title = t("overview.shortForSoFar", { amount: money(o.short), month: nextName });
+    note = t("overview.noIncomeYetThisMonth") + orIfSpent;
   } else if (o.short > 0 && awaiting) {
-    title = `Expecting ${money(o.short)} short for ${nextName}`;
-    note = `You can take it from your savings once your income is in.${orIfSpent}`;
+    title = t("overview.expectingShortFor", { amount: money(o.short), month: nextName });
+    note = t("common.youCanTakeItFrom") + orIfSpent;
   } else if (o.short > 0) {
-    title = `${money(o.short)} short for ${nextName}`;
+    title = t("overview.shortFor", { amount: money(o.short), month: nextName });
     note = stillSpendable
-      ? `Or ${money(o.short_if_spent)} if you spend the rest of ${thisName}'s budget. Move it from your savings.`
-      : "Move this from your savings to cover next month's budget.";
-    action = { kind: "withdraw", amount: stillSpendable ? o.short_if_spent : o.short, label: "Take from savings", cls: "primary-btn" };
+      ? `${t("overview.orIfYouSpendThe", { amount: money(o.short_if_spent), month: thisName })} ${t("overview.moveItFromYourSavings")}`
+      : t("overview.moveThisFromYourSavings");
+    action = { kind: "withdraw", amount: stillSpendable ? o.short_if_spent : o.short, label: t("common.takeFromSavings"), cls: "primary-btn" };
   } else if (stillSpendable) {
-    title = `Enough for ${nextName}, if you don't spend more`;
-    note = `Spending the rest of ${thisName}'s budget would leave ${money(o.short_if_spent)} short. Unspent budget stays for ${nextName} instead of going to savings.`;
+    title = t("overview.enoughForIfYouDont", { month: nextName });
+    note = t("overview.spendingTheRestOfS", { month: thisName, amount: money(o.short_if_spent), next: nextName });
   } else if (awaiting) {
-    title = `On track for ${nextName}`;
-    note = "You'll have enough once your income is in.";
+    title = t("overview.onTrackFor", { month: nextName });
+    note = t("overview.youllHaveEnoughOnceYour");
   } else if (o.spare > 0) {
-    title = `${money(o.spare)} more than ${nextName} needs`;
-    note = "You can move this to your savings.";
-    action = { kind: "save", amount: o.spare, label: "Move to savings", cls: "ghost-btn" };
+    title = t("overview.moreThanNeeds", { amount: money(o.spare), month: nextName });
+    note = t("overview.youCanMoveThisTo");
+    action = { kind: "save", amount: o.spare, label: t("overview.moveToSavings"), cls: "ghost-btn" };
   } else {
-    title = `Exactly enough for ${nextName}`;
+    title = t("overview.exactlyEnoughFor", { month: nextName });
   }
   rows.push(`<div class="result-gap ${o.short > 0 && !awaiting ? "short" : "ok"}">
     <div><b>${title}</b>${note ? `<span class="muted">${note}</span>` : ""}</div>
@@ -158,7 +168,7 @@ function renderResult() {
   $("#result-rows").innerHTML = rows.join("");
   if (action) $("#result-action").onclick = () => openTransaction(null, action.kind, {
     amount: action.amount, date: o.when === "past" ? o.end : isoDate(new Date()),
-    description: action.kind === "save" ? `Leftover ${monthName(o.month)}` : `For ${monthName(o.next)}`,
+    description: action.kind === "save" ? t("overview.leftover", { month: monthName(o.month) }) : t("common.for", { month: monthName(o.next) }),
   });
 }
 
@@ -176,22 +186,23 @@ function saveExpanded() {
 function budgetRow({ name, spent, avail, filterKey, label, level = 0, toggle = null, open = false, warn = false, line = null, carried = 0 }) {
   const over = spent > avail;
   const pct = avail ? Math.min(100, (spent / avail) * 100) : over ? 100 : 0;
-  const details = [`${money(spent)} spent of ${money(avail)}`];
-  if (line?.carried_in) details.push(`+${money(line.carried_in)} from ${monthOnly(shiftMonth(state.month, -1))}`);
-  if (line?.extra) details.push(`+${money(line.extra)} income`);
+  const details = [t("common.spentOf", { spent: money(spent), budget: money(avail) })];
+  if (line?.carried_in) details.push(t("overview.from", { amount: money(line.carried_in), month: monthOnly(shiftMonth(state.month, -1)) }));
+  if (line?.extra) details.push(t("overview.income", { amount: money(line.extra) }));
   const next = monthOnly(shiftMonth(state.month, 1));
-  const carry = !line || line.budget === null || over ? ""
-    : `<button class="carry ${line.carry ? "on" : ""}" data-line="${line.key}" data-carry="${line.carry}"
-        title="${line.carry ? `Leftover moves to ${next}. Click to keep it as savings.` : `Click to move this month's leftover to ${next}.`}">↪ ${line.carry ? next : "Carry"}</button>`;
+  // Carrying over is one of the features beyond the basics: only shown with every feature on.
+  const carryTip = line?.carry ? t("overview.whatsLeftMovesToClick", { month: next }) : t("overview.clickToMoveWhatsLeft", { month: next });
+  const carry = !line || line.budget === null || over || isSimple() ? ""
+    : `<button class="carry ${line.carry ? "on" : ""}" data-line="${line.key}" data-carry="${line.carry}" title="${carryTip}" aria-label="${carryTip}">↪ ${line.carry ? cap(next) : `<span class="carry-word">${t("overview.carryShort")}</span>`}</button>`;
   return `<div class="bl-row level-${level} ${over ? "over" : ""} ${state.filter?.key === filterKey ? "filtered" : ""}"
       data-filter="${filterKey}" data-label="${escapeHtml(label)}" title="${details.join(" · ")}">
     <span class="bl-toggle">${toggle !== null
-      ? `<button class="chev ${open ? "open" : ""}" data-toggle="${toggle}" aria-label="${open ? "Collapse" : "Expand"} ${escapeHtml(name)}" aria-expanded="${open}"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ""}</span>
-    <span class="bl-name"><span class="bl-label">${escapeHtml(name)}</span>${warn ? `<span class="warn-dot" title="An item is over budget"></span>` : ""}${carried
-      ? `<span class="carried-chip" title="${money(carried)} carried over from ${monthName(shiftMonth(state.month, -1))}">+${money(carried)}</span>` : ""}</span>
+      ? `<button class="chev ${open ? "open" : ""}" data-toggle="${toggle}" aria-label="${open ? t("overview.collapse", { name: escapeHtml(name) }) : t("overview.expand", { name: escapeHtml(name) })}" aria-expanded="${open}"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ""}</span>
+    <span class="bl-name"><span class="bl-label">${escapeHtml(name)}</span>${warn ? `<span class="warn-dot" title="${t("overview.anItemIsOverBudget")}"></span>` : ""}${carried
+      ? `<span class="carried-chip" title="${t("overview.carriedOverFrom", { amount: money(carried), month: monthName(shiftMonth(state.month, -1)) })}">+${money(carried)}</span>` : ""}</span>
     <div class="bar"><span style="width:${pct}%"></span></div>
-    <span class="bl-left">${over ? `${money(spent - avail)} over` : `${money(avail - spent)} left`}</span>
-    <span class="bl-of muted">of ${money(avail)}</span>
+    <span class="bl-left">${over ? t("common.over", { amount: money(spent - avail) }) : t("common.left", { amount: money(avail - spent) })}</span>
+    <span class="bl-of muted">${t("common.of", { amount: money(avail) })}</span>
     <span class="bl-carry">${carry}</span>
   </div>`;
 }
@@ -218,21 +229,21 @@ function renderBudgets() {
   const { groups, totals } = state.data;
   const rows = groups.map(budgetGroup);
   if (totals.outside > 0) {
-    rows.push(`<div class="bl-group"><div class="bl-row level-0 uncat-row ${state.filter?.key === "u" ? "filtered" : ""}" data-filter="u" data-label="Uncategorized"
-        title="Spent outside any budget">
-      <span class="bl-toggle"></span><span class="bl-name">Uncategorized</span><span></span>
-      <span class="bl-left">${money(totals.outside)}</span><span class="bl-of muted">spent</span><span></span>
+    rows.push(`<div class="bl-group"><div class="bl-row level-0 uncat-row ${state.filter?.key === "u" ? "filtered" : ""}" data-filter="u" data-label="${t("common.noBudget")}"
+        title="${t("overview.spentOutsideAnyBudget")}">
+      <span class="bl-toggle"></span><span class="bl-name">${t("common.noBudget")} ${helpTip("no-budget")}</span><span></span>
+      <span class="bl-left">${money(totals.outside)}</span><span class="bl-of muted">${t("overview.spent")}</span><span></span>
     </div></div>`);
   }
   $("#carried-total").hidden = !totals.carried_in;
-  $("#carried-total").textContent = `+${money(totals.carried_in)} carried over from ${monthOnly(shiftMonth(state.month, -1), "long")}`;
+  $("#carried-total").textContent = t("overview.carriedTotal", { amount: money(totals.carried_in), month: monthOnly(shiftMonth(state.month, -1), "long") });
   const collapsible = groups.filter((g) => g.has_items);
   $("#expand-all").hidden = !collapsible.length;
-  $("#expand-all").textContent = collapsible.every((g) => expanded.has(g.id)) ? "Collapse all" : "Expand all";
+  $("#expand-all").textContent = collapsible.every((g) => expanded.has(g.id)) ? t("overview.collapseAll") : t("overview.expandAll");
   $("#budgets").innerHTML = rows.length ? rows.join("")
     : `<div class="setup">
-        <p>No budgets for ${monthName(state.month)} yet.</p>
-        <button class="primary-btn" data-open-manager>Set up budgets</button>
+        <p>${t("overview.noBudgetsForYet", { month: monthName(state.month) })}</p>
+        <button class="primary-btn" data-open-manager>${t("common.setUpBudgets")}</button>
       </div>`;
 }
 
@@ -281,7 +292,7 @@ function matchesSearch(t) {
   if (type !== "all" && (isTransfer(t) ? "transfer" : t.kind) !== type) return false;
   // Every word must match: text in the payee, note or budget names, or an amount.
   const text = [t.payee, t.description, ...t.splits.flatMap((s) => [s.category, s.item]),
-    isTransfer(t) ? "savings" : "", uncategorized(t) > 0 && t.kind === "expense" ? "uncategorized" : ""]
+    isTransfer(t) ? T("overview.savings") : "", uncategorized(t) > 0 && t.kind === "expense" ? T("common.noBudget") : ""]
     .filter(Boolean).join(" ").toLowerCase();
   return query.toLowerCase().split(/\s+/).filter(Boolean).every((word) => {
     const amount = parseAmount(word);
@@ -299,10 +310,10 @@ function dayTotal(list) {
 
 function dayLabel(iso) {
   const now = new Date();
-  if (iso === isoDate(now)) return "Today";
-  if (iso === isoDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))) return "Yesterday";
+  if (iso === isoDate(now)) return t("common.today");
+  if (iso === isoDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))) return t("overview.yesterday");
   const d = new Date(iso + "T00:00");
-  return d.toLocaleDateString(DATE_LOCALE, { weekday: "long", day: "numeric", month: "long", ...(d.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }) });
+  return cap(d.toLocaleDateString(DATE_LOCALE, { weekday: "long", day: "numeric", month: "long", ...(d.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }) }));
 }
 
 function transactionRow(t) {
@@ -311,7 +322,7 @@ function transactionRow(t) {
   if (isTransfer(t)) {
     return `<li class="expense transfer ${selected}" data-id="${t.id}" tabindex="0">${check}
       <div class="what">
-        <span class="title">${t.kind === "save" ? "Moved to savings" : "Taken from savings"}</span>
+        <span class="title">${t.kind === "save" ? T("overview.transferToSavings") : T("overview.transferFromSavings")}</span>
         ${t.description ? `<span class="details muted">${escapeHtml(t.description)}</span>` : ""}
       </div>
       <span class="amount">${t.kind === "save" ? "→" : "←"} ${money(t.amount)}</span>
@@ -321,13 +332,13 @@ function transactionRow(t) {
   const income = t.kind === "income";
   const rest = uncategorized(t);
   const parts = t.splits.map((s) => escapeHtml(s.item || s.category) + (t.splits.length > 1 || rest ? ` ${money(s.amount)}` : ""));
-  if (income && parts.length) parts[0] = `Added to ${parts[0]}`;
-  if (rest > 0) parts.push(`<span class="uncat">${income ? "Income" : "Uncategorized"}${t.splits.length ? ` ${money(rest)}` : ""}</span>`);
+  if (income && parts.length) parts[0] = T("overview.addedTo", { budget: parts[0] });
+  if (rest > 0) parts.push(`<span class="uncat">${income ? T("common.income") : T("common.noBudget")}${t.splits.length ? ` ${money(rest)}` : ""}</span>`);
   const details = [t.payee && t.description ? escapeHtml(t.description) : "", parts.join(" + "),
-    t.paid_date ? `paid ${shortDate(t.paid_date)}` : ""].filter(Boolean);
+    t.paid_date ? T("overview.paid", { date: shortDate(t.paid_date) }) : ""].filter(Boolean);
   return `<li class="expense ${income ? "income" : ""} ${selected}" data-id="${t.id}" tabindex="0">${check}
     <div class="what">
-      <span class="title">${escapeHtml(t.payee || t.description || "Expense")}</span>
+      <span class="title">${escapeHtml(t.payee || t.description || T("common.expense"))}</span>
       <span class="details muted">${details.join(" · ")}</span>
     </div>
     <span class="amount">${income ? "+ " : ""}${money(t.amount)}</span>
@@ -344,24 +355,25 @@ function renderTransactions() {
   const source = search.allMonths && searching && state.allTransactions ? state.allTransactions : monthly;
   const shown = source.filter((t) => matchesFilter(t) && matchesSearch(t));
   $("#filter").hidden = !filter;
-  if (filter) $("#filter").innerHTML = `${escapeHtml(filter.label)} <button class="clear-filter" aria-label="Show all spending">×</button>`;
-  $("#count").textContent = filter || searching ? `${shown.length} of ${source.length}` : monthly.length ? plural(monthly.length, "transaction") : "";
+  if (filter) $("#filter").innerHTML = `${escapeHtml(filter.label)} <button class="clear-filter" aria-label="${t("overview.showAllSpending")}">×</button>`;
+  $("#count").textContent = filter || searching ? t("overview.of", { shown: shown.length, total: source.length })
+    : monthly.length ? t("common.transactionCount", { count: monthly.length }) : "";
   $("#select-btn").hidden = selecting || !shown.length;
   // Export: what the list shows, or every transaction (a menu, see below). While selecting,
   // the selection bar's Export takes its place, for the selected ones.
   $("#csv-btn").hidden = selecting || !shown.length;
   exportList = { shown, everything: shown.length === monthly.length && source === monthly };
   $("#selection-bar").hidden = !selecting;
-  $("#selection-count").textContent = selected.size ? `${selected.size} selected` : "Select transactions to export or delete";
+  $("#selection-count").textContent = selected.size ? t("overview.selected", { n: selected.size }) : t("overview.selectTransactionsToExportOr");
   $("#select-delete").disabled = !selected.size;
   $("#select-all").hidden = shown.every((t) => selected.has(t.id));
   $("#select-export").classList.toggle("disabled", !selected.size);
   $("#select-export").setAttribute("aria-disabled", String(!selected.size));
   $("#select-export").href = `/api/transactions-csv?ids=${[...selected].join(",")}&decimal=${decimal}`;
   $("#empty").hidden = shown.length > 0;
-  const where = source === monthly ? monthName(state.month) : "any month";
-  $("#empty").textContent = search.query ? `No transactions matching “${search.query}” in ${where}.`
-    : filter || searching ? `No matching transactions in ${where}.` : "Nothing recorded this month yet.";
+  const where = source === monthly ? monthName(state.month) : t("overview.anyMonth");
+  $("#empty").textContent = search.query ? t("overview.noTransactionsMatchingIn", { query: search.query, where })
+    : filter || searching ? t("overview.noMatchingTransactionsIn", { where }) : t("overview.nothingRecordedThisMonthYet");
 
   const days = {};
   for (const t of shown) (days[t.date] ||= []).push(t);
@@ -426,8 +438,8 @@ menu($("#csv-btn"), () => {
   const { shown, everything } = exportList;
   const list = everything ? `month=${state.month}` : `ids=${shown.map((t) => t.id).join(",")}`;
   return `<a class="opt" download href="/api/transactions-csv?${list}&decimal=${decimal}">
-      ${everything ? `${monthName(state.month)}` : "The transactions shown"} <span class="muted">· ${plural(shown.length, "transaction")}</span></a>
-    <a class="opt" download href="/api/transactions-csv?month=&decimal=${decimal}">All transactions <span class="muted">· every month</span></a>`;
+      ${everything ? cap(monthName(state.month)) : t("overview.theTransactionsShown")} <span class="muted">· ${t("common.transactionCount", { count: shown.length })}</span></a>
+    <a class="opt" download href="/api/transactions-csv?month=&decimal=${decimal}">${t("overview.allTransactions")} <span class="muted">· ${t("overview.everyMonth")}</span></a>`;
 });
 
 // Every transaction shown (with the search and filters), ready to export or delete.
@@ -447,15 +459,15 @@ $("#select-cancel").onclick = () => {
   renderTransactions();
 };
 $("#select-delete").onclick = once(async () => {
-  const what = plural(state.selected.size, "transaction");
+  const n = state.selected.size;
   if (!(await confirmDialog({
-    title: `Delete ${what}?`, message: "They're removed for good. Your budgets and balances update right away.",
-    confirm: `Delete ${what}`, danger: true,
+    title: t("overview.deleteSelectedTitle", { count: n }), message: t("overview.theyreRemovedForGoodYour"),
+    confirm: t("overview.deleteSelectedButton", { count: n }), danger: true,
   }))) return;
   await api("/api/transactions-delete", { method: "POST", body: { ids: [...state.selected] } });
   state.selecting = false;
   state.selected.clear();
-  toast(`Deleted ${what}`);
+  toast(t("overview.deletedSelected", { count: n }));
   load();
 });
 

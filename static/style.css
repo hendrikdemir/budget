@@ -39,6 +39,7 @@
   --shadow: 0 16px 40px rgba(54, 73, 88, 0.18);
   --radius: 22px;
   --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%234e6068' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -65,6 +66,7 @@
   --good: #87bba2;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%2316262a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23a9c2b5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
 
@@ -227,7 +229,7 @@ h1 { font-size: 21px; font-weight: 400; margin: 0; }
 .setup { grid-column: 1 / -1; text-align: center; }
 .setup button { justify-self: center; }
 .bl-row {
-  display: grid; grid-template-columns: 22px minmax(170px, 1.6fr) minmax(60px, 1.4fr) 112px 100px 64px;
+  display: grid; grid-template-columns: 22px minmax(170px, 1.6fr) minmax(60px, 1.4fr) 112px 100px 88px;
   gap: 12px; align-items: center; padding: 9px 8px; margin: 0 -8px; border-radius: 14px;
   font-size: 14px; cursor: pointer;
 }
@@ -250,7 +252,7 @@ h1 { font-size: 21px; font-weight: 400; margin: 0; }
 .chev.open { transform: rotate(90deg); }
 .warn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger-solid); flex: none; }
 /* Carry-over control: quiet until hovered, unless it's switched on. */
-.carry { background: none; border: 0; padding: 0; font-size: 12px; color: var(--muted); cursor: pointer; text-align: right; opacity: 0; transition: opacity 0.15s; }
+.carry { background: none; border: 0; padding: 0; font-size: 12px; color: var(--muted); cursor: pointer; text-align: right; white-space: nowrap; opacity: 0; transition: opacity 0.15s; }
 .bl-carry .carry { font-size: 13px; }
 .bl-row:hover .carry, .carry:focus-visible, .carry.on { opacity: 1; }
 .carry:hover { color: var(--accent); }
@@ -434,9 +436,16 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
 /* Budgets editor */
 #manager-body { display: grid; gap: 16px; margin-bottom: 16px; }
 .mgr-cat { display: grid; gap: 6px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-.mgr-row { display: grid; grid-template-columns: 1fr 110px 44px 28px; gap: 8px; align-items: center; }
-.mgr-labels { font-size: 11px; color: var(--muted); font-weight: 500; margin-bottom: -8px; }
-.mgr-labels span:nth-child(3) { text-align: center; }
+.mgr-row { display: grid; grid-template-columns: 1fr 110px 80px 28px; gap: 8px; align-items: center; }
+/* Column headings, like the dialog's field labels, lined up with the text in each column. */
+.mgr-labels { padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.mgr-labels .label { line-height: 1.3; }
+.mgr-label-amount { padding-left: 13px; }  /* where the text in the amount field starts */
+.help-label {
+  justify-self: center; background: none; border: 0; padding: 0; font: inherit; font-size: 13px; color: var(--muted); cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 3px;
+}
+.help-label:hover { color: var(--accent); }
 .carry-default { display: flex; justify-content: center; align-items: center; }
 .carry-default input { accent-color: var(--accent); }
 .mgr-row.ended input { opacity: 0.55; }
@@ -665,14 +674,83 @@ dialog h2 { margin: 0; font-size: 20px; font-weight: 400; }
   .bl-row .bar { grid-column: 2 / 4; grid-row: 2; }
   .bl-of { display: none; }
   .bl-carry { grid-row: 1; grid-column: 4; }
+  .carry-word { display: none; }  /* just ↪ here; its title says what it does */
   .account-row { grid-template-columns: 1fr auto; }
   .account-row .balance-status { grid-column: 1; grid-row: 2; }
   .account-row .balance-action { grid-column: 2; grid-row: 2; text-align: right; }
   .fields { grid-template-columns: 1fr; }
-  .mgr-row { grid-template-columns: 1fr 90px 36px 28px; }
+  .mgr-row { grid-template-columns: 1fr 84px 44px 28px; }
+  .help-label { font-size: 12px; line-height: 1.2; text-align: center; }
   .bank-fields { grid-template-columns: 1fr; }
   .outlook-summary { grid-template-columns: 1fr; }
   .plan-list li[data-plan] { grid-template-columns: 1fr auto; row-gap: 2px; }
   .plan-list li .muted { grid-column: 1; grid-row: 2; }
   .plan-list li .plan-amount { grid-row: 1 / 3; grid-column: 2; }
 }
+
+/* ---- Only the basics (Settings › Budget shows) ---- */
+/* Features beyond the basics have class full-only. In budget rows they keep their place, so the columns line up. */
+[data-mode="simple"] .full-only:not(.keep):not(.mgr-row > *) { display: none !important; }
+[data-mode="simple"] .mgr-row > .full-only { visibility: hidden; }
+
+/* ---- "?" explanations (help.js) ---- */
+.help-tip {
+  display: inline-grid; place-items: center; width: 18px; height: 18px; padding: 0; margin: 0 2px; vertical-align: 1px;
+  border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--muted);
+  font-size: 11px; font-weight: 600; line-height: 1; cursor: pointer; flex: none;
+}
+.help-tip:hover { color: var(--accent); border-color: var(--accent); }
+.help-pop { max-width: min(320px, calc(100vw - 16px)); padding: 10px 14px; }
+.help-text { margin: 0; font-size: 13px; line-height: 1.45; font-weight: 400; color: var(--text); white-space: normal; }
+
+/* ---- A feature offered once it's useful (guide.js) ---- */
+.offer { display: flex; align-items: center; gap: 16px; }
+.offer-text { display: grid; gap: 2px; flex: 1; }
+.offer-text b { font-weight: 500; }
+.offer-text .muted { font-size: 13px; }
+.offer-actions { display: flex; align-items: center; gap: 14px; flex: none; }
+@media (max-width: 640px) {
+  .offer { flex-direction: column; align-items: stretch; }
+  .offer-actions { justify-content: flex-end; }
+}
+
+/* ---- Income and budgets in Edit budgets ---- */
+.budget-fit { display: grid; gap: 2px; margin: 4px 0 14px; padding: 12px 16px; border-radius: 18px; background: var(--accent-soft); }
+.budget-fit:empty { display: none; }
+.fit-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 30px; font-size: 14px; }
+.fit-amount { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+.fit-amount .link-btn { padding: 0; }
+.fit-result { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 6px; font-weight: 500; }
+.fit-result.short, .fit-note { color: var(--danger); }
+.fit-note { margin: 2px 0 0; font-size: 13px; }
+.fit-why { margin: 4px 0 0; font-size: 13px; }
+.fit-income { display: flex; align-items: flex-start; gap: 10px; }
+.fit-income .field { flex: 1; display: grid; gap: 4px; }
+
+/* ---- Common budgets to start from ---- */
+.starter { display: grid; gap: 8px; margin-bottom: 14px; }
+.starter-intro { display: grid; gap: 2px; margin: 0 0 4px; }
+.starter-intro b { font-weight: 500; }
+.starter-intro .muted { font-size: 13px; }
+.starter-row { grid-template-columns: 1fr 110px; }
+.starter-foot { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.starter .error:empty { display: none; }
+
+/* ---- Language in Settings ---- */
+#language-select {
+  width: 100%; height: 40px; padding: 0 40px 0 12px; font: inherit; color: inherit; cursor: pointer;
+  -webkit-appearance: none; appearance: none;  /* the browser's own arrow sits against the edge */
+  background: var(--input) var(--chevron) right 12px center / 16px no-repeat;
+  border: 1px solid var(--border); border-radius: 14px;
+}
+#language-select:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+@media (max-width: 640px) {
+  .fit-income { flex-wrap: wrap; }
+  .fit-income .field { flex-basis: 100%; }
+}
+.starter-group { display: grid; gap: 6px; }
+.starter-head { grid-template-columns: 1fr; }
+.starter .mgr-head input.name { font-weight: 500; }
+/* With only the basics, the carry-over column takes no room. */
+[data-mode="simple"] .mgr-row:not(.starter-row):not(.starter-head) { grid-template-columns: 1fr 110px 0 28px; }
+@media (max-width: 640px) { [data-mode="simple"] .mgr-row:not(.starter-row):not(.starter-head) { grid-template-columns: 1fr 84px 0 28px; } }

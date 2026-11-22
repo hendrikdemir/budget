@@ -1,5 +1,6 @@
 // A small line chart: months on x, money (cents) on y, a crosshair and tooltip on hover.
 // Used for the balance development and the savings outlook.
+import { t } from "./i18n.js";
 import { money, monthOnly } from "./format.js";
 
 // series: [{ name, values (cents, null = no value), cls, dots = true, dotCls, against }]
@@ -63,7 +64,7 @@ export function lineChart(el, months, series, options = {}) {
   // Paths break where a value is missing.
   const path = (values) => values.map((v, i) => (v === null ? "" : `${i && values[i - 1] !== null ? "L" : "M"}${x(i)},${y(v)}`)).join("");
 
-  el.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="${series.map((s) => s.name).join(" and ")} per month">
+  el.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="${t("common.perMonth", { series: series.map((s) => s.name).join(" · ") })}">
     ${ticks.map((v) => `<line class="grid ${v === 0 ? "zero" : ""}" x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}"/>
       <text class="axis" x="${pad.l - 8}" y="${y(v) + 4}" text-anchor="end">${money(v, { whole: true })}</text>`).join("")}
     ${months.map((m, i) => `<text class="axis" x="${x(i)}" y="${H - 6}" text-anchor="middle">${monthOnly(m)}</text>`).join("")}

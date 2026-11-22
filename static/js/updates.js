@@ -1,5 +1,6 @@
 // "A new version is available": a banner, a dialog with what's new and how to install it,
 // and the Updates choice in Settings. The server checks GitHub (app/updates.py); the page only shows it.
+import { t } from "./i18n.js";
 import { state } from "./state.js";
 import { $, api } from "./ui.js";
 
@@ -10,22 +11,22 @@ function render() {
   const checking = state.settings.update_check !== "off";
   $("#update-check").checked = checking;
   $("#update-banner").hidden = !release.available || release.skipped || hiddenForNow;
-  $("#update-banner-text").textContent = `Budget ${release.version} is available.`;
+  $("#update-banner-text").textContent = t("updates.budgetIsAvailable", { version: release.version });
   const hint = $("#update-hint");
-  hint.textContent = !checking ? "Budget won't look for new versions. Check the releases on GitHub yourself now and then."
-    : release.available ? `Budget ${release.version} is available.`
-    : release.checked ? "You have the latest version. Budget checks again once a day."
-    : "Budget couldn't check for a new version right now, for example without internet. It tries again later.";
+  hint.textContent = !checking ? t("updates.budgetWontLookForNew")
+    : release.available ? t("updates.budgetIsAvailable", { version: release.version })
+    : release.checked ? t("updates.youHaveTheLatestVersion")
+    : t("updates.budgetCouldntCheckForA");
   if (checking && release.available) {
-    const link = hint.appendChild(Object.assign(document.createElement("button"), { type: "button", className: "link-btn", textContent: "How to update" }));
+    const link = hint.appendChild(Object.assign(document.createElement("button"), { type: "button", className: "link-btn", textContent: t("updates.howToUpdate") }));
     link.style.marginLeft = "6px";
     link.onclick = openUpdate;
   }
 }
 
 function openUpdate() {
-  $("#update-title").textContent = `Update to Budget ${release.version}`;
-  $("#update-current").textContent = `You have Budget ${release.current}.`;
+  $("#update-title").textContent = t("updates.updateToBudget", { version: release.version });
+  $("#update-current").textContent = t("updates.youHaveBudget", { version: release.current });
   $("#update-notes").textContent = release.notes; // plain text, never HTML from the internet
   $("#update-notes-block").hidden = !release.notes;
   $("#update-download").href = release.download;

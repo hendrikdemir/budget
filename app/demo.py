@@ -89,3 +89,5 @@ def seed():
         for name, month, amount in (("Car service", NEXT_MONTH, 48000), ("Summer holiday", f"{YEAR + 1}-06", 180000),
                                     ("New laptop", f"{YEAR + 1}-02", 110000)):
             api.save_plan(conn, None, {"kind": "expense", "name": name, "amount": amount, "start_month": month, "end_month": month}, None)
+        # The made-up household uses every feature, as the screenshots show.
+        api.save_settings(conn, None, {"mode": "full"}, None)

@@ -4,8 +4,9 @@ import { combobox, datePicker } from "./controls.js";
 import {
   currencySymbol, currentMonth, escapeHtml, example, inputAmount, isoDate, money, monthName, monthOnly, parseAmount,
 } from "./format.js";
+import { t } from "./i18n.js";
 import { load, monthData } from "./overview.js";
-import { isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
+import { isSimple, isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
 import { $, api, confirmDialog, once, toast } from "./ui.js";
 
 const form = $("#add-form");
@@ -55,15 +56,15 @@ const payee = combobox(form.payee, {
 });
 
 const splitRows = () => [...document.querySelectorAll(".split")];
-const nonePlaceholder = () => (splitMode ? (kind === "income" ? "Not added to a budget" : "Uncategorized") : "Choose a budget");
+const nonePlaceholder = () => (splitMode ? (kind === "income" ? t("transaction.notOnBudgetPlaceholder") : t("common.noBudget")) : t("transaction.chooseABudget"));
 function addSplitRow(line = null, amount = "") {
   const row = document.createElement("div");
   row.className = "split";
-  row.innerHTML = `<input class="split-line" placeholder="${nonePlaceholder()}" aria-label="Budget">
-    <input class="split-amount" inputmode="decimal" placeholder="Amount" aria-label="Amount for this budget" value="${amount}">
-    <button type="button" class="delete remove-split" aria-label="Remove part">×</button>`;
+  row.innerHTML = `<input class="split-line" placeholder="${nonePlaceholder()}" aria-label="${t("common.budget")}">
+    <input class="split-amount" inputmode="decimal" placeholder="${t("common.amount")}" aria-label="${t("transaction.amountForThisBudget")}" value="${amount}">
+    <button type="button" class="delete remove-split" aria-label="${t("transaction.removePart")}">×</button>`;
   $("#splits").append(row);
-  row.combo = combobox(row.querySelector(".split-line"), { options: budgetOptions, strict: true, empty: "No budget with that name", onSelect: updateSplits });
+  row.combo = combobox(row.querySelector(".split-line"), { options: budgetOptions, strict: true, empty: t("common.noBudgetWithThatName"), onSelect: updateSplits });
   if (line) row.combo.set(line);
   return row;
 }
@@ -84,8 +85,10 @@ function updateSplits() {
   $("#splits").classList.toggle("single", !splitMode);
   // Only when it changes: this also runs when a field loses focus, which happens during
   // a mouse press, and Safari cancels a click on a button whose text was just replaced.
-  const label = splitMode ? "+ Add another part" : kind === "income" ? "+ Divide over budgets" : "+ Split across budgets";
+  const label = splitMode ? t("transaction.addAnotherPart") : kind === "income" ? t("transaction.divideOverBudgets") : t("transaction.splitAcrossBudgets");
   if ($("#add-split").textContent !== label) $("#add-split").textContent = label;
+  // Splitting is one of the features beyond the basics; a transaction that's split already stays editable.
+  $("#add-split").hidden = isSimple() && !splitMode;
   const total = parseAmount(form.amount.value) || 0;
   // The first part whose amount the user hasn't typed follows the rest of the total, so
   // typing the other parts keeps everything adding up.
@@ -97,7 +100,7 @@ function updateSplits() {
     if (input.value !== value) input.value = value;
   }
   const rest = total - splitRows().reduce((sum, r) => sum + (parseAmount(r.querySelector(".split-amount").value) || 0), 0);
-  splitRows().forEach((r) => (r.querySelector(".split-amount").placeholder = rest > 0 ? `Rest ${inputAmount(rest)}` : "Amount"));
+  splitRows().forEach((r) => (r.querySelector(".split-amount").placeholder = rest > 0 ? t("transaction.rest", { amount: inputAmount(rest) }) : t("common.amount")));
   renderImpact();
 }
 
@@ -122,18 +125,18 @@ function renderImpact() {
     const used = line.spent - (own.spent[p.line] || 0);
     // An expense uses up budget; income adds to it.
     const [availAfter, after] = kind === "income" ? [base + p.amount, used] : [base, used + p.amount];
-    const leftText = (s, a) => (s > a ? `${money(s - a)} over` : `${money(a - s)} left`);
+    const leftText = (s, a) => (s > a ? t("common.over", { amount: money(s - a) }) : t("common.left", { amount: money(a - s) }));
     rows.push(`<div class="impact-row ${after > availAfter ? "over" : ""}">
       <span class="name">${escapeHtml(line.label)}${ym !== state.month ? ` <span class="muted">· ${monthOnly(ym)}</span>` : ""}</span>
       <span>${leftText(used, base)} → <b>${leftText(after, availAfter)}</b></span>
       <div class="bar"><span style="width:${availAfter ? Math.min(100, (after / availAfter) * 100) : 100}%"></span></div>
     </div>`);
   }
-  if (unassigned > 0) rows.push(`<div class="impact-row muted"><span>${money(unassigned)} ${kind === "income" ? "not added to a budget" : "uncategorized"}</span></div>`);
+  if (unassigned > 0) rows.push(`<div class="impact-row muted"><span>${kind === "income" ? t("transaction.amountNotOnBudget", { amount: money(unassigned) }) : t("transaction.withoutABudget", { amount: money(unassigned) })}</span></div>`);
   // Always show something here, so the form doesn't jump while typing.
   if (!rows.length) {
     rows.push(`<div class="impact-row muted"><span>${kind === "income"
-      ? "Enter an amount to see how it adds to a budget" : "Enter an amount to see how it affects your budget"}</span></div>`);
+      ? t("transaction.previewIncomeHint") : t("transaction.previewExpenseHint")}</span></div>`);
   }
   $("#impact").innerHTML = rows.join("");
 }
@@ -144,12 +147,12 @@ async function renderLeftoverHint() {
   const ym = form.date.value.slice(0, 7);
   const o = (await monthData(ym, editing?.id)).outlook;
   const saveable = o.balance === null ? o.rest : o.saveable;
-  const parts = [`Unspent budget in ${monthName(ym)} that isn't carried over: <b>${money(o.unspent)}</b>`];
-  if (o.saved) parts.push(`already saved ${money(o.saved)}`);
-  if (o.keep_for_next) parts.push(`${money(o.keep_for_next)} is needed for ${monthOnly(o.next, "long")}`);
+  const parts = [t("transaction.unspentBudgetInThatIsnt", { month: monthName(ym), amount: money(o.unspent) })];
+  if (o.saved) parts.push(t("transaction.alreadySaved", { amount: money(o.saved) }));
+  if (o.keep_for_next) parts.push(t("transaction.isNeededFor", { amount: money(o.keep_for_next), month: monthOnly(o.next, "long") }));
   $("#leftover-hint").innerHTML = `
     <span>${parts.join(" · ")}</span>
-    ${saveable > 0 ? `<button type="button" class="link-btn" id="use-leftover" data-amount="${saveable}">Use ${money(saveable)}</button>` : ""}`;
+    ${saveable > 0 ? `<button type="button" class="link-btn" id="use-leftover" data-amount="${saveable}">${t("transaction.use", { amount: money(saveable) })}</button>` : ""}`;
 }
 $("#leftover-hint").onclick = (e) => {
   const btn = e.target.closest("#use-leftover");
@@ -184,7 +187,7 @@ form.addEventListener("input", (e) => {
 });
 form.addEventListener("focusout", updateSplits);
 form.amount.addEventListener("blur", () => {
-  if (form.amount.value.trim() && !(parseAmount(form.amount.value) > 0)) showError("amount", `Enter the amount as a number, like ${example("12.50")}.`);
+  if (form.amount.value.trim() && !(parseAmount(form.amount.value) > 0)) showError("amount", t("transaction.enterTheAmountAsA", { example: example("12.50") }));
 });
 
 function showError(name, message) {
@@ -202,18 +205,19 @@ function clearError(name) {
 // Labels and fields that differ between expenses, income and savings transfers.
 function applyKind() {
   const income = kind === "income", transfer = isTransferKind();
-  const noun = transfer ? "transfer" : income ? "income" : "expense";
+  const titles = transfer ? [t("transaction.editTransfer"), t("transaction.newTransfer"), t("transaction.addTransfer")]
+    : income ? [t("transaction.editIncome"), t("transaction.newIncome"), t("transaction.addIncome")] : [t("transaction.editExpense"), t("transaction.newExpense"), t("transaction.addExpense")];
   document.querySelectorAll("#kind-options button").forEach((b) => b.classList.toggle("active", b.dataset.kind === (transfer ? "transfer" : kind)));
   document.querySelectorAll("#direction-options button").forEach((b) => b.classList.toggle("active", b.dataset.direction === kind));
   $("#transfer-field").hidden = !transfer;
   $("#payee-field").hidden = transfer;
   $("#budget-field").hidden = transfer;
   renderLeftoverHint();
-  $("#expense-title").textContent = editing ? `Edit ${noun}` : `New ${noun}`;
-  $("#expense-submit").textContent = editing ? "Save changes" : `Add ${noun}`;
-  $("#payee-label").textContent = income ? "Received from" : "Paid to";
-  form.payee.placeholder = income ? "e.g. Employer" : "e.g. Supermarket";
-  $("#budget-label").textContent = income ? "Add to budget" : "Budget";
+  $("#expense-title").textContent = editing ? titles[0] : titles[1];
+  $("#expense-submit").textContent = editing ? t("transaction.saveChanges") : titles[2];
+  $("#payee-label").textContent = income ? t("common.receivedFrom") : t("common.paidTo");
+  form.payee.placeholder = income ? t("transaction.eGEmployer") : t("transaction.eGSupermarket");
+  $("#budget-label").textContent = income ? t("transaction.addToBudget") : t("common.budget");
   splitRows().forEach((r) => (r.querySelector(".split-line").placeholder = nonePlaceholder()));
   clearError("payee");
   updateSplits();
@@ -247,9 +251,11 @@ export async function openTransaction(transaction = null, newKind = "expense", p
     form.description.value = transaction.description;
     date.set(transaction.date);
     showPaidDate(transaction.paid_date);
+    $(".paid-field").classList.toggle("keep", !!transaction.paid_date); // shown with only the basics too, when it has one
   } else {
     payee.clear();
     showPaidDate(null);
+    $(".paid-field").classList.remove("keep");
     // Default to today when viewing this month, else the 1st of the viewed month.
     date.set(preset.date || (state.month === currentMonth() ? isoDate(new Date()) : `${state.month}-01`));
     if (preset.amount) form.amount.value = inputAmount(preset.amount);
@@ -278,14 +284,14 @@ form.onsubmit = once(async (e) => {
   const parts = currentParts();
   const transfer = isTransferKind();
   const invalid = [];
-  if (!form.amount.value.trim()) invalid.push(["amount", kind === "income" ? "Enter the amount you received." : transfer ? "Enter the amount to move." : "Enter the amount you paid."]);
-  else if (!(total > 0)) invalid.push(["amount", `Enter an amount above zero, like ${example("12.50")}.`]);
-  if (!payee.value && !transfer) invalid.push(["payee", kind === "income" ? "Enter who paid you." : "Enter who you paid."]);
+  if (!form.amount.value.trim()) invalid.push(["amount", kind === "income" ? t("transaction.enterTheAmountYouReceived") : transfer ? t("transaction.enterTheAmountToMove") : t("transaction.enterTheAmountYouPaid")]);
+  else if (!(total > 0)) invalid.push(["amount", t("common.enterAnAmountAboveZero", { example: example("12.50") })]);
+  if (!payee.value && !transfer) invalid.push(["payee", kind === "income" ? t("transaction.enterWhoPaidYou") : t("transaction.enterWhoYouPaid")]);
   if (splitMode && total > 0 && !transfer) {
     const sum = parts.reduce((s, p) => s + (p.amount || 0), 0);
-    if (parts.some((p) => Number.isNaN(p.amount))) invalid.push(["splits", "Enter an amount for each part. You can leave one empty: it gets the rest."]);
-    else if (parts.some((p) => !(p.amount > 0))) invalid.push(["splits", "Each part needs an amount above zero. Remove parts you don't need with ×."]);
-    else if (sum > total) invalid.push(["splits", `The parts add up to ${money(sum)}, which is more than the ${money(total)} total. Lower one of the parts.`]);
+    if (parts.some((p) => Number.isNaN(p.amount))) invalid.push(["splits", t("transaction.enterAnAmountForEach")]);
+    else if (parts.some((p) => !(p.amount > 0))) invalid.push(["splits", t("transaction.eachPartNeedsAnAmount")]);
+    else if (sum > total) invalid.push(["splits", t("transaction.thePartsAddUpTo", { sum: money(sum), total: money(total) })]);
   }
   if (invalid.length) {
     invalid.forEach(([name, message]) => showError(name, message));
@@ -301,21 +307,23 @@ form.onsubmit = once(async (e) => {
   if (editing) await api(`/api/transactions/${editing.id}`, { method: "PUT", body });
   else await api("/api/transactions", { method: "POST", body });
   $("#expense-dialog").close();
-  toast(editing ? "Changes saved"
-    : transfer ? `Moved ${money(total)} ${kind === "save" ? "to" : "from"} savings`
-    : kind === "income" ? `Added ${money(total)} from ${payee.value}` : `Added ${money(total)} at ${payee.value}`);
+  const params = { amount: money(total), payee: payee.value };
+  toast(editing ? t("transaction.changesSaved")
+    : transfer ? (kind === "save" ? t("transaction.movedToSavings", params) : t("transaction.movedFromSavings", params))
+    : kind === "income" ? t("transaction.addedFrom", params) : t("transaction.addedAt", params));
   state.month = form.date.value.slice(0, 7);
   load();
 });
 
 $("#expense-delete").onclick = once(async () => {
-  const noun = isTransfer(editing) ? "transfer" : editing.kind === "income" ? "income" : "expense";
+  const [title, done] = isTransfer(editing) ? [t("transaction.deleteThisTransfer"), t("transaction.deletedTransfer")]
+    : editing.kind === "income" ? [t("transaction.deleteThisIncome"), t("transaction.deletedIncome")] : [t("transaction.deleteThisExpense"), t("transaction.deletedExpense")];
   if (!(await confirmDialog({
-    title: `Delete this ${noun}?`, message: "It's removed for good. Your budgets and balances update right away.",
-    confirm: "Delete", danger: true,
+    title, message: t("transaction.itsRemovedForGoodYour"),
+    confirm: t("common.delete"), danger: true,
   }))) return;
   await api(`/api/transactions/${editing.id}`, { method: "DELETE" });
   $("#expense-dialog").close();
-  toast(`Deleted ${noun}`);
+  toast(done);
   load();
 });

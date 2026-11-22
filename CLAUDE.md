@@ -52,10 +52,12 @@ pywebview and PyInstaller are used for the desktop app. There is no web build st
   (one with its Budget.dmg or Budget-setup.exe, so a release can be for the Mac or Windows only); the page
   only tells the user and explains how to install it. `BUDGET_RELEASES_URL` (e.g.
   `packaging/test-release.json`, used by the `budget-update` preview) fakes a release for testing.
-- `app/api.py`: request handlers; validation helpers are in `app/money.py`.
+- `app/api.py`: request handlers; validation helpers are in `app/money.py`. `app/i18n.py`: the
+  server's side of the language files.
 - `static/js/`: ES modules. `main.js` starts the page; `overview.js`, `transaction.js`,
-  `budget-editor.js`, `accounts.js`, `history.js`, `outlook.js`, `settings.js`, `bank-import.js`, `updates.js`, `guide.js` (getting started) each own a part of the UI;
-  `format.js`, `ui.js`, `controls.js`, `chart.js`, `state.js` are shared helpers.
+  `budget-editor.js`, `accounts.js`, `history.js`, `outlook.js`, `settings.js`, `bank-import.js`, `updates.js`, `guide.js` (getting started and
+  feature offers) each own a part of the UI; `format.js`, `ui.js`, `controls.js`, `chart.js`, `state.js`, `help.js` are shared
+  helpers, and `i18n.js` loads the language (it runs first: other modules can translate at load time).
 
 ## Conventions
 
@@ -74,8 +76,20 @@ pywebview and PyInstaller are used for the desktop app. There is no web build st
   Transactions are stored in the `expenses` table with `kind` expense/income/save/withdraw.
 - History-based data (budgets, plan amounts) changes "from a month onward"; earlier
   months must never change.
-- UI text is English, including month and day names (`DATE_LOCALE` in `format.js`). Errors
-  shown to the user are friendly and say what to do.
+- **Every text is in a language file**, never in code: `static/lang/en.json` (the source) and a file
+  per translation (`nl.json`), under named keys grouped by part of the app, in i18next's JSON format
+  (`{{name}}` values, `_one`/`_other` plurals). The page uses `t("budgets.editBudgets", { … })` and
+  `data-i18n…` attributes in `index.html`; the server raises `ApiError("errors.…", **params)` and
+  sends it in the page's language (`app/i18n.py`). Add or change English in `en.json` and the same
+  key in every other language; `tests/test_i18n.py` fails on missing, unused or mismatched keys.
+  Month and day names follow the language (`DATE_LOCALE` in `format.js`). Errors shown to the user
+  are friendly and say what to do.
+- **Simple and Extended**: Settings › Mode is Simple (`mode` simple, the default for new data) or
+  Extended (`mode` full, every feature). Features beyond the basics get class `full-only` (or check `isSimple()`);
+  `offers()` in `app/api.py` suggests them once they're useful. Simple mode starts with
+  budgets and spending only; the bank and savings balances are offered later, and their rows
+  show once they're set up. Plain-language explanations are
+  "?" buttons from `help.js`.
 - Styles: CSS custom properties in `static/style.css`, light and dark themes,
   one fixed palette of greens and slate blues (#c9e4ca, #87bba2, #55828b, #3b6064, #364958),
   a soft glow behind frosted cards, and red only for being over budget. One font everywhere: Geist,

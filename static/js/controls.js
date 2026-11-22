@@ -1,6 +1,7 @@
 // Custom form controls (month picker, date picker, combobox) that look the same in
 // every browser. They share one popover at a time, positioned under their anchor.
-import { DATE_LOCALE, currentMonth, escapeHtml, isoDate, monthName, monthOnly, pad, shiftMonth } from "./format.js";
+import { DATE_LOCALE, cap, currentMonth, escapeHtml, isoDate, monthName, monthOnly, pad, shiftMonth } from "./format.js";
+import { t } from "./i18n.js";
 
 const popovers = {
   current: null, // { anchor, panel }
@@ -43,6 +44,18 @@ document.addEventListener("scroll", (e) => {
 }, true);
 addEventListener("resize", () => popovers.close());
 
+// A short explanation under `anchor` (a "?" button, see help.js), in its dialog if it's in one.
+export function popup(anchor, html) {
+  const host = anchor.closest("dialog") || document.body;
+  let panel = host.querySelector(":scope > .help-pop");
+  if (!panel) panel = host.appendChild(Object.assign(document.createElement("div"), { className: "popover help-pop", hidden: true }));
+  if (popovers.isOpen(panel) && popovers.current.anchor === anchor) return popovers.close();
+  panel.innerHTML = html;
+  panel.setAttribute("role", "tooltip");
+  popovers.open(anchor, panel);
+  panel.style.minWidth = "";
+}
+
 function makePanel(anchor, className) {
   const panel = document.createElement("div");
   panel.className = `popover ${className}`;
@@ -78,13 +91,13 @@ export function monthPicker(button, { get, set }) {
   const render = () => {
     panel.innerHTML = `
       <div class="pop-head">
-        <button type="button" class="pop-nav" data-year="-1" aria-label="Previous year">‹</button>
+        <button type="button" class="pop-nav" data-year="-1" aria-label="${t("common.previousYear")}">‹</button>
         <b>${year}</b>
-        <button type="button" class="pop-nav" data-year="1" aria-label="Next year">›</button>
+        <button type="button" class="pop-nav" data-year="1" aria-label="${t("common.nextYear")}">›</button>
       </div>
       <div class="month-grid">${Array.from({ length: 12 }, (_, i) => {
         const ym = `${year}-${pad(i + 1)}`;
-        return `<button type="button" data-month="${ym}" class="${ym === get() ? "selected" : ""} ${ym === currentMonth() ? "today" : ""}">${monthOnly(ym)}</button>`;
+        return `<button type="button" data-month="${ym}" class="${ym === get() ? "selected" : ""} ${ym === currentMonth() ? "today" : ""}">${cap(monthOnly(ym))}</button>`;
       }).join("")}</div>`;
   };
   button.addEventListener("click", () => {
@@ -114,7 +127,7 @@ export function datePicker(button, input, { onChange } = {}) {
   const label = () => {
     const d = new Date(input.value + "T00:00");
     const sameYear = d.getFullYear() === new Date().getFullYear();
-    button.textContent = d.toLocaleDateString(DATE_LOCALE, { weekday: "short", day: "numeric", month: "long", ...(sameYear ? {} : { year: "numeric" }) });
+    button.textContent = cap(d.toLocaleDateString(DATE_LOCALE, { weekday: "short", day: "numeric", month: "long", ...(sameYear ? {} : { year: "numeric" }) }));
   };
   const render = () => {
     const [y, m] = view.split("-").map(Number);
@@ -130,13 +143,13 @@ export function datePicker(button, input, { onChange } = {}) {
       }).join("");
     panel.innerHTML = `
       <div class="pop-head">
-        <button type="button" class="pop-nav" data-shift="-1" aria-label="Previous month">‹</button>
-        <b>${monthName(view)}</b>
-        <button type="button" class="pop-nav" data-shift="1" aria-label="Next month">›</button>
+        <button type="button" class="pop-nav" data-shift="-1" aria-label="${t("common.previousMonth")}">‹</button>
+        <b>${cap(monthName(view))}</b>
+        <button type="button" class="pop-nav" data-shift="1" aria-label="${t("common.nextMonth")}">›</button>
       </div>
       <div class="cal-grid weekdays">${weekdays}</div>
       <div class="cal-grid">${cells}</div>
-      <div class="pop-foot"><button type="button" class="link-btn" data-date="${today}">Today</button></div>`;
+      <div class="pop-foot"><button type="button" class="link-btn" data-date="${today}">${t("common.today")}</button></div>`;
   };
   button.addEventListener("click", () => {
     if (popovers.isOpen(panel)) return popovers.close();
@@ -168,7 +181,7 @@ export function datePicker(button, input, { onChange } = {}) {
 // Combobox: a text input with a filterable list of options.
 // options() returns [{ value, label, group?, display? }]. With strict: true, only a listed
 // option can be chosen (value is null until one is); otherwise any text is allowed.
-export function combobox(input, { options, strict = false, onSelect, empty = "No matches" }) {
+export function combobox(input, { options, strict = false, onSelect, empty = t("common.noMatches") }) {
   const panel = makePanel(input, "combo-pop");
   input.autocomplete = "off";
   input.setAttribute("role", "combobox");

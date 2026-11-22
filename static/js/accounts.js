@@ -2,9 +2,11 @@
 // (expected balance, checks against the bank, starting point). Their history is on the History page.
 import { datePicker } from "./controls.js";
 import { currencySymbol, example, inputAmount, isoDate, money, parseAmount, shortDate } from "./format.js";
+import { t } from "./i18n.js";
+import { isSimple } from "./state.js";
 import { $, api, fieldError, once, toast } from "./ui.js";
 
-const ACCOUNTS = { bank: "Bank account", savings: "Savings" };
+const ACCOUNTS = { bank: t("common.bankAccount"), savings: t("common.savings") };
 const balances = {}; // per account: { start, start_date, expected, checks: [{ id, date, actual, expected, difference }] }
 let account = "bank"; // the account open in the dialog
 const checkForm = $("#check-form");
@@ -18,10 +20,10 @@ export async function loadBalances() {
 }
 
 function differenceText(diff) {
-  if (diff === 0) return "Matches";
+  if (diff === 0) return t("accounts.matches");
   return diff < 0
-    ? `${money(-diff)} less in your bank — a transaction may be missing`
-    : `${money(diff)} more in your bank — a transaction may be missing`;
+    ? t("accounts.lessInYourBankA", { amount: money(-diff) })
+    : t("accounts.moreInYourBankA", { amount: money(diff) });
 }
 
 function renderRows() {
@@ -29,20 +31,23 @@ function renderRows() {
     const row = $(`.account-row[data-account="${a}"]`);
     const set = b.start !== null;
     const last = b.checks.find((c) => c.difference !== null);
-    row.querySelector(".balance-amount").textContent = b.expected !== null ? money(b.expected) : set ? "—" : "Not set up";
+    // In Simple mode an account appears once it's tracked (see the bank and savings offers).
+    row.hidden = !set && isSimple();
+    row.querySelector(".balance-amount").textContent = b.expected !== null ? money(b.expected) : set ? "—" : t("accounts.notSetUp");
     const status = row.querySelector(".balance-status");
     status.classList.remove("ok", "off");
-    if (!set) status.textContent = "Add a starting balance to track it";
-    else if (!last) status.textContent = "Expected today · not checked yet";
+    if (!set) status.textContent = t("accounts.addAStartingBalanceTo");
+    else if (!last) status.textContent = t("accounts.expectedTodayNotCheckedWith");
     else if (last.difference === 0) {
-      status.textContent = `✓ Matched on ${shortDate(last.date)}`;
+      status.textContent = t("accounts.matchedYourBankOn", { date: shortDate(last.date) });
       status.classList.add("ok");
     } else {
-      status.textContent = `${money(Math.abs(last.difference))} off on ${shortDate(last.date)}`;
+      status.textContent = t("accounts.offOn", { amount: money(Math.abs(last.difference)), date: shortDate(last.date) });
       status.classList.add("off");
     }
-    row.querySelector(".balance-action").textContent = set ? "Check ›" : "Set up ›";
+    row.querySelector(".balance-action").textContent = set ? t("common.check") : t("accounts.setUp");
   }
+  $(".accounts").hidden = [...document.querySelectorAll(".account-row")].every((row) => row.hidden);
   if ($("#balance-dialog").open) renderDialog();
 }
 
@@ -51,24 +56,26 @@ function renderDialog() {
   const set = b.start !== null;
   $("#balance-title").textContent = ACCOUNTS[account];
   $("#balance-summary").innerHTML = set
-    ? `<span class="label">Expected today</span>
+    ? `<span class="label">${t("accounts.expectedToday")}</span>
        <span class="balance-amount">${b.expected !== null ? money(b.expected) : "—"}</span>
-       <span class="muted">${money(b.start)} at the start of ${shortDate(b.start_date)}, plus ${account === "bank"
-         ? "income and minus expenses since, and transfers to and from savings" : "transfers to and from savings since"}.</span>`
-    : `<span class="muted">Set a starting point first: the balance on a day from which you'll register everything.</span>`;
+       <span class="muted">${account === "bank"
+         ? t("accounts.howBankIsCounted", { amount: money(b.start), date: shortDate(b.start_date) })
+         : t("accounts.howSavingsAreCounted", { amount: money(b.start), date: shortDate(b.start_date) })}</span>`
+    : `<span class="muted">${t("accounts.firstEnterAStartingBalance")}</span>`;
   checkForm.hidden = !set;
   $("#check-list").innerHTML = b.checks.map((c) => `
     <li class="${c.difference === null ? "" : c.difference === 0 ? "ok" : "off"}">
       <span class="check-date">${shortDate(c.date)}</span>
       <span class="check-actual">${money(c.actual)}</span>
-      <span class="check-result">${c.difference === null ? "Before the starting point" : differenceText(c.difference)}</span>
-      <button class="delete" data-check="${c.id}" aria-label="Remove this check">×</button>
+      <span class="check-result">${c.difference === null ? t("accounts.beforeTheStartingBalance") : differenceText(c.difference)}</span>
+      <button class="delete" data-check="${c.id}" aria-label="${t("accounts.removeThisCheck")}">×</button>
     </li>`).join("");
 }
 
 
-document.querySelectorAll(".account-row").forEach((row) => (row.onclick = () => {
-  account = row.dataset.account;
+// Opens the dialog of an account ("bank" or "savings"), also from elsewhere (the savings offer).
+export function openAccount(name) {
+  account = name;
   const b = balances[account];
   checkForm.reset();
   startForm.reset();
@@ -82,9 +89,10 @@ document.querySelectorAll(".account-row").forEach((row) => (row.onclick = () => 
   renderDialog();
   $("#balance-dialog").showModal();
   (b.start === null ? startForm : checkForm).amount.focus();
-}));
+}
+document.querySelectorAll(".account-row").forEach((row) => (row.onclick = () => openAccount(row.dataset.account)));
 
-const balanceHint = () => `Enter the balance as a number, like ${example("1234.56")}. Use a minus for a negative balance: ${example("-250.00")}.`;
+const balanceHint = () => t("accounts.enterTheBalanceAsA", { example: example("1234.56"), negative: example("-250.00") });
 checkForm.onsubmit = once(async (e) => {
   e.preventDefault();
   const amount = parseAmount(checkForm.amount.value);
@@ -93,7 +101,7 @@ checkForm.onsubmit = once(async (e) => {
   checkForm.amount.value = "";
   await loadBalances();
   const result = balances[account].checks[0];
-  toast(result.difference === null ? "Check saved" : result.difference === 0 ? "✓ The balance matches" : "The balance doesn't match");
+  toast(result.difference === null ? t("accounts.checkSaved") : result.difference === 0 ? t("accounts.theBalanceMatches") : t("accounts.theBalanceDoesntMatch"));
 });
 checkForm.oninput = () => fieldError(checkForm, "check", "");
 
@@ -103,7 +111,7 @@ startForm.onsubmit = once(async (e) => {
   if (Number.isNaN(amount)) return fieldError(startForm, "start", balanceHint());
   await api("/api/balance", { method: "PUT", body: { account, date: startForm.date.value, amount } });
   $("#start-section").open = false;
-  toast("Starting point saved");
+  toast(t("accounts.startingBalanceSaved"));
   await loadBalances();
   document.dispatchEvent(new Event("data-changed")); // e.g. the getting-started guide
   checkForm.amount.focus();

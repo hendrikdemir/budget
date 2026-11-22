@@ -2,7 +2,9 @@
 // and the plans it's based on: expected income and planned extra expenses.
 import { lineChart } from "./chart.js";
 import { monthPicker } from "./controls.js";
-import { currencySymbol, currentMonth, escapeHtml, example, inputAmount, isoDate, money, monthName, monthOnly, parseAmount, shiftMonth } from "./format.js";
+import { cap, currencySymbol, currentMonth, escapeHtml, example, inputAmount, isoDate, money, monthName, monthOnly, parseAmount, shiftMonth } from "./format.js";
+import { helpTip } from "./help.js";
+import { t } from "./i18n.js";
 import { openTransaction } from "./transaction.js";
 import { $, api, columnTips, confirmDialog, fieldError, once, tipHead, toast } from "./ui.js";
 
@@ -19,40 +21,43 @@ export async function renderOutlook() {
   $("#outlook-chart-card").hidden = !projection.visible;
   $("#outlook-table").closest(".card").hidden = !projection.visible;
   if (!projection.visible) {
-    $("#outlook-summary").innerHTML = `<p class="muted">Set up the balance of your bank account and savings on the overview to see your outlook.</p>`;
+    $("#outlook-summary").innerHTML = `<p class="muted">${t("outlook.setUpTheBalanceOf")}</p>`;
     return;
   }
   const { rows } = projection;
   buffer = projection.buffer;
-  $("#buffer-label").textContent = `Buffer: ${bufferText()}`;
+  $("#buffer-label").textContent = t("outlook.safetyBuffer", { buffer: bufferText() });
   const lowName = monthName(projection.low_month);
   const below = projection.low_above < 0;
   // Only when savings are needed for next month does it explain anything to show them go down.
   const fromSavings = projection.next_month.short_if_spent > 0;
   $("#outlook-summary").classList.toggle("two-tiles", !fromSavings);
   $("#outlook-summary").innerHTML = `
-    <div class="tile"><span class="label">Savings today</span><span class="tile-value">${money(projection.savings_today)}</span></div>
-    ${fromSavings ? `<div class="tile"><span class="label">After ${monthOnly(rows[1].month, "long")}'s budget</span><span class="tile-value">${money(rows[0].savings)}</span></div>` : ""}
+    <div class="tile"><span class="label">${t("outlook.savingsToday")}</span><span class="tile-value">${money(projection.savings_today)}</span></div>
+    ${fromSavings ? `<div class="tile"><span class="label">${t("outlook.afterSBudget", { month: monthOnly(rows[1].month, "long") })}</span><span class="tile-value">${money(rows[0].savings)}</span></div>` : ""}
     <div class="tile ${below ? "short" : "ok"}">
-      <span class="label">${below ? "Below your buffer" : "Free to spend"}</span>
+      <span class="label">${below ? t("outlook.belowYourSafetyBuffer") : t("outlook.freeToSpend")} ${helpTip(below ? "buffer" : "free")}</span>
       <span class="tile-value">${money(below ? -projection.low_above : rows[0].free)}</span>
       <span class="muted">${below
-        ? `Your savings drop below your buffer from ${monthName(projection.first_below)}${projection.first_below !== projection.low_month
-          ? `, down to ${money(-projection.low_above)} below it in ${lowName}` : ""}.`
-        : `Lowest point in the next year is ${lowName}, so this much can go without dipping below your buffer.`}</span>
+        ? (projection.first_below !== projection.low_month
+          ? t("outlook.dropsBelowFromTo", { month: monthName(projection.first_below), amount: money(-projection.low_above), low: lowName })
+          : t("outlook.dropsBelowFrom", { month: monthName(projection.first_below) }))
+        : t("outlook.lowestPointInTheNext", { month: lowName })}</span>
     </div>${fromSavingsNotice(projection.next_month)}`;
   if ($("#outlook-take")) {
     $("#outlook-take").onclick = () => openTransaction(null, "withdraw", {
-      amount: projection.next_month.short_if_spent, date: isoDate(new Date()), description: `For ${monthName(projection.next_month.month)}`,
+      amount: projection.next_month.short_if_spent, date: isoDate(new Date()), description: t("common.for", { month: monthName(projection.next_month.month) }),
     });
   }
 
   const cell = (v, cls = "") => `<td class="${cls}">${v === undefined ? "—" : money(v)}</td>`;
-  const head = (label) => tipHead(label, COLUMN_TIPS[label]);
+  const tips = COLUMN_TIPS();
+  const columns = [[t("common.month")], [t("common.income"), tips.Income], [t("common.budget"), tips.Budget], [t("outlook.planned"), tips.Planned],
+    [t("common.result"), tips.Result], [t("outlook.expectedSavings"), tips["Expected savings"]], [t("outlook.freeToSpend"), tips["Free to spend"]]];
   $("#outlook-table").innerHTML = `
-    <thead><tr>${["Month", "Income", "Budget", "Planned", "Result", "Expected savings", "Free to spend"].map(head).join("")}</tr></thead>
+    <thead><tr>${columns.map(([label, tip]) => tipHead(label, tip)).join("")}</tr></thead>
     <tbody>${rows.map((r) => `<tr class="${r.now ? "now" : ""} ${r.month === projection.low_month ? "low" : ""}">
-      <td>${monthName(r.month, "short")}${r.now ? ` <span class="muted">now</span>` : ""}</td>
+      <td>${cap(monthName(r.month, "short"))}${r.now ? ` <span class="muted">${t("outlook.now")}</span>` : ""}</td>
       ${cell(r.income)}${cell(r.budget)}${r.planned ? cell(r.planned) : "<td></td>"}
       ${cell(r.result, r.result < 0 ? "neg" : "")}${cell(r.savings, r.above < 0 ? "neg" : "")}${cell(r.free, r.free === 0 ? "muted" : "")}
     </tr>`).join("")}</tbody>`;
@@ -64,33 +69,34 @@ export async function renderOutlook() {
   const low = months.indexOf(projection.low_month);
   const signed = (v) => `${v < 0 ? "−" : "+"}${money(Math.abs(v))}`;
   lineChart($("#outlook-chart"), months, [
-    { name: "Expected savings", values: savings, cls: "line", against: buffers },
-    { name: "Buffer", values: buffers, cls: "line dashed", dots: false },
+    { name: t("outlook.expectedSavings"), values: savings, cls: "line", against: buffers },
+    { name: t("outlook.safetyBufferTitle"), values: buffers, cls: "line dashed", dots: false },
   ], {
     includeZero: true,
     marker: { i: low, from: savings[low], to: buffers[low], cls: below ? "bad" : "",
-      label: below ? `${money(-projection.low_above)} below buffer` : `Free to spend ${money(rows[0].free)}` },
-    bars: { values: rows.map((r) => r.result), label: "Month" },
-    tooltip: (i) => `<b>${monthName(months[i])}</b>
-      <span>${signed(rows[i].result)} ${i === 0 ? "this month, if the rest of the budget is spent" : "this month"}</span>
-      <span>Expected savings: ${money(savings[i])}</span>
-      ${rows[i].above < 0 ? `<span class="tip-bad">${money(-rows[i].above)} below your buffer of ${money(buffers[i])}</span>`
-        : `<span class="tip-layer">Free to spend <b>${money(rows[i].free)}</b></span>
-          <span class="tip-layer">Needed later <b>${money(rows[i].later)}</b></span>
-          <span class="tip-layer">Buffer <b>${money(buffers[i])}</b></span>`}
-      ${i === low ? `<span class="muted">Lowest point: ${below ? `${money(-projection.low_above)} below` : `${money(projection.low_above)} above`} your buffer</span>` : ""}`,
+      label: below ? t("outlook.markerBelowBuffer", { amount: money(-projection.low_above) }) : t("outlook.markerFreeToSpend", { amount: money(rows[0].free) }) },
+    bars: { values: rows.map((r) => r.result), label: t("common.month") },
+    tooltip: (i) => `<b>${cap(monthName(months[i]))}</b>
+      <span>${i === 0 ? t("outlook.thisMonthIfTheRest", { amount: signed(rows[i].result) }) : t("common.thisMonth", { amount: signed(rows[i].result) })}</span>
+      <span>${t("outlook.tipExpectedSavings", { amount: money(savings[i]) })}</span>
+      ${rows[i].above < 0 ? `<span class="tip-bad">${t("outlook.belowYourSafetyBufferOf", { amount: money(-rows[i].above), buffer: money(buffers[i]) })}</span>`
+        : `<span class="tip-layer">${t("outlook.freeToSpend")} <b>${money(rows[i].free)}</b></span>
+          <span class="tip-layer">${t("outlook.neededLater")} <b>${money(rows[i].later)}</b></span>
+          <span class="tip-layer">${t("outlook.safetyBufferTitle")} <b>${money(buffers[i])}</b></span>`}
+      ${i === low ? `<span class="muted">${below ? t("outlook.lowestPointBelowYourSafety", { amount: money(-projection.low_above) })
+        : t("outlook.lowestPointAboveYourSafety", { amount: money(projection.low_above) })}</span>` : ""}`,
   });
 }
 
 // What each column of the month-by-month table means, shown when hovering its header.
-const COLUMN_TIPS = {
-  Income: "Expected income from your plans. For the current month: what came in so far, plus what's still expected.",
-  Budget: "The month's budget. Next month's includes leftover carried over, minus bills already paid.",
-  Planned: "Planned costs outside your budgets. For the current month: what was spent outside your budgets.",
-  Result: "Income minus budget and planned costs: what the month adds to your savings, or takes from it. Assumes every budget is fully spent.",
-  "Expected savings": "Your savings once each month's leftover is moved to savings (or taken from it when your bank account falls short).",
-  "Free to spend": "What you can take out that month without your savings dropping below your buffer, then or in any later month.",
-};
+const COLUMN_TIPS = () => ({
+  Income: t("outlook.expectedIncomeFromYourPlans"),
+  Budget: t("outlook.theMonthsBudgetNextMonths"),
+  Planned: t("outlook.plannedCostsOutsideYourBudgets"),
+  Result: t("outlook.incomeMinusBudgetAndPlanned"),
+  "Expected savings": t("outlook.yourSavingsOnceEachMonths"),
+  "Free to spend": t("outlook.whatYouCanTakeOut"),
+});
 columnTips($("#outlook-table"));
 
 // When the bank won't hold next month's budget, the rest has to come from savings. The
@@ -99,24 +105,24 @@ function fromSavingsNotice({ month, short, short_if_spent: ifSpent, awaiting_inc
   if (ifSpent <= 0) return "";
   const name = monthOnly(month, "long"), thisMonth = monthOnly(shiftMonth(month, -1), "long");
   const alternative = ifSpent === short ? "" : short > 0
-    ? ` It's ${money(short)} if you don't spend the rest of ${thisMonth}'s budget.`
-    : ` You don't need this if you don't spend the rest of ${thisMonth}'s budget.`;
+    ? ` ${t("outlook.itsIfYouDontSpend", { amount: money(short), month: thisMonth })}`
+    : ` ${t("outlook.youDontNeedThisIf", { month: thisMonth })}`;
   if (awaiting) return `<div class="result-gap ok outlook-notice">
-    <div><b>Expecting ${money(ifSpent)} needed from savings for ${name}</b>
-      <span class="muted">You can take it from your savings once your income is in.${alternative}</span></div>
+    <div><b>${t("outlook.expectingNeededFromSavingsFor", { amount: money(ifSpent), month: name })}</b>
+      <span class="muted">${t("common.youCanTakeItFrom")}${alternative}</span></div>
   </div>`;
   return `<div class="result-gap short outlook-notice">
-    <div><b>${money(ifSpent)} needed from savings for ${name}</b>
-      <span class="muted">Your bank account doesn't hold enough for ${name}'s budget.${alternative}</span></div>
-    <button class="primary-btn" id="outlook-take">Take from savings</button>
+    <div><b>${t("outlook.neededFromSavingsFor", { amount: money(ifSpent), month: name })}</b>
+      <span class="muted">${t("outlook.yourBankAccountDoesntHold", { month: name })}${alternative}</span></div>
+    <button class="primary-btn" id="outlook-take">${t("common.takeFromSavings")}</button>
   </div>`;
 }
 
 // ---- Savings buffer ----
 function bufferText() {
   if (buffer.mode === "amount") return money(buffer.amount);
-  if (buffer.months === 1) return "one month's budget";
-  return `${example(String(buffer.months))} months of budget`;
+  if (buffer.months === 1) return t("outlook.oneMonthsBudget");
+  return t("outlook.monthsOfBudget", { n: example(String(buffer.months)) });
 }
 
 const bufferForm = $("#buffer-form");
@@ -148,11 +154,11 @@ bufferForm.onsubmit = once(async (e) => {
   e.preventDefault();
   const value = parseAmount(bufferForm[bufferMode].value); // months are parsed like amounts: "1.5" -> 150
   if (!(value >= 0)) {
-    return fieldError(bufferForm, bufferMode, bufferMode === "months" ? `Enter a number of months, like ${example("1.5")}.` : `Enter an amount, like ${example("2500.00")}.`);
+    return fieldError(bufferForm, bufferMode, bufferMode === "months" ? t("outlook.enterANumberOfMonths", { example: example("1.5") }) : t("outlook.enterAnAmountLike", { example: example("2500.00") }));
   }
   await api("/api/buffer", { method: "PUT", body: bufferMode === "months" ? { mode: "months", months: value / 100 } : { mode: "amount", amount: value } });
   $("#buffer-dialog").close();
-  toast("Buffer updated");
+  toast(t("outlook.safetyBufferUpdated"));
   renderOutlook();
 });
 
@@ -160,8 +166,8 @@ bufferForm.onsubmit = once(async (e) => {
 function planPeriod(p) {
   const short = (m) => monthName(m, "short");
   if (p.end_month === p.start_month) return short(p.start_month);
-  const how = p.every_months > 1 ? `Every ${p.every_months} months` : "Monthly";
-  return p.end_month ? `${how}, ${short(p.start_month)} – ${short(p.end_month)}` : `${how} from ${short(p.start_month)}`;
+  const how = p.every_months > 1 ? t("outlook.everyMonths", { n: p.every_months }) : t("outlook.monthly");
+  return p.end_month ? `${how}, ${short(p.start_month)} – ${short(p.end_month)}` : t("outlook.from", { how, month: short(p.start_month) });
 }
 // The months a plan falls in, from `start` every `every` months until `end` (at most `max`).
 function planMonths(start, end, every, max = 24) {
@@ -176,18 +182,18 @@ function renderPlans() {
     $(`#plans-${kind}`).innerHTML = list.length
       ? list.map((p) => `<li data-plan="${p.id}" tabindex="0">
           <span class="plan-name">${escapeHtml(p.name)}</span>
-          <span class="muted">${planPeriod(p)}${p.changes.map((c) => ` · ${money(c.amount)} from ${monthName(c.start_month, "short")}`).join("")}</span>
+          <span class="muted">${planPeriod(p)}${p.changes.map((c) => ` · ${t("outlook.amountFrom", { amount: money(c.amount), month: monthName(c.start_month, "short") })}`).join("")}</span>
           <span class="plan-amount">${money(p.amount)}</span>
         </li>`).join("")
-      : `<li class="plan-empty muted">${kind === "income" ? "No expected income yet. Add your salary and other regular income." : "No planned expenses."}</li>`;
+      : `<li class="plan-empty muted">${kind === "income" ? t("outlook.noExpectedIncomeYetAdd") : t("outlook.noPlannedExpenses")}</li>`;
   }
   // Total expected income this month, with the next month it changes.
-  const t = incomeTotal;
-  if (t && plans.filter((p) => p.kind === "income").length > 1) {
+  const total = incomeTotal;
+  if (total && plans.filter((p) => p.kind === "income").length > 1) {
     $("#plans-income").insertAdjacentHTML("beforeend", `<li class="plan-total">
-      <span class="plan-name">Total</span>
-      <span class="muted">${t.change ? `${money(t.change.amount)} from ${monthName(t.change.month, "short")}` : ""}</span>
-      <span class="plan-amount">${money(t.amount)}</span>
+      <span class="plan-name">${t("outlook.total")}</span>
+      <span class="muted">${total.change ? t("outlook.amountFrom", { amount: money(total.change.amount), month: monthName(total.change.month, "short") }) : ""}</span>
+      <span class="plan-amount">${money(total.amount)}</span>
     </li>`);
   }
 }
@@ -205,10 +211,10 @@ function renderPlanChanges() {
   const show = editingPlan && planRepeat === "monthly";
   $("#plan-changes-field").hidden = !show;
   if (!show) return;
-  $("#change-month").textContent = `From ${monthName(changeMonth, "short")}`;
-  $("#plan-changes").innerHTML = [`<span class="hchip">From ${monthName(editingPlan.start_month, "short")}: ${money(editingPlan.amount)}</span>`]
-    .concat(editingPlan.changes.map((c) => `<span class="hchip">From ${monthName(c.start_month, "short")}: ${money(c.amount)}
-      <button type="button" class="undo" data-change="${c.id}" aria-label="Remove this change">×</button></span>`)).join("");
+  $("#change-month").textContent = t("common.from", { month: monthName(changeMonth, "short") });
+  $("#plan-changes").innerHTML = [`<span class="hchip">${t("common.from", { month: monthName(editingPlan.start_month, "short") })}: ${money(editingPlan.amount)}</span>`]
+    .concat(editingPlan.changes.map((c) => `<span class="hchip">${t("common.from", { month: monthName(c.start_month, "short") })}: ${money(c.amount)}
+      <button type="button" class="undo" data-change="${c.id}" aria-label="${t("common.removeThisChange")}">×</button></span>`)).join("");
 }
 async function reloadPlan() {
   [plans, incomeTotal] = await Promise.all([api("/api/plans"), api("/api/income-total")]);
@@ -218,12 +224,12 @@ async function reloadPlan() {
 }
 $("#change-add").onclick = once(async () => {
   const amount = parseAmount($("#change-amount").value);
-  if (!(amount > 0)) return fieldError(planForm, "change", `Enter the new amount, like ${example("1700.00")}.`);
-  if (changeMonth <= editingPlan.start_month) return fieldError(planForm, "change", `Choose a month after ${monthName(editingPlan.start_month)}, when this plan starts.`);
+  if (!(amount > 0)) return fieldError(planForm, "change", t("outlook.enterTheNewAmountLike", { example: example("1700.00") }));
+  if (changeMonth <= editingPlan.start_month) return fieldError(planForm, "change", t("outlook.chooseAMonthAfterWhen", { month: monthName(editingPlan.start_month) }));
   await api("/api/plan-changes", { method: "POST", body: { plan_id: editingPlan.id, start_month: changeMonth, amount } });
   $("#change-amount").value = "";
   fieldError(planForm, "change", "");
-  toast(`${editingPlan.name}: ${money(amount)} from ${monthName(changeMonth)}`);
+  toast(`${editingPlan.name}: ${t("outlook.amountFrom", { amount: money(amount), month: monthName(changeMonth) })}`);
   reloadPlan();
 });
 $("#plan-changes").onclick = async (e) => {
@@ -234,8 +240,8 @@ $("#plan-changes").onclick = async (e) => {
 };
 
 function renderPlanDates() {
-  $("#plan-start").textContent = monthName(planStart);
-  $("#plan-end").textContent = planEnd ? monthName(planEnd) : "No end";
+  $("#plan-start").textContent = cap(monthName(planStart));
+  $("#plan-end").textContent = planEnd ? cap(monthName(planEnd)) : t("outlook.noEnd");
   $("#plan-no-end").hidden = !planEnd;
   $("#plan-end-field").hidden = planRepeat === "once";
   $("#plan-every-field").hidden = planRepeat !== "every";
@@ -248,10 +254,10 @@ function renderPlanDates() {
     // The year once, after its last month in the list.
     const names = when.map((m, i) => (i === when.length - 1 || m.slice(0, 4) !== when[i + 1].slice(0, 4)
       ? monthName(m, "short") : monthOnly(m)));
-    const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
-    $("#plan-when").textContent = `${when.length === 1 ? "Once" : `${when.length} times`}: ${list}.`;
+    const list = names.length > 1 ? t("outlook.and", { list: names.slice(0, -1).join(", "), last: names.at(-1) }) : names[0];
+    $("#plan-when").textContent = `${t("outlook.timesCount", { count: when.length })}: ${list}.`;
   }
-  $("#plan-start-label").firstChild.textContent = planRepeat === "once" ? "Month " : "From ";
+  $("#plan-start-label").firstChild.textContent = `${planRepeat === "once" ? t("common.month") : t("outlook.fromLabel")} `;
   document.querySelectorAll("#repeat-options button").forEach((b) => b.classList.toggle("active", b.dataset.repeat === planRepeat));
   renderPlanChanges();
 }
@@ -263,8 +269,9 @@ function openPlan(plan = null, kind = "income") {
   $("#plan-dialog").querySelectorAll(".currency").forEach((el) => (el.textContent = currencySymbol()));
   changeMonth = shiftMonth(plan?.changes.at(-1)?.start_month || plan?.start_month || currentMonth(), 1);
   $("#change-amount").value = "";
-  $("#plan-title").textContent = `${plan ? "Edit" : "Add"} ${planKind === "income" ? "expected income" : "planned expense"}`;
-  planForm.name.placeholder = planKind === "income" ? "e.g. Salary" : "e.g. Tuition fee";
+  $("#plan-title").textContent = planKind === "income" ? (plan ? t("outlook.editExpectedIncome") : t("outlook.addExpectedIncome"))
+    : plan ? t("outlook.editPlannedExpense") : t("outlook.addPlannedExpense");
+  planForm.name.placeholder = planKind === "income" ? t("outlook.eGSalary") : t("outlook.eGTuitionFee");
   $("#plan-delete").hidden = !plan;
   planStart = plan?.start_month || shiftMonth(currentMonth(), 1);
   planEnd = plan?.end_month || null;
@@ -300,23 +307,24 @@ planForm.onsubmit = once(async (e) => {
   e.preventDefault();
   const amount = parseAmount(planForm.amount.value);
   let ok = true;
-  if (!planForm.name.value.trim()) { fieldError(planForm, "name", "Give it a name, like Salary."); ok = false; }
-  if (!(amount > 0)) { fieldError(planForm, "amount", `Enter an amount above zero, like ${example("1234.56")}.`); ok = false; }
+  if (!planForm.name.value.trim()) { fieldError(planForm, "name", t("outlook.giveItANameLike")); ok = false; }
+  if (!(amount > 0)) { fieldError(planForm, "amount", t("common.enterAnAmountAboveZero", { example: example("1234.56") })); ok = false; }
   const end = planRepeat === "once" ? planStart : planEnd;
   const every = planRepeat === "every" ? everyValue() : 1;
-  if (!(Number.isInteger(every) && every >= 1 && every <= 12)) { fieldError(planForm, "every", "Enter a number of months from 2 to 12."); ok = false; }
-  if (end && end < planStart) { fieldError(planForm, "end", "The end month is before the start month. Choose a later one."); ok = false; }
+  if (!(Number.isInteger(every) && every >= 1 && every <= 12)) { fieldError(planForm, "every", t("outlook.everyRange")); ok = false; }
+  if (end && end < planStart) { fieldError(planForm, "end", t("outlook.theEndMonthIsBefore")); ok = false; }
   if (!ok) return;
   const body = { kind: planKind, name: planForm.name.value, amount, start_month: planStart, end_month: end, every_months: every };
   await api(editingPlan ? `/api/plans/${editingPlan.id}` : "/api/plans", { method: editingPlan ? "PUT" : "POST", body });
   $("#plan-dialog").close();
-  toast(editingPlan ? "Plan updated" : "Plan added");
+  toast(editingPlan ? t("outlook.planUpdated") : t("outlook.planAdded"));
   renderOutlook();
+  document.dispatchEvent(new Event("data-changed")); // e.g. the income in Edit budgets
 });
 $("#plan-delete").onclick = once(async () => {
   if (!(await confirmDialog({
-    title: `Delete “${editingPlan.name}”?`, message: "It's no longer included in your outlook. Your transactions aren't affected.",
-    confirm: "Delete", danger: true,
+    title: t("outlook.delete", { name: editingPlan.name }), message: t("outlook.itsNoLongerIncludedIn"),
+    confirm: t("common.delete"), danger: true,
   }))) return;
   await api(`/api/plans/${editingPlan.id}`, { method: "DELETE" });
   $("#plan-dialog").close();

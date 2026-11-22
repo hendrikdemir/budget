@@ -1,10 +1,12 @@
-// Appearance: light/dark theme, currency and how numbers are written, stored on the server.
+// Settings stored on the server: language, how much Budget shows (the basics or every
+// feature), light/dark theme, currency and how numbers are written.
 import { combobox } from "./controls.js";
 import { decimalComma, example } from "./format.js";
-import { state } from "./state.js";
+import { LANGUAGES, language, resolveLanguage, t } from "./i18n.js";
+import { isSimple, state } from "./state.js";
 import { $, api } from "./ui.js";
 
-let onFormatChange = () => {}; // the currency or number format changed: amounts are shown differently
+let onFormatChange = () => {}; // the currency, number format or features changed: the page shows things differently
 let onOpen = () => {};
 export const whenSettingsOpen = (action) => (onOpen = action);
 
@@ -13,7 +15,14 @@ export function applySettings() {
   const root = document.documentElement;
   const dark = settings.theme === "dark" || (settings.theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
   root.dataset.theme = dark ? "dark" : "light";
+  // Features beyond the basics have class full-only; style.css hides them in mode simple.
+  root.dataset.mode = isSimple() ? "simple" : "full";
   document.querySelectorAll("#theme-options button").forEach((b) => b.classList.toggle("active", b.dataset.theme === settings.theme));
+  document.querySelectorAll("#mode-options button").forEach((b) => b.classList.toggle("active", b.dataset.mode === (isSimple() ? "simple" : "full")));
+  $("#mode-hint").textContent = isSimple()
+    ? t("settings.yourBudgetsWhatYouSpend")
+    : t("settings.alsoTheOutlookGettingReady");
+  $("#language-select").value = settings.language;
   currencyPicker.set(settings.currency);
   // Without a choice, the way this computer writes numbers is the one in use.
   document.querySelectorAll("#number-options button").forEach((b) => b.classList.toggle("active", b.dataset.format === (decimalComma() ? "comma" : "point")));
@@ -28,17 +37,34 @@ export async function loadSettings(formatChanged) {
   applySettings();
 }
 
-function update(patch) {
+// Saves settings, and shows the page the way they say.
+export async function updateSettings(patch) {
   Object.assign(state.settings, patch);
   applySettings();
-  api("/api/settings", { method: "POST", body: patch });
-  if ("currency" in patch || "number_format" in patch) onFormatChange();
+  await api("/api/settings", { method: "POST", body: patch });
+  if ("mode" in patch && isSimple() && location.hash === "#outlook") location.hash = "";
+  if ("currency" in patch || "number_format" in patch || "mode" in patch) onFormatChange();
 }
+const update = (patch) => updateSettings(patch);
 
 $("#theme-options").onclick = (e) => e.target.dataset.theme && update({ theme: e.target.dataset.theme });
 $("#number-options").onclick = (e) => e.target.dataset.format && update({ number_format: e.target.dataset.format });
-// Every currency the browser knows, searchable by code or English name.
-const currencyName = new Intl.DisplayNames(["en"], { type: "currency" });
+$("#mode-options").onclick = (e) => e.target.dataset.mode && e.target.dataset.mode !== state.settings.mode && update({ mode: e.target.dataset.mode });
+
+// Languages: the system language, or one chosen. Each is named in its own language. Changing it
+// reloads the page in the new language, with Settings open again.
+$("#language-select").innerHTML = [
+  `<option value="system">${t("settings.systemLanguage")} (${LANGUAGES[resolveLanguage("system")].name})</option>`,
+  ...Object.entries(LANGUAGES).map(([code, l]) => `<option value="${code}">${l.name}</option>`),
+].join("");
+$("#language-select").onchange = async (e) => {
+  await api("/api/settings", { method: "POST", body: { language: e.target.value } });
+  try { sessionStorage.setItem("budget.open-settings", "1"); } catch {}
+  location.reload();
+};
+
+// Every currency the browser knows, searchable by code or name.
+const currencyName = new Intl.DisplayNames([language, "en"], { type: "currency" });
 const CURRENCIES = (Intl.supportedValuesOf?.("currency") ?? ["EUR", "USD", "GBP", "CHF"])
   .map((code) => ({ value: code, name: currencyName.of(code) }))
   .filter((c) => c.name && c.name !== c.value)
@@ -51,8 +77,9 @@ const currencyPicker = combobox($("#currency-input"), {
 // Typing replaces the current choice; leaving the field without choosing keeps it.
 $("#currency-input").addEventListener("focus", (e) => setTimeout(() => e.target.select()));
 $("#currency-input").addEventListener("blur", () => currencyPicker.value || currencyPicker.set(state.settings.currency));
-$("#settings-btn").onclick = () => {
+export function openSettings() {
   $("#settings").showModal();
   onOpen();
-};
+}
+$("#settings-btn").onclick = openSettings;
 matchMedia("(prefers-color-scheme: dark)").onchange = applySettings;

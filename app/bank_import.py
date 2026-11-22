@@ -135,14 +135,13 @@ def read_file(data):
     reader = next((r for r in READERS if r.matches(list(header))), None)
     if not reader:
         names = ", ".join(r.name for r in READERS)
-        raise ApiError(f"This file isn't a bank export Budget can read. It can read exports from {names} (CSV).")
+        raise ApiError("errors.importUnknownBank", names=names)
     try:
         transactions = reader.read(rows)
     except (KeyError, ValueError, TypeError):
-        raise ApiError(f"This {reader.name} file has something Budget doesn't understand, so nothing was read. "
-                       "Export it again as CSV and try once more.")
+        raise ApiError("errors.importUnreadable", bank=reader.name)
     if not transactions:
-        raise ApiError("This file has no transactions in it.")
+        raise ApiError("errors.importEmpty")
     return reader.name, transactions
 
 
