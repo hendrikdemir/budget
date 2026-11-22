@@ -24,7 +24,7 @@ pywebview and PyInstaller are used for the desktop app. There is no web build st
   (`.github/workflows/windows.yml`). The version is `VERSION` in `app/__init__.py`. Don't change it by
   hand: `release.py` sets it when releasing (it suggests patch/minor/major from what changed, and asks
   which systems the release is for), builds, tags `v<VERSION>`, pushes and publishes the GitHub release.
-- `docs/`: the website (GitHub Pages) and the screenshots. Its download buttons look up the newest
+- `docs/`: the website (GitHub Pages, the `website` preview) and the screenshots. Its download buttons look up the newest
   release with each system's file, like the app's update check.
 - `app/web.py`: HTTP server. Routes `/api/<resource>[/<id>]` to `app/api.py` `ROUTES`,
   everything else to `static/`. Sends `Cache-Control: no-cache`.

@@ -304,7 +304,8 @@ def capture_guide(url):
             page.goto(url)
             page.wait_for_selector("#guide:not([hidden]) .guide-step")
             page.wait_for_timeout(600)
-            page.locator("#guide").screenshot(path=OUT / f"guide{suffix}.png")
+            if scheme == "light":  # only in the README
+                page.locator("#guide").screenshot(path=OUT / "guide.png")
             page.click("#manage-btn")
             page.wait_for_selector("#starter:not([hidden]) .starter-row")
             amounts = page.locator("#starter .starter-row .amount")

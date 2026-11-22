@@ -2,7 +2,6 @@
 the release comes from a made-up file (the same way BUDGET_RELEASES_URL works for testing by hand)."""
 import json
 import os
-import tempfile
 from pathlib import Path
 from unittest import mock
 

@@ -16,19 +16,13 @@ export function shiftMonth(ym, delta) {
   const d = new Date(y, m - 1 + delta, 1);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 }
-// Last day of a "YYYY-MM" month.
-export function monthEnd(ym) {
-  const [y, m] = ym.split("-").map(Number);
-  return isoDate(new Date(y, m, 0));
-}
 
 // Month and day names are in the interface's language (i18n.js), written as in a sentence:
 // "November 2026" in English, "november 2026" in Dutch. cap() for the start of a label.
 // Numbers and amounts are written the way this computer does, or as chosen in Settings:
 // 1.234,56 or 1,234.56.
 export const DATE_LOCALE = locale;
-export const capitalize = (text) => text.replace(/^./, (c) => c.toUpperCase());
-export const cap = capitalize;
+export const cap = (text) => text.replace(/^./, (c) => c.toUpperCase());
 export function monthName(ym, style = "long") {
   const [y, m] = ym.split("-").map(Number);
   return new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style, year: "numeric" }).replace(".", "");

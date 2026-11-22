@@ -7,8 +7,6 @@ import { isSimple, state } from "./state.js";
 import { $, api } from "./ui.js";
 
 let onFormatChange = () => {}; // the currency, number format or features changed: the page shows things differently
-let onOpen = () => {};
-export const whenSettingsOpen = (action) => (onOpen = action);
 
 export function applySettings() {
   const { settings } = state;
@@ -79,7 +77,6 @@ $("#currency-input").addEventListener("focus", (e) => setTimeout(() => e.target.
 $("#currency-input").addEventListener("blur", () => currencyPicker.value || currencyPicker.set(state.settings.currency));
 export function openSettings() {
   $("#settings").showModal();
-  onOpen();
 }
 $("#settings-btn").onclick = openSettings;
 matchMedia("(prefers-color-scheme: dark)").onchange = applySettings;
