@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Budget: a calm, private budget app for Mac and Windows</title>
-<meta name="description" content="Plan every euro, see what's left at a glance, and know whether your savings will hold up. No account, no subscription, no cloud.">
+<meta name="description" content="A calm budget app that starts simple, even if you've never kept a budget, and grows with you. In English and Dutch. No account, no subscription, no cloud.">
 <link rel="icon" href="icon.png">
 <style>
+  /* The same palette, font and frosted cards as the app (static/style.css). */
   @font-face { font-family: "Geist"; src: url("fonts/Geist.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
   :root {
     --bg: #f0f6f0;
@@ -20,7 +21,8 @@
     --accent-hover: #364958;
     --on-accent: #ffffff;
     --accent-soft: rgba(135, 187, 162, 0.22);
-    --shadow: 0 16px 40px rgba(54, 73, 88, 0.18);
+    --shot-shadow: 0 24px 60px rgba(54, 73, 88, 0.16);
+    --drop: rgba(54, 73, 88, 0.16);
     --radius: 22px;
     color-scheme: light;
   }
@@ -37,183 +39,319 @@
       --accent-hover: #c9e4ca;
       --on-accent: #16262a;
       --accent-soft: rgba(201, 228, 202, 0.08);
-      --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      --shot-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      --drop: rgba(0, 0, 0, 0.45);
       color-scheme: dark;
     }
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
-    margin: 0;
-    font: 17px/1.55 "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    color: var(--text);
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.6 "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {  /* the glow behind the frosted cards, as in the app */
+    content: ""; position: fixed; inset: 0; z-index: -1;
     background:
-      radial-gradient(900px 600px at 15% -10%, var(--glow-a), transparent 70%),
-      radial-gradient(800px 600px at 95% 30%, var(--glow-b), transparent 70%),
-      var(--bg);
-    background-attachment: fixed;
+      radial-gradient(70% 65% at 0% 100%, var(--glow-a), transparent 72%),
+      radial-gradient(65% 60% at 100% 0%, var(--glow-b), transparent 72%);
   }
-  main { max-width: 1040px; margin: 0 auto; padding: 0 16px 48px; }
-  a { color: var(--accent); }
+  a { color: var(--accent); text-decoration: none; }
   a:hover { color: var(--accent-hover); }
+  h1, h2, h3 { letter-spacing: -0.02em; margin: 0; }
+  p { margin: 0; }
+  img { display: block; max-width: 100%; height: auto; }
+  .wrap { max-width: 1028px; margin: 0 auto; padding: 0 24px; }  /* 980px of content, like the screenshots */
+  .muted { color: var(--muted); }
 
-  .hero { text-align: center; padding: 64px 0 32px; }
-  .hero img.icon { width: 112px; height: 112px; }
-  h1 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin: 12px 0 4px; letter-spacing: -0.02em; }
-  .tagline { font-size: clamp(1.15rem, 3vw, 1.4rem); margin: 0 auto 8px; max-width: 34em; }
-  .promise { color: var(--muted); margin: 0 0 28px; }
+  /* ---- Top bar, like the app's ---- */
+  .topbar { border-bottom: 1px solid var(--border); }
+  .topbar .wrap { display: flex; align-items: center; gap: 16px; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 21px; letter-spacing: -0.02em; }
+  .brand img { width: 30px; height: 30px; }
+  .brand:hover { color: var(--text); }
+  .topbar nav { margin-left: auto; display: flex; align-items: center; gap: 22px; font-size: 14px; }
+  .topbar nav a:not(.pill) { color: var(--muted); }
+  .topbar nav a:not(.pill):hover { color: var(--text); }
 
-  .download {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: var(--accent); color: var(--on-accent);
-    font-size: 1.1rem; font-weight: 600; text-decoration: none;
-    padding: 15px 30px; border-radius: 999px; box-shadow: var(--shadow);
-    transition: transform .15s, background .15s;
+  /* ---- Buttons ---- */
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; font-weight: 500; white-space: nowrap;
+    background: var(--accent); color: var(--on-accent); padding: 8px 16px; transition: filter .15s;
   }
-  .download:hover { background: var(--accent-hover); color: var(--on-accent); transform: translateY(-1px); }
-  .download svg { width: 20px; height: 20px; }
-  .downloads { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-  .download.secondary { background: var(--surface); color: var(--accent); border: 1px solid var(--border); box-shadow: none;
-                        -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
-  .download.secondary:hover { background: var(--accent-soft); color: var(--accent-hover); }
-  .meta { color: var(--muted); font-size: .9rem; margin: 14px 0 0; }
+  .pill:hover { color: var(--on-accent); filter: brightness(1.08); }
+  .pill.ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border);
+                -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+  .pill.ghost:hover { background: var(--accent-soft); color: var(--accent); filter: none; }
+  .download { font-size: 16px; padding: 13px 24px; }
+  .download svg { width: 18px; height: 18px; }
 
-  .shot { margin: 40px auto 0; }
-  .shot img { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: var(--shadow); }
-  .caption { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 10px; }
+  /* ---- Hero ---- */
+  .hero { text-align: center; padding: 88px 0 0; }
+  .chip { display: inline-block; font-size: 13px; color: var(--accent); background: var(--accent-soft);
+          border-radius: 999px; padding: 4px 12px; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(40px, 6.4vw, 68px); font-weight: 300; line-height: 1.05; letter-spacing: -0.035em; max-width: 12em; margin: 0 auto; }
+  .lead { font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 34em; margin: 22px auto 34px; line-height: 1.55; }
+  .downloads { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .meta { color: var(--muted); font-size: 13px; margin-top: 16px; }
 
-  .card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-    padding: 24px; box-shadow: var(--shadow);
+  /* Screenshots: the app's own corners, a soft shadow, and a long one fading out at the bottom. */
+  .frame { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shot-shadow); }
+  .frame.fade { aspect-ratio: 2000 / 1320; -webkit-mask-image: linear-gradient(#000 72%, transparent);
+                mask-image: linear-gradient(#000 72%, transparent); box-shadow: none; border-bottom: 0; }
+  .frame.fade img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .hero .frame { margin: 64px auto 0; }
+  /* A dialog: clipped to its own rounded corners (the screenshot's edge stays out), the shadow drawn around the clip. */
+  .shot { filter: drop-shadow(0 20px 40px var(--drop)); }
+  .dialog-shot { display: block; clip-path: inset(2px round 22px); }
+
+  /* ---- Chapters: Start simple, Extended mode, Yours alone ---- */
+  .chapter { padding: 112px 0 0; }
+  .chapter-head { text-align: center; max-width: 640px; margin: 0 auto 64px; }
+  .chapter-head h2 { font-size: clamp(32px, 4.4vw, 46px); font-weight: 300; line-height: 1.12; letter-spacing: -0.03em; }
+  .chapter-head p { color: var(--muted); font-size: 18px; margin-top: 16px; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+  .row + .row { margin-top: 104px; }
+  .row.flip > :first-child { order: 2; }
+  .row h3 { font-size: 28px; font-weight: 400; line-height: 1.2; letter-spacing: -0.02em; }
+  .row p { color: var(--muted); margin-top: 14px; font-size: 17px; }
+  .checks { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 10px; }
+  .checks li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; color: var(--text); font-size: 15px; }
+  .checks li::before {
+    content: ""; width: 22px; height: 22px; border-radius: 50%; margin-top: 1px; background: var(--accent-soft) center / 12px no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%2387bba2' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
-  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 56px; }
-  .features h2 { font-size: 1.1rem; margin: 0 0 6px; }
-  .features p { margin: 0; color: var(--muted); font-size: .97rem; }
+  .row .shot { justify-self: center; width: 100%; max-width: 400px; }
+  .row .shot.wide { max-width: 480px; }  /* a wider dialog, so its text comes out the same size */
+  .grows { margin-top: 104px; text-align: center; }
+  .grows h3 { font-size: 28px; font-weight: 400; letter-spacing: -0.02em; }
+  .grows > p { color: var(--muted); font-size: 17px; max-width: 34em; margin: 14px auto 32px; }
+  .grows .shot { display: block; max-width: 760px; margin: 0 auto; }
+  .grows .shot img { clip-path: inset(1px round 21px); }
 
-  section.install { margin-top: 56px; padding: 48px 56px; }
-  section.install h2 { margin: 0 0 24px; font-size: 1.5rem; }
-  section.install h3 { margin: 0 0 10px; font-size: 1.15rem; }
-  .systems { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
-  .systems img { margin-top: 8px; }
-  section.install ol { padding-left: 1.3em; margin: 0 0 12px; }
-  section.install li { margin-bottom: 6px; }
-  section.install img { width: 100%; height: auto; border-radius: 12px; }
-  .more { margin-top: 56px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; align-items: center; }
-  .more h2 { margin: 0 0 10px; font-size: 1.5rem; }
-  .more p { color: var(--muted); margin: 0 0 12px; }
-  .more picture { display: block; }
-  .more img { display: block; width: 100%; aspect-ratio: 2000 / 1450; object-fit: cover; object-position: top; border-radius: 14px; box-shadow: var(--shadow); }
-  @media (max-width: 720px) { .more { grid-template-columns: 1fr; gap: 20px; } .features { grid-template-columns: 1fr; } }
-  @media (min-width: 721px) and (max-width: 900px) { .features { grid-template-columns: 1fr 1fr; } }
-  .note { color: var(--muted); font-size: .95rem; }
+  /* One frosted card with rows, like the app's lists. */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+          -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+  .features { display: grid; grid-template-columns: 1fr 1fr; margin-top: 40px; padding: 8px 32px; }
+  .feature { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding: 24px 0; border-top: 1px solid var(--border); }
+  .feature:nth-child(-n+2) { border-top: 0; }
+  .feature:nth-child(odd) { padding-right: 32px; }
+  .feature:nth-child(even) { padding-left: 32px; border-left: 1px solid var(--border); }
+  .icon { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+  .icon svg { width: 20px; height: 20px; }
+  .feature h3 { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+  .feature p { color: var(--muted); font-size: 15px; margin-top: 4px; }
+  .extended .frame { margin: 0 auto; }
 
-  footer { text-align: center; color: var(--muted); font-size: .92rem; padding: 40px 16px 56px; }
-  footer .dev { background: var(--accent-soft); border-radius: 999px; padding: 10px 18px; display: inline-block; margin-bottom: 14px; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .tile { padding: 28px; }
+  .tile + .tile { border-left: 1px solid var(--border); }
+  .tile b { display: block; font-size: 22px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .tile p { color: var(--muted); font-size: 14px; }
 
-  @media (max-width: 720px) {
-    .hero { padding-top: 40px; }
-    section.install { padding: 28px 24px; }
-    .systems { grid-template-columns: 1fr; gap: 36px; }
+  /* ---- Installing ---- */
+  .install { padding: 48px; }
+  .systems { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+  .install h3 { font-size: 21px; font-weight: 400; margin-bottom: 14px; }
+  .install ol { padding-left: 1.2em; margin: 0 0 14px; }
+  .install li { margin-bottom: 4px; }
+  .install .note { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  .install img { border-radius: 14px; }
+  .install strong { font-weight: 500; }
+
+  footer { text-align: center; color: var(--muted); font-size: 14px; padding: 96px 24px 64px; }
+  footer p + p { margin-top: 6px; }
+
+  @media (max-width: 860px) {
+    .row { grid-template-columns: 1fr; gap: 36px; }
+    .row.flip > :first-child { order: 0; }
+    .features { grid-template-columns: 1fr; padding: 4px 24px; }
+    .feature, .feature:nth-child(odd), .feature:nth-child(even) { padding: 20px 0; border-left: 0; }
+    .feature:nth-child(2) { border-top: 1px solid var(--border); }
+    .tiles { grid-template-columns: 1fr 1fr; }
+    .tile:nth-child(3) { border-left: 0; }
+    .tile:nth-child(n+3) { border-top: 1px solid var(--border); }
+    .systems { grid-template-columns: 1fr; gap: 40px; }
+    .install { padding: 28px 24px; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 16px; }
+    .topbar nav a.github { display: none; }
+    .hero { padding-top: 56px; }
+    .chapter { padding-top: 80px; }
+    .tiles { grid-template-columns: 1fr; }
+    .tile + .tile { border-left: 0; border-top: 1px solid var(--border); }
+    .frame.fade { aspect-ratio: 2000 / 1700; }
   }
 </style>
 </head>
 <body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="icon.png" alt="">Budget</a>
+    <nav>
+      <a href="#simple">Features</a>
+      <a href="#install">Installing</a>
+      <a class="github" href="https://github.com/hendrikdemir/budget">GitHub</a>
+      <a class="pill" href="#download">Download</a>
+    </nav>
+  </div>
+</header>
+
 <main>
-  <header class="hero">
-    <img class="icon" src="icon.png" alt="">
-    <h1>Budget</h1>
-    <p class="tagline">A calm, private budget app for Mac and Windows.</p>
-    <p class="promise">No account. No subscription. No cloud. Your data stays on your computer.</p>
+  <section class="hero wrap" id="download">
+    <span class="chip">Free for Mac and Windows · English and Dutch</span>
+    <h1>A calm budget, from your very first euro.</h1>
+    <p class="lead">Budget starts simple, even if you've never kept a budget, and grows with you when you're ready. No account, no subscription, no cloud: your data stays on your computer.</p>
     <div class="downloads">
-      <a class="download" id="download-mac" href="https://github.com/hendrikdemir/budget/releases">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+      <a class="pill download" id="download-mac" href="https://github.com/hendrikdemir/budget/releases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
         Download for Mac
       </a>
-      <a class="download secondary" id="download-windows" href="https://github.com/hendrikdemir/budget/releases">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+      <a class="pill download ghost" id="download-windows" href="https://github.com/hendrikdemir/budget/releases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
         Download for Windows
       </a>
     </div>
     <p class="meta" id="version">Free · macOS on Apple Silicon · Windows 10 and 11 (64-bit)</p>
-
-    <figure class="shot">
+    <div class="frame fade">
       <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="screenshots/overview-dark.png">
-        <img src="screenshots/overview-light.png" alt="The Budget overview: spending this month, whether you're ready for next month, account balances and budgets">
+        <source media="(prefers-color-scheme: dark)" srcset="screenshots/overview-simple-dark.png">
+        <img src="screenshots/overview-simple-light.png" alt="The Budget overview: spending this month, the bank balance and what's left in each budget">
       </picture>
-      <figcaption class="caption">The real app, with made-up data.</figcaption>
-    </figure>
-  </header>
-
-  <div class="features">
-    <div class="card">
-      <h2>Your month at a glance</h2>
-      <p>See what you've spent and what's left in each budget. Near the end of the month, Budget tells you exactly how much you're short or have spare.</p>
     </div>
-    <div class="card">
-      <h2>Budgets that fit real life</h2>
-      <p>Group budgets in categories, carry leftovers over, and change amounts from a month on without changing the past.</p>
-    </div>
-    <div class="card">
-      <h2>See the effect before you save</h2>
-      <p>Add an expense, split it over several budgets, and see what's left in each one before you save.</p>
-    </div>
-    <div class="card">
-      <h2>Import from your bank</h2>
-      <p>Read your bank's CSV export (ING for now), review the suggestions, and skip transactions you've already added.</p>
-    </div>
-    <div class="card">
-      <h2>Look back on your year</h2>
-      <p>See how each budget held up month by month, and spot what quietly got more expensive.</p>
-    </div>
-    <div class="card">
-      <h2>Safe on your computer</h2>
-      <p>Budget makes a backup every day you use it. Save your own backup any time, and restore it on a new computer, Mac or Windows.</p>
-    </div>
-  </div>
-
-  <section class="more">
-    <div>
-      <h2>See the year ahead</h2>
-      <p>Add the income you expect and costs you can see coming, like a yearly membership fee or car insurance.</p>
-      <p>Budget shows your savings for the next 12 months, and how much you can freely spend while keeping a safety buffer.</p>
-    </div>
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="screenshots/outlook.png">
-      <img src="screenshots/outlook-light.png" alt="The Outlook page: savings today, how much is free to spend, and a chart of expected savings for the next 12 months">
-    </picture>
   </section>
 
-  <section class="install card">
-    <h2>Installing</h2>
-    <div class="systems">
-      <div id="install-mac">
-        <h3>On a Mac</h3>
-        <ol>
-          <li>Download <strong>Budget.dmg</strong> and open it.</li>
-          <li>Drag <strong>Budget</strong> to <strong>Applications</strong>.</li>
-          <li>Open Budget.</li>
-        </ol>
-        <p class="note">The first time, macOS says it can't open Budget, because the app isn't signed with a paid Apple Developer account. Click <strong>Done</strong>, open <strong>System Settings → Privacy &amp; Security</strong>, scroll down to <strong>Security</strong> and click <strong>Open Anyway</strong>. You only have to do this once.</p>
-        <img src="screenshots/open-anyway.png" alt="System Settings, Privacy &amp; Security: the Open Anyway button next to the message that Budget was blocked">
+  <section class="chapter wrap" id="simple">
+    <div class="chapter-head">
+      <span class="chip">Start simple</span>
+      <h2>Everything a budget needs. Nothing more.</h2>
+      <p>Plan what you spend, add what you spent, and see what's left. Small ? buttons explain every word in plain language.</p>
+    </div>
+
+    <div class="row">
+      <div>
+        <h3>Start from your income</h3>
+        <p>Enter what comes in each month, then give each kind of spending an amount. Budget suggests a few common ones, so you only fill in numbers.</p>
+        <ul class="checks">
+          <li>See straight away whether your budgets fit your income</li>
+          <li>What's left goes to savings or bigger plans</li>
+          <li>Change a budget from any month on; the past stays as it was</li>
+        </ul>
       </div>
-      <div id="install-windows">
-        <h3>On Windows</h3>
-        <ol>
-          <li>Download <strong>Budget-setup.exe</strong> and open it.</li>
-          <li>Follow the steps. Budget installs for you only, no administrator needed.</li>
-          <li>Open Budget from the Start menu.</li>
-        </ol>
-        <p class="note">Budget isn't signed with a paid certificate yet, so Windows may warn that it protected your PC. Click <strong>More info</strong>, then <strong>Run anyway</strong>. Your browser may also ask whether to keep the download: choose <strong>Keep</strong>.</p>
-        <img src="screenshots/run-anyway.png" alt="The Windows protected your PC message: More info is clicked, and the Run anyway button is highlighted">
+      <div class="shot wide"><picture class="dialog-shot">
+        <source media="(prefers-color-scheme: dark)" srcset="screenshots/starter-dark.png">
+        <img src="screenshots/starter.png" alt="Edit budgets: the income compared with the budgets, and suggested budgets with some amounts filled in">
+      </picture></div>
+    </div>
+
+    <div class="row flip">
+      <div>
+        <h3>Add what you spend, see the effect first</h3>
+        <p>Before you save, Budget shows what's left in the budget, in red only if it would go over. The page stays calm until something needs your attention.</p>
+        <ul class="checks">
+          <li>Known payees fill in the budget you used last time</li>
+          <li>Import your bank's export (ING for now), with duplicates left out</li>
+          <li>Look back on every month and every budget in History</li>
+        </ul>
+      </div>
+      <div class="shot"><picture class="dialog-shot">
+        <source media="(prefers-color-scheme: dark)" srcset="screenshots/transaction-simple-dark.png">
+        <img src="screenshots/transaction-simple.png" alt="Adding an expense to the Groceries budget, with a preview of what's left">
+      </picture></div>
+    </div>
+
+    <div class="grows">
+      <h3>It grows with you</h3>
+      <p>When something more becomes useful, like keeping your bank balance or planning ahead, Budget offers it. One thing at a time, and Not now puts it away.</p>
+      <picture class="shot">
+        <source media="(prefers-color-scheme: dark)" srcset="screenshots/offer-dark.png">
+        <img src="screenshots/offer.png" alt="An offer on the overview: plan ahead with the Outlook, with Not now and Turn on Extended mode">
+      </picture>
+    </div>
+  </section>
+
+  <section class="chapter extended wrap" id="extended">
+    <div class="chapter-head">
+      <span class="chip">Extended mode</span>
+      <h2>Ready for more? It's all there.</h2>
+      <p>Turn on Extended mode and Budget looks a year ahead: your expected income, planned costs like a holiday, and how much you can freely spend while keeping a safety buffer.</p>
+    </div>
+    <div class="frame fade">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="screenshots/outlook.png">
+        <img src="screenshots/outlook-light.png" alt="The Outlook: savings today, how much is free to spend, and a chart of expected savings for the next 12 months">
+      </picture>
+    </div>
+    <div class="card features">
+      <div class="feature">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4m8-4v4"/></svg></span>
+        <div><h3>Ready for next month?</h3><p>In the last week of the month, Budget tells you how much is short or spare, and moves it to or from your savings in one click.</p></div>
+      </div>
+      <div class="feature">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11a5 5 0 0 1 0 10H8"/><path d="M8 13l-4 4 4 4" transform="translate(0 -4)"/></svg></span>
+        <div><h3>Carry leftovers over</h3><p>What's left of a budget moves on to next month, so you can save up within it.</p></div>
+      </div>
+      <div class="feature">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v6m0 0l-6 6m6-6l6 6M6 16v4m12-4v4"/></svg></span>
+        <div><h3>Split a purchase</h3><p>One receipt over several budgets, and bills paid early that count for the month they're meant for.</p></div>
+      </div>
+      <div class="feature">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l8-5 8 5M6 10v8m4-8v8m4-8v8m4-8v8M4 20h16"/></svg></span>
+        <div><h3>Bank and savings balances</h3><p>Compare with your bank now and then, and Budget tells you when a transaction is missing.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter wrap">
+    <div class="chapter-head">
+      <span class="chip">Yours alone</span>
+      <h2>Private by design.</h2>
+    </div>
+    <div class="card tiles">
+      <div class="tile"><b>No account</b><p>No sign-up, no subscription, no cloud. Budget runs on your computer only.</p></div>
+      <div class="tile"><b>Backed up daily</b><p>A copy of each day you use it, and your own backup to move to a new computer.</p></div>
+      <div class="tile"><b>Your language</b><p>English or Dutch, your currency, and numbers written your way.</p></div>
+      <div class="tile"><b>Open source</b><p>Free to use, and every line is on <a href="https://github.com/hendrikdemir/budget">GitHub</a>.</p></div>
+    </div>
+  </section>
+
+  <section class="chapter wrap" id="install">
+    <div class="chapter-head">
+      <h2>Installing</h2>
+    </div>
+    <div class="card install">
+      <div class="systems">
+        <div id="install-mac">
+          <h3>On a Mac</h3>
+          <ol>
+            <li>Download <strong>Budget.dmg</strong> and open it.</li>
+            <li>Drag <strong>Budget</strong> to <strong>Applications</strong>.</li>
+            <li>Open Budget.</li>
+          </ol>
+          <p class="note">The first time, macOS says it can't open Budget, because the app isn't signed with a paid Apple Developer account. Click <strong>Done</strong>, open <strong>System Settings → Privacy &amp; Security</strong>, scroll down to <strong>Security</strong> and click <strong>Open Anyway</strong>. You only have to do this once.</p>
+          <img src="screenshots/open-anyway.png" alt="System Settings, Privacy &amp; Security: the Open Anyway button next to the message that Budget was blocked">
+        </div>
+        <div id="install-windows">
+          <h3>On Windows</h3>
+          <ol>
+            <li>Download <strong>Budget-setup.exe</strong> and open it.</li>
+            <li>Follow the steps. Budget installs for you only, no administrator needed.</li>
+            <li>Open Budget from the Start menu.</li>
+          </ol>
+          <p class="note">Budget isn't signed with a paid certificate yet, so Windows may warn that it protected your PC. Click <strong>More info</strong>, then <strong>Run anyway</strong>. Your browser may also ask whether to keep the download: choose <strong>Keep</strong>.</p>
+          <img src="screenshots/run-anyway.png" alt="The Windows protected your PC message: More info is clicked, and the Run anyway button is highlighted">
+        </div>
       </div>
     </div>
   </section>
 </main>
 
 <footer>
-  <div class="dev">Budget is open source. <a href="https://github.com/hendrikdemir/budget">View the code on GitHub</a>.</div>
-  <div>Made by Hendrik Demir</div>
+  <p>Budget is open source. <a href="https://github.com/hendrikdemir/budget">View the code on GitHub</a>.</p>
+  <p>Made by Hendrik Demir</p>
 </footer>
 
 <script>
@@ -221,7 +359,7 @@
   const onWindows = /Windows/.test(navigator.userAgent);
   if (onWindows) {
     const mac = document.getElementById("download-mac"), windows = document.getElementById("download-windows");
-    mac.classList.add("secondary"); windows.classList.remove("secondary");
+    mac.classList.add("ghost"); windows.classList.remove("ghost");
     mac.before(windows);
     document.getElementById("install-mac").before(document.getElementById("install-windows"));
   }

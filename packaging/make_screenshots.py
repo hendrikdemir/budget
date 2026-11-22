@@ -159,6 +159,41 @@ def capture(url):
         page.locator("#update-dialog").screenshot(path=OUT / "update.png")
         page.context.close()
 
+        # The same household in Simple mode: an offer of a feature beyond the basics, the overview
+        # (without the offer), and adding an expense to one budget.
+        fake_release({"tag_name": f"v{VERSION}"})
+        page = page_for("light")
+        page.evaluate("""fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                                   body: JSON.stringify({ mode: 'simple' }) })""")
+        page.context.close()
+        for scheme, suffix in (("light", ""), ("dark", "-dark")):  # light for the README, both for the website
+            page = page_for(scheme)
+            page.wait_for_selector("#offer:not([hidden])")
+            page.wait_for_timeout(400)
+            page.locator("#offer").screenshot(path=OUT / f"offer{suffix}.png")
+            page.context.close()
+        page = page_for("light")
+        page.evaluate("""fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                                   body: JSON.stringify({ offers_dismissed: 'bank,outlook,carry,savings' }) })""")
+        page.context.close()
+        for scheme in ("dark", "light"):
+            page = page_for(scheme, height=1040)
+            shot(page, f"overview-simple-{scheme}")
+            page.context.close()
+        for scheme, suffix in (("light", ""), ("dark", "-dark")):
+            page = page_for(scheme, height=1000)
+            page.click("#add-btn")
+            page.wait_for_selector("#expense-dialog[open]")
+            page.fill("#add-form [name=amount]", "23.40")
+            page.fill("#add-form [name=payee]", "Fresh Market")
+            page.locator(".split .split-line").click()
+            page.keyboard.type("Food")
+            page.keyboard.press("ArrowDown"); page.keyboard.press("Enter")
+            page.locator("#expense-title").click()
+            page.wait_for_timeout(400)
+            page.locator("#expense-dialog").screenshot(path=OUT / f"transaction-simple{suffix}.png")
+            page.context.close()
+
         # Where to find Open Anyway: a drawing, so it's in English whatever the Mac's language.
         page = browser.new_page(viewport={"width": 760, "height": 480}, device_scale_factor=2)
         page.set_content(OPEN_ANYWAY)
@@ -263,21 +298,23 @@ def capture_guide(url):
     income entered and a few of the suggested budgets filled in."""
     with sync_playwright() as p:
         browser = p.webkit.launch()
-        page = browser.new_context(viewport={"width": 1000, "height": 1100}, device_scale_factor=2,
-                                   color_scheme="light", locale="en-GB").new_page()
-        page.goto(url)
-        page.wait_for_selector("#guide:not([hidden]) .guide-step")
-        page.wait_for_timeout(600)
-        page.locator("#guide").screenshot(path=OUT / "guide.png")
-        page.click("#manage-btn")
-        page.wait_for_selector("#starter:not([hidden]) .starter-row")
-        amounts = page.locator("#starter .starter-row .amount")
-        for i, amount in ((0, "950"), (1, "140"), (3, "45"), (4, "380"), (6, "150")):
-            amounts.nth(i).fill(amount)
-        page.evaluate("document.activeElement.blur()")
-        page.wait_for_timeout(700)  # the income comparison follows the amounts
-        page.mouse.move(0, 0)
-        page.locator("#manager").screenshot(path=OUT / "starter.png")
+        for scheme, suffix in (("light", ""), ("dark", "-dark")):  # light for the README, both for the website
+            page = browser.new_context(viewport={"width": 1000, "height": 1100}, device_scale_factor=2,
+                                       color_scheme=scheme, locale="en-GB").new_page()
+            page.goto(url)
+            page.wait_for_selector("#guide:not([hidden]) .guide-step")
+            page.wait_for_timeout(600)
+            page.locator("#guide").screenshot(path=OUT / f"guide{suffix}.png")
+            page.click("#manage-btn")
+            page.wait_for_selector("#starter:not([hidden]) .starter-row")
+            amounts = page.locator("#starter .starter-row .amount")
+            for i, amount in ((0, "950"), (1, "140"), (3, "45"), (4, "380"), (6, "150")):
+                amounts.nth(i).fill(amount)
+            page.evaluate("document.activeElement.blur()")
+            page.wait_for_timeout(700)  # the income comparison follows the amounts
+            page.mouse.move(0, 0)
+            page.locator("#manager").screenshot(path=OUT / f"starter{suffix}.png")
+            page.context.close()
         browser.close()
 
 

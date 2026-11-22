@@ -17,60 +17,40 @@ No account. No subscription. No cloud. Your data stays on your computer.
 <br>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/overview-dark.png">
-  <img src="docs/screenshots/overview-light.png" alt="The Budget overview: spending this month, whether you're ready for next month, account balances and budgets">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/overview-simple-dark.png">
+  <img src="docs/screenshots/overview-simple-light.png" alt="The Budget overview: spending this month, the bank balance and what's left in each budget">
 </picture>
 
 <p align="center"><sub>All screenshots show the real app with made-up data.</sub></p>
 
-## What it does
+## Start simple
 
-### Starts simple, grows with you
+A new Budget shows just what you need to keep a budget: what you plan to spend, what you spent, and what's left. Never kept a budget before? Small **?** buttons explain every word in plain language.
 
-A new Budget shows just the basics: your budgets, what you spend, and History. When something more becomes useful, Budget offers it, one thing at a time, and **Not now** puts it away:
+### Start from your income
 
-- **Keep your bank balance** once you've used Budget for a couple of weeks or added income, so it can tell you when a transaction is missing.
-- **The Outlook and "Ready for next month?"** once you've kept Budget for a month.
-- **Carry leftovers over** when a budget had money left two months in a row.
-- **Track your savings** once you move money to or from them.
+<img src="docs/screenshots/starter.png" width="560" alt="Edit budgets: the income compared with the budgets, and suggested budgets with some amounts filled in">
 
-Or choose **Extended** mode in Settings to show every feature at once. Small **?** buttons explain words like carry-over, safety buffer and free to spend in plain language.
+Enter what comes in each month, then give each kind of spending an amount: Budget suggests a few common ones, so you only fill in amounts. It shows straight away whether your budgets fit your income, and what's left to save.
 
 ### See your month at a glance
 
 Your spending, what's left in each budget, and anything spent outside your budgets, all on one page. Budgets go red only when you've overspent, so the page stays calm until something needs your attention.
 
-**Look back on a finished month.** Go back to an earlier month and the top card shows how it went: income, spending, the result, budgets that went over, and what was carried over or saved.
+**Look back on a finished month.** Go back to an earlier month and the top card shows how it went: income, spending, the result, and budgets that went over.
 
 <img src="docs/screenshots/review.png" width="560" alt="A finished month in review: the result, income, spending and what happened to the leftovers">
 
-**Ready for next month?** (Extended mode) In the last week of the month, Budget compares your bank balance, plus the income you still expect this month, with what next month needs and tells you exactly how much is short or spare. Once your income is in, one click moves the difference to or from your savings.
-
-### Budgets that fit real life
-
-<img src="docs/screenshots/budgets.png" alt="The budget list with categories, items and remaining amounts">
-
-**Start from your income.** Enter what comes in each month and **Edit budgets** shows whether your budgets fit: what's left to save or plan, or how much you'd spend more than you earn. A new Budget suggests a few common budgets to start from: fill in an amount for the ones you need.
-
-<img src="docs/screenshots/starter.png" width="560" alt="Edit budgets: the income compared with the budgets, and suggested budgets with some amounts filled in">
-
-- **Categories and items**, such as Home › Rent, Energy and Internet, or a single budget like Fun money.
-- **Budgets that change over time.** Raise the rent from next month and earlier months stay exactly as they were.
-- **Carry leftovers over** to next month, by default or case by case, and see how much came along (Extended mode).
-- **Split a budget into items later.** Turn Groceries into Food and Household from this month on; the months before keep the single budget they had.
-
-### Add a transaction and see the effect first
+### Add what you spend
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/transaction.png" alt="Adding an expense split across two budgets, with a preview that one goes over"></td>
+<td width="50%"><img src="docs/screenshots/transaction-simple.png" alt="Adding an expense to the Groceries budget, with a preview of what's left"></td>
 <td>
 
-- **Split** one purchase across several budgets.
-- **See the effect before you save:** a preview shows what's left in each budget, in red if it would go over.
-- **Income** can top up a budget. Sold something online? Add it to your Fun money.
-- **Bills paid in advance** can count for one month and leave your bank in another.
+- **See the effect before you save:** what's left in the budget, in red if it would go over.
 - **Quick entry:** known payees suggest the budget you used last time.
+- **Income** can top up a budget. Sold something online? Add it to your Fun money.
 
 </td>
 </tr>
@@ -92,6 +72,63 @@ Transactions are grouped per day. Search by payee, note, budget or amount, filte
 
 **Export to a spreadsheet.** **Export** above your transactions saves the ones in the list (the month, or what your search shows) or all transactions as a CSV file. A transaction split over budgets gets a row per budget, so a spreadsheet can total each budget.
 
+### Look back with History
+
+<img src="docs/screenshots/history.png" alt="The History page: a year's income, spending and result, with the bank and savings balance per month">
+
+The History page shows a year at a glance: what came in, what went out and what was left, and how your bank account and savings developed, month by month. It starts at your starting balance (or, without one, at your first transaction), so months before you began keeping track aren't shown.
+
+<img src="docs/screenshots/budget-history.png" alt="Each budget per month: a bar for what was spent of what there was, with the total spent of budgeted">
+
+**See how your budgets held up.** For each budget, a small bar per month shows how much of it was spent, in red when it went over. Point at a month for what was left or overspent. Budgets that are usually over, or usually have a lot left, are marked, so you can see which ones need a different amount. Spending outside your budgets has its own row.
+
+### It grows with you
+
+<img src="docs/screenshots/offer.png" alt="An offer on the overview: plan ahead with the Outlook, with Not now and Turn on Extended mode">
+
+When something more becomes useful, Budget offers it, one thing at a time, and **Not now** puts it away:
+
+- **Keep your bank balance** once you've used Budget for a couple of weeks or added income, so it can tell you when a transaction is missing.
+- **Track your savings** once you move money to or from them.
+- **The Outlook** once you've kept Budget for a month.
+- **Carry leftovers over** when a budget had money left two months in a row.
+
+## Extended mode: everything, when you're ready
+
+Choose **Extended** in Settings, or accept an offer, and Budget shows every feature.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/overview-dark.png">
+  <img src="docs/screenshots/overview-light.png" alt="The overview in Extended mode: spending this month, whether you're ready for next month, account balances and budgets">
+</picture>
+
+### Ready for next month?
+
+In the last week of the month, Budget compares your bank balance, plus the income you still expect this month, with what next month needs and tells you exactly how much is short or spare. Once your income is in, one click moves the difference to or from your savings.
+
+### Budgets that fit real life
+
+<img src="docs/screenshots/budgets.png" alt="The budget list with categories, items and remaining amounts">
+
+- **Categories and items**, such as Home › Rent, Energy and Internet, or a single budget like Fun money.
+- **Budgets that change over time.** Raise the rent from next month and earlier months stay exactly as they were.
+- **Carry leftovers over** to next month, by default or case by case, and see how much came along.
+- **Split a budget into items later.** Turn Groceries into Food and Household from this month on; the months before keep the single budget they had.
+
+### Split a purchase, or pay a bill early
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/transaction.png" alt="Adding an expense split across two budgets, with a preview that one goes over"></td>
+<td>
+
+- **Split** one purchase across several budgets, and see the effect on each.
+- **Bills paid in advance** can count for one month and leave your bank in another.
+
+</td>
+</tr>
+</table>
+
 ### Keep your balances honest
 
 <table>
@@ -100,29 +137,20 @@ Transactions are grouped per day. Search by payee, note, budget or amount, filte
 
 Set a starting balance for your bank account and savings, and Budget keeps track from there. Enter what your bank shows at any time: it tells you whether everything matches, or how much is off.
 
-
 </td>
 <td width="50%"><img src="docs/screenshots/savings.png" alt="Checking the savings account against what the bank shows"></td>
 </tr>
 </table>
 
-### Look back with History
-
-<img src="docs/screenshots/history.png" alt="The History page: a year's income, spending and result, with the bank and savings balance per month">
-
-The History page shows a year at a glance: what came in, what went out and what was left, and how your bank account and savings developed, month by month. It starts at your starting point (or, without one, at your first transaction), so months before you began keeping track aren't shown.
-
-<img src="docs/screenshots/budget-history.png" alt="Each budget per month: a bar for what was spent of what there was, with the total spent of budgeted">
-
-**See how your budgets held up.** For each budget, a small bar per month shows how much of it was spent, in red when it went over. Point at a month for what was left or overspent. Budgets that are usually over, or usually have a lot left, are marked, so you can see which ones need a different amount. Spending outside your budgets has its own row.
-
 ### Look ahead with the Outlook
 
 <img src="docs/screenshots/outlook.png" alt="The Outlook: projected savings for the next twelve months">
 
-In Extended mode, add your expected income and planned costs, like a holiday or a new laptop, once, monthly, or every few months (like tuition paid every other month), and Budget projects your savings for the next 12 months. If your bank account won't cover next month's budget, it tells you how much to take from your savings. It keeps a safety buffer in your savings and shows how much you can **freely spend** without dipping below it in any month ahead. The chart marks the lowest point ahead, so you can see where that amount comes from, and small bars show what each month adds or takes. You choose the buffer: a number of months of budget, or a fixed amount.
+Add your expected income and planned costs, like a holiday or a new laptop, once, monthly, or every few months (like tuition paid every other month), and Budget projects your savings for the next 12 months. If your bank account won't cover next month's budget, it tells you how much to take from your savings. It keeps a safety buffer in your savings and shows how much you can **freely spend** without dipping below it in any month ahead. The chart marks the lowest point ahead, so you can see where that amount comes from, and small bars show what each month adds or takes. You choose the buffer: a number of months of budget, or a fixed amount.
 
 <img src="docs/screenshots/buffer.png" width="420" alt="Choosing the savings buffer: months of budget or a fixed amount">
+
+## Settings, backups and updates
 
 ### Make it yours
 

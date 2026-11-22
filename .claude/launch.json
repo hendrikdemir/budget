@@ -29,6 +29,18 @@
         "--demo"
       ],
       "port": 8000
+    },
+    {
+      "name": "website",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8100",
+        "--directory",
+        "docs"
+      ],
+      "port": 8100
     }
   ]
 }
