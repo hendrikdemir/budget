@@ -1,7 +1,9 @@
 """Database connection, schema, migrations and daily backups.
 
-The schema version is stored in SQLite's `user_version`. To change the schema, add a
-function to MIGRATIONS; it runs once on databases that are older, in order.
+To change the schema, add a function to MIGRATIONS; it runs once on databases that are older,
+in order. SQLite's `user_version` is the version an older Budget must know to open the data: only
+migrations that older versions can't cope with raise it. Mark the others @readable_by_older
+(see below). How many migrations ran is the `migrations` setting.
 """
 import os
 import sqlite3
@@ -137,6 +139,15 @@ def _columns(conn, table):
     return [r["name"] for r in conn.execute(f"PRAGMA table_info({table})")]
 
 
+def readable_by_older(migration):
+    """Marks a migration that older versions of Budget can live with: they still read and write
+    the data correctly (e.g. a new setting or table they ignore, an index). Then going back to an
+    older version keeps working. Leave it off when older versions would misread the data or
+    write it wrong, e.g. a new column whose value they'd ignore or a changed meaning."""
+    migration.readable_by_older = True
+    return migration
+
+
 def _v1_baseline(conn):
     """Version 1: the full schema. Databases from before versioning got their columns
     added one by one as features were built; add any that are missing."""
@@ -157,6 +168,7 @@ def _v2_plan_interval(conn):
         conn.execute("ALTER TABLE plans ADD COLUMN every_months INTEGER NOT NULL DEFAULT 1")
 
 
+@readable_by_older
 def _v3_mode(conn):
     """Version 3: Budget can show only the basics (setting mode "simple", the default for new
     data). Data from before keeps every feature it had: mode "full"."""
@@ -190,15 +202,31 @@ def _setting(conn, key):
     return row[0] if row else None
 
 
+def needed_by_older():
+    """The user_version for this version's data: the last migration older versions can't live with.
+    (Budget 0.11 and earlier raised it for every migration; this lowers it back.)"""
+    return max((n for n, m in enumerate(MIGRATIONS, start=1) if not getattr(m, "readable_by_older", False)), default=0)
+
+
+def _done(conn, needed):
+    """How many migrations ran: the `migrations` setting, else (data from Budget 0.11 or earlier) user_version."""
+    value = _setting(conn, "migrations")
+    return max(int(value), needed) if value and value.isdigit() else needed
+
+
 def migrate():
     with session() as conn:
-        version = conn.execute("PRAGMA user_version").fetchone()[0]
-        if version > len(MIGRATIONS):
+        needed = conn.execute("PRAGMA user_version").fetchone()[0]
+        if needed > len(MIGRATIONS):
             raise TooNewError(_setting(conn, "app_version"), _setting(conn, "language") or "system",
                               _setting(conn, "theme") or "system")
-        for number, migration in enumerate(MIGRATIONS[version:], start=version + 1):
+        done = _done(conn, needed)
+        for migration in MIGRATIONS[done:]:
             migration(conn)
-            conn.execute(f"PRAGMA user_version = {number}")
+        # Newer data with only changes this version can live with is used as it is.
+        done = max(done, len(MIGRATIONS))  # more, if a newer Budget ran ones this version doesn't know
+        conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('migrations', ?)", (str(done),))
+        conn.execute(f"PRAGMA user_version = {needed_by_older()}")
         # Remembered so an older Budget opening this data later can say which version it needs.
         conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('app_version', ?)", (VERSION,))
 

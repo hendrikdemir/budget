@@ -49,6 +49,7 @@ class Modes(AppTest):
         self.category("Fun money", 10000)
         self.conn.commit()
         self.conn.execute("PRAGMA user_version = 2")
+        self.conn.execute("DELETE FROM settings WHERE key = 'migrations'")  # as Budget 0.10 left it
         self.conn.commit()
         db.migrate()
         self.assertEqual(self.settings()["mode"], "full")

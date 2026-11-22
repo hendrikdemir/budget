@@ -16,7 +16,8 @@ from . import db
 from .money import ApiError
 
 MAX_SIZE = 200 * 1024 * 1024
-KEEP_SETTINGS = ("theme", "currency", "number_format", "update_check", "language")  # how Budget looks stays when all data is deleted
+# How Budget looks stays when all data is deleted, and which migrations ran.
+KEEP_SETTINGS = ("theme", "currency", "number_format", "update_check", "language", "migrations", "app_version")
 REQUIRED_TABLES = {"categories", "items", "budgets", "expenses", "splits", "settings"}
 NOT_A_BACKUP = "errors.notABackup"
 DAMAGED = "errors.backupDamaged"

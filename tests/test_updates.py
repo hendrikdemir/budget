@@ -155,3 +155,28 @@ class NewerData(AppTest):
         self.conn.commit()
         with self.assertRaises(db.TooNewError):
             db.migrate()
+
+    def test_an_older_budget_opens_data_with_only_changes_it_can_live_with(self):
+        # A newer Budget ran two more migrations that older versions can live with.
+        self.conn.execute("PRAGMA user_version = ?".replace("?", str(db.needed_by_older())))
+        self.conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('migrations', ?)",
+                          (str(len(db.MIGRATIONS) + 2),))
+        self.conn.commit()
+        db.migrate()
+        self.assertEqual(self.conn.execute("SELECT value FROM settings WHERE key = 'migrations'").fetchone()[0],
+                         str(len(db.MIGRATIONS) + 2))
+
+
+class Migrations(AppTest):
+    def test_harmless_migrations_dont_lock_out_older_versions(self):
+        # Budget 0.10 knows 2 migrations; the mode setting (3) doesn't stop it.
+        self.assertEqual(db.needed_by_older(), 2)
+        self.assertEqual(self.conn.execute("PRAGMA user_version").fetchone()[0], 2)
+
+    def test_data_from_before_runs_only_the_missing_migrations(self):
+        self.conn.execute("DELETE FROM settings WHERE key = 'migrations'")
+        self.conn.execute("PRAGMA user_version = 3")  # as Budget 0.11 left it
+        self.conn.commit()
+        db.migrate()
+        self.assertEqual(self.conn.execute("PRAGMA user_version").fetchone()[0], 2)
+        self.assertEqual(self.conn.execute("SELECT value FROM settings WHERE key = 'migrations'").fetchone()[0], "3")

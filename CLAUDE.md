@@ -33,8 +33,11 @@ pywebview and PyInstaller are used for the desktop app. There is no web build st
   in a browser can't use it; keep that when adding routes or request types. The desktop app also
   gives its window a key at every start (`/?key=…`, swapped for an HttpOnly cookie): without it the
   API refuses, so other programs and users on the computer can't read or change the data.
-- `app/db.py`: schema and **migrations**. The schema version is SQLite's `user_version`.
-  To change the schema, append a function to `MIGRATIONS` (never edit an old one).
+- `app/db.py`: schema and **migrations**. To change the schema, append a function to `MIGRATIONS`
+  (never edit an old one). **Keep older versions working**: mark it `@readable_by_older` when older
+  versions still read and write the data correctly (a new setting, table or index they ignore).
+  Only unmarked migrations raise SQLite's `user_version`, the version an older Budget must know to
+  open the data; so prefer changes older versions can live with. The `migrations` setting counts what ran.
   Use `db.session()` for a connection (it commits and closes). A connection remembers results
   from `conn.cached()` (budget lines with their carry-over, `month_data()`) until it changes data
   itself; those results are shared, so copy before adding to them.

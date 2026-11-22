@@ -28,7 +28,8 @@ class ClearData(AppTest):
         for table in ("expenses", "splits", "categories", "items", "budgets", "plans"):
             self.assertEqual(self.count(table), 0, table)
         settings = dict(self.conn.execute("SELECT key, value FROM settings").fetchall())
-        self.assertEqual(settings, {"theme": "dark", "currency": "USD"})
+        settings.pop("app_version")
+        self.assertEqual(settings, {"theme": "dark", "currency": "USD", "migrations": str(len(db.MIGRATIONS))})
 
     def test_leaves_no_copies(self):
         db.daily_backup()
