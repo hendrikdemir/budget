@@ -9,4 +9,4 @@ Modules:
 - api:      HTTP API handlers and routes
 """
 
-VERSION = "0.10.0"  # shown in Settings and used for the Mac app
+VERSION = "0.11.0"  # shown in Settings and used for the Mac app
