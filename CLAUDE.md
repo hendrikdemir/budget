@@ -55,6 +55,9 @@ pywebview and PyInstaller are used for the desktop app. There is no web build st
   (one with its Budget.dmg or Budget-setup.exe, so a release can be for the Mac or Windows only); the page
   only tells the user and explains how to install it. `BUDGET_RELEASES_URL` (e.g.
   `packaging/test-release.json`, used by the `budget-update` preview) fakes a release for testing.
+- `app/too_new.py`: the window the desktop app shows instead of starting when the data is from a newer
+  Budget (`db.TooNewError`): both versions and a download button. `db.migrate()` records the version
+  that last opened the data (`app_version` setting) for it.
 - `app/api.py`: request handlers; validation helpers are in `app/money.py`. `app/i18n.py`: the
   server's side of the language files.
 - `static/js/`: ES modules. `main.js` starts the page; `overview.js`, `transaction.js`,
