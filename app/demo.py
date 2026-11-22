@@ -68,10 +68,12 @@ def seed():
             for day, payee, note in ((10, "Bistro Luna", "Dinner with friends"), (16, "Paper & Ink", "Books"), (20, "Cinema Lux", "Movie night")):
                 add(f"{month}-{day:02d}", payee, random.randint(6500, 9800), "Fun money", note)
 
-        # This month: a split purchase, spending outside the budgets, and income for a budget.
+        # Last month, spending outside the budgets (History and the month's review show it). This
+        # month stays within them, as the main screenshots show: a split purchase, and income for a budget.
+        if len(MONTHS) > 1:
+            add(f"{MONTHS[-2]}-14", "Dr. Rivers", 14000, note="Dentist")
         add(f"{THIS_MONTH}-12", "Green Pharmacy", 4800, note="Hand soap and vitamins",
             splits=[{**lines["Household"], "amount": 1800}, {**lines["Fun money"], "amount": 3000}])
-        add(f"{THIS_MONTH}-14", "Dr. Rivers", 14000, note="Dentist")
         add(f"{THIS_MONTH}-17", "Secondhand Market", 3500, note="Sold a lamp", kind="income",
             splits=[{**lines["Fun money"], "amount": 3500}])
 
