@@ -7,11 +7,12 @@ import os
 import secrets
 import sys
 import threading
+import webbrowser
 from pathlib import Path
 
 import webview
 
-from app import db
+from app import db, too_new, updates
 from app.web import make_server
 
 # A fixed port keeps the page's address the same, so remembered choices (like which
@@ -26,13 +27,25 @@ def start_server(key):
         return make_server(0, key)
 
 
-def show_message(title, text):
-    """A small window with only a message, for when Budget can't start."""
-    from html import escape
-    html = (f"<body style='font:15px -apple-system,'Segoe UI',sans-serif;padding:28px;line-height:1.5;"
-            f"background:#f0f6f0;color:#1e2a31'><h2 style='margin-top:0'>{escape(title)}</h2>"
-            f"<p>{escape(text)}</p></body>")
-    webview.create_window("Budget", html=html, width=480, height=280)
+class TooNewWindow:
+    """What the "update Budget" page may do: open a GitHub link in the browser, and close."""
+
+    def __init__(self):
+        self.window = None
+
+    def open(self, url):
+        if isinstance(url, str) and url.startswith("https://github.com/"):
+            webbrowser.open(url)
+
+    def close(self):
+        self.window.destroy()
+
+
+def show_too_new(error):
+    """For when the data is from a newer Budget: which version to install, with a download button."""
+    api = TooNewWindow()
+    api.window = webview.create_window("Budget", html=too_new.page(error, updates.fetch_release()), js_api=api,
+                                       width=560, height=560, min_size=(420, 480))
     webview.start()
 
 
@@ -66,7 +79,7 @@ def main():
     try:
         db.migrate()
     except db.TooNewError as e:
-        show_message("Budget needs an update", str(e))
+        show_too_new(e)
         return
     db.daily_backup()
     # Only this window gets the key, so no other program on the computer can use the server.

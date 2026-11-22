@@ -9,6 +9,8 @@ from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 
+from . import VERSION
+
 # Where the data lives: this folder by default; the Mac app calls use_data_dir().
 DB_PATH = Path(__file__).resolve().parent.parent / "budget.db"
 BACKUP_DIR = DB_PATH.parent / "backups"
@@ -168,22 +170,37 @@ MIGRATIONS = [_v1_baseline, _v2_plan_interval, _v3_mode]
 
 class TooNewError(Exception):
     """The data was last used by a newer Budget than this one (for example after reinstalling
-    an older version). This version doesn't know its newer structure, so it mustn't touch it."""
+    an older version). This version doesn't know its newer structure, so it mustn't touch it.
+    `used_with` is the version that last opened the data (None if it predates recording that),
+    `language` and `theme` as chosen in Settings."""
+
+    def __init__(self, used_with=None, language="system", theme="system"):
+        super().__init__("Your data was last used with a newer version of Budget"
+                         + (f" ({used_with})" if used_with else "") + f" than this one ({VERSION}). "
+                         "Install the latest version from https://github.com/hendrikdemir/budget/releases "
+                         "to keep using it. Your data hasn't changed.")
+        self.used_with, self.language, self.theme = used_with, language, theme
 
 
-TOO_NEW_MESSAGE = ("Your data was last used with a newer version of Budget than this one. "
-                   "Install the latest version from https://github.com/hendrikdemir/budget/releases "
-                   "to keep using it. Your data hasn't changed.")
+def _setting(conn, key):
+    try:
+        row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+    except sqlite3.Error:
+        return None
+    return row[0] if row else None
 
 
 def migrate():
     with session() as conn:
         version = conn.execute("PRAGMA user_version").fetchone()[0]
         if version > len(MIGRATIONS):
-            raise TooNewError(TOO_NEW_MESSAGE)
+            raise TooNewError(_setting(conn, "app_version"), _setting(conn, "language") or "system",
+                              _setting(conn, "theme") or "system")
         for number, migration in enumerate(MIGRATIONS[version:], start=version + 1):
             migration(conn)
             conn.execute(f"PRAGMA user_version = {number}")
+        # Remembered so an older Budget opening this data later can say which version it needs.
+        conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('app_version', ?)", (VERSION,))
 
 
 def daily_backup():

@@ -521,6 +521,21 @@
     "updates": "Updates",
     "yourBudgetsWhatYouSpend": "Je budgetten, wat je uitgeeft en je saldo. Budget stelt meer voor als het handig wordt."
   },
+  "tooNew": {
+    "title": "Werk Budget bij om je gegevens te openen",
+    "explainBoth": "Je gegevens zijn het laatst geopend met Budget {{usedWith}}. Dit is Budget {{installed}}, dat ze niet kan lezen.",
+    "explainInstalled": "Je gegevens zijn het laatst geopend met een nieuwere versie van Budget. Dit is Budget {{installed}}, dat ze niet kan lezen.",
+    "safe": "Je gegevens zijn veilig en niet veranderd. Installeer de nieuwe versie en alles is zoals je het achterliet.",
+    "installed": "Geïnstalleerd",
+    "needed": "Nodig",
+    "download": "Download Budget {{version}}",
+    "downloadLatest": "Download de nieuwste Budget",
+    "howMac": "Open Budget.dmg in je map Downloads en sleep Budget naar Apps, in plaats van deze.",
+    "howWindows": "Open Budget-setup.exe in je map Downloads. Het vervangt deze versie.",
+    "allVersions": "Alle versies op GitHub",
+    "quit": "Sluiten",
+    "newer": "Nieuwer"
+  },
   "transaction": {
     "addAnotherPart": "+ Nog een deel",
     "addExpense": "Uitgave toevoegen",

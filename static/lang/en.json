@@ -521,6 +521,21 @@
     "updates": "Updates",
     "yourBudgetsWhatYouSpend": "Your budgets, what you spend and your bank balance. Budget suggests more when it becomes useful."
   },
+  "tooNew": {
+    "title": "Update Budget to open your data",
+    "explainBoth": "Your data was last opened with Budget {{usedWith}}. This is Budget {{installed}}, which can't read it.",
+    "explainInstalled": "Your data was last opened with a newer version of Budget. This is Budget {{installed}}, which can't read it.",
+    "safe": "Your data is safe and hasn't changed. Install the new version and everything is back as you left it.",
+    "installed": "Installed",
+    "needed": "Needed",
+    "download": "Download Budget {{version}}",
+    "downloadLatest": "Download the latest Budget",
+    "howMac": "Open Budget.dmg from your Downloads folder and drag Budget to Applications, replacing this one.",
+    "howWindows": "Open Budget-setup.exe from your Downloads folder. It replaces this version.",
+    "allVersions": "All versions on GitHub",
+    "quit": "Close",
+    "newer": "Newer"
+  },
   "transaction": {
     "addAnotherPart": "+ Add another part",
     "addExpense": "Add expense",

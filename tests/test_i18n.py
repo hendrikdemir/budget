@@ -26,7 +26,7 @@ def used_keys():
         found |= set(re.findall(rf'(?<![\w.])(?:t|T|th|TH|translate)\(\s*"({KEY})"', path.read_text(encoding="utf-8")))
     found |= set(re.findall(rf'\sdata-i18n(?:-html|-placeholder|-aria-label|-title)?="({KEY})"', (STATIC / "index.html").read_text(encoding="utf-8")))
     for path in (ROOT / "app").glob("*.py"):
-        found |= set(re.findall(r'"(errors\.\w+)"', path.read_text(encoding="utf-8")))
+        found |= set(re.findall(r'"((?:errors|tooNew)\.\w+)"', path.read_text(encoding="utf-8")))
     return found
 
 
