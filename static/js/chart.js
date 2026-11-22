@@ -95,9 +95,13 @@ export function lineChart(el, months, series, options = {}) {
       const i = Number(r.dataset.i);
       tip.innerHTML = tooltip(i);
       tip.hidden = false;
-      tip.style.left = `${Math.min(Math.max(x(i) - tip.offsetWidth / 2, 0), W - tip.offsetWidth)}px`;
+      // Beside the month's line, not over it: to the right, or to the left where it doesn't fit,
+      // level with the month's highest point but within the chart.
+      const gap = 16;
+      const right = x(i) + gap + tip.offsetWidth <= W;
+      tip.style.left = `${right ? x(i) + gap : Math.max(x(i) - gap - tip.offsetWidth, 0)}px`;
       const top = Math.max(...series.map((s) => s.values[i]).filter((v) => v !== null));
-      tip.style.top = `${Math.max(y(top) - tip.offsetHeight - 12, 0)}px`;
+      tip.style.top = `${Math.min(Math.max(y(top) - tip.offsetHeight / 2, 0), Math.max(H - tip.offsetHeight, 0))}px`;
       cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.hidden = false;
     };
     r.onmouseleave = () => { tip.hidden = true; cross.hidden = true; };
