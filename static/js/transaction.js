@@ -2,9 +2,10 @@
 // and income can be split over several budgets; the dialog previews each budget's effect.
 import { combobox, datePicker } from "./controls.js";
 import {
-  currencySymbol, currentMonth, escapeHtml, example, inputAmount, isoDate, money, monthName, monthOnly, parseAmount,
+  currencySymbol, currentMonth, example, inputAmount, isoDate, money, monthName, monthOnly, parseAmount,
 } from "./format.js";
-import { t } from "./i18n.js";
+import { html, join, setHtml } from "./html.js";
+import { t, th } from "./i18n.js";
 import { load, monthData } from "./overview.js";
 import { isSimple, isTransfer, lineBody, splitKey, state, uncategorized } from "./state.js";
 import { $, api, confirmDialog, once, toast } from "./ui.js";
@@ -58,11 +59,12 @@ const payee = combobox(form.payee, {
 const splitRows = () => [...document.querySelectorAll(".split")];
 const nonePlaceholder = () => (splitMode ? (kind === "income" ? t("transaction.notOnBudgetPlaceholder") : t("common.noBudget")) : t("transaction.chooseABudget"));
 function addSplitRow(line = null, amount = "") {
-  const row = document.createElement("div");
+  /** @type {any} */
+  const row = document.createElement("div"); // keeps its combobox as row.combo
   row.className = "split";
-  row.innerHTML = `<input class="split-line" placeholder="${nonePlaceholder()}" aria-label="${t("common.budget")}">
+  setHtml(row, html`<input class="split-line" placeholder="${nonePlaceholder()}" aria-label="${t("common.budget")}">
     <input class="split-amount" inputmode="decimal" placeholder="${t("common.amount")}" aria-label="${t("transaction.amountForThisBudget")}" value="${amount}">
-    <button type="button" class="delete remove-split" aria-label="${t("transaction.removePart")}">×</button>`;
+    <button type="button" class="delete remove-split" aria-label="${t("transaction.removePart")}">×</button>`);
   $("#splits").append(row);
   row.combo = combobox(row.querySelector(".split-line"), { options: budgetOptions, strict: true, empty: t("common.noBudgetWithThatName"), onSelect: updateSplits });
   if (line) row.combo.set(line);
@@ -126,33 +128,33 @@ function renderImpact() {
     // An expense uses up budget; income adds to it.
     const [availAfter, after] = kind === "income" ? [base + p.amount, used] : [base, used + p.amount];
     const leftText = (s, a) => (s > a ? t("common.over", { amount: money(s - a) }) : t("common.left", { amount: money(a - s) }));
-    rows.push(`<div class="impact-row ${after > availAfter ? "over" : ""}">
-      <span class="name">${escapeHtml(line.label)}${ym !== state.month ? ` <span class="muted">· ${monthOnly(ym)}</span>` : ""}</span>
+    rows.push(html`<div class="impact-row ${after > availAfter ? "over" : ""}">
+      <span class="name">${line.label}${ym !== state.month ? html` <span class="muted">· ${monthOnly(ym)}</span>` : ""}</span>
       <span>${leftText(used, base)} → <b>${leftText(after, availAfter)}</b></span>
       <div class="bar"><span style="width:${availAfter ? Math.min(100, (after / availAfter) * 100) : 100}%"></span></div>
     </div>`);
   }
-  if (unassigned > 0) rows.push(`<div class="impact-row muted"><span>${kind === "income" ? t("transaction.amountNotOnBudget", { amount: money(unassigned) }) : t("transaction.withoutABudget", { amount: money(unassigned) })}</span></div>`);
+  if (unassigned > 0) rows.push(html`<div class="impact-row muted"><span>${kind === "income" ? t("transaction.amountNotOnBudget", { amount: money(unassigned) }) : t("transaction.withoutABudget", { amount: money(unassigned) })}</span></div>`);
   // Always show something here, so the form doesn't jump while typing.
   if (!rows.length) {
-    rows.push(`<div class="impact-row muted"><span>${kind === "income"
+    rows.push(html`<div class="impact-row muted"><span>${kind === "income"
       ? t("transaction.previewIncomeHint") : t("transaction.previewExpenseHint")}</span></div>`);
   }
-  $("#impact").innerHTML = rows.join("");
+  setHtml($("#impact"), html`${rows}`);
 }
 
 // What part of the month's unspent budget can go to savings: next month is covered first.
 async function renderLeftoverHint() {
-  if (!dialogData || kind !== "save") return ($("#leftover-hint").innerHTML = "");
+  if (!dialogData || kind !== "save") return setHtml($("#leftover-hint"), html``);
   const ym = form.date.value.slice(0, 7);
   const o = (await monthData(ym, editing?.id)).outlook;
   const saveable = o.balance === null ? o.rest : o.saveable;
-  const parts = [t("transaction.unspentBudgetInThatIsnt", { month: monthName(ym), amount: money(o.unspent) })];
+  const parts = [th("transaction.unspentBudgetInThatIsnt", { month: monthName(ym), amount: money(o.unspent) })];
   if (o.saved) parts.push(t("transaction.alreadySaved", { amount: money(o.saved) }));
   if (o.keep_for_next) parts.push(t("transaction.isNeededFor", { amount: money(o.keep_for_next), month: monthOnly(o.next, "long") }));
-  $("#leftover-hint").innerHTML = `
-    <span>${parts.join(" · ")}</span>
-    ${saveable > 0 ? `<button type="button" class="link-btn" id="use-leftover" data-amount="${saveable}">${t("transaction.use", { amount: money(saveable) })}</button>` : ""}`;
+  setHtml($("#leftover-hint"), html`
+    <span>${join(parts, " · ")}</span>
+    ${saveable > 0 ? html`<button type="button" class="link-btn" id="use-leftover" data-amount="${saveable}">${t("transaction.use", { amount: money(saveable) })}</button>` : ""}`);
 }
 $("#leftover-hint").onclick = (e) => {
   const btn = e.target.closest("#use-leftover");
@@ -240,7 +242,7 @@ export async function openTransaction(transaction = null, newKind = "expense", p
   kind = transaction?.kind || newKind;
   form.reset();
   form.querySelectorAll("[data-error]").forEach((el) => clearError(el.dataset.error));
-  $("#splits").innerHTML = "";
+  $("#splits").replaceChildren();
   $("#kind-options").hidden = !!transaction;
   $("#expense-delete").hidden = !transaction;
   $("#expense-dialog .currency").textContent = currencySymbol();

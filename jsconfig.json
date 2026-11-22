@@ -1,0 +1,16 @@
+{
+  // Type checks for the page's scripts, without compiling anything: npm run check.
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "strict": false,
+    "noImplicitThis": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["static/js/**/*.js", "types/*.d.ts"]
+}

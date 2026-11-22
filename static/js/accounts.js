@@ -2,6 +2,7 @@
 // (expected balance, checks against the bank, starting point). Their history is on the History page.
 import { datePicker } from "./controls.js";
 import { currencySymbol, example, inputAmount, isoDate, money, parseAmount, shortDate } from "./format.js";
+import { html, setHtml } from "./html.js";
 import { t } from "./i18n.js";
 import { isSimple } from "./state.js";
 import { $, api, fieldError, once, toast } from "./ui.js";
@@ -55,21 +56,21 @@ function renderDialog() {
   const b = balances[account];
   const set = b.start !== null;
   $("#balance-title").textContent = ACCOUNTS[account];
-  $("#balance-summary").innerHTML = set
-    ? `<span class="label">${t("accounts.expectedToday")}</span>
+  setHtml($("#balance-summary"), set
+    ? html`<span class="label">${t("accounts.expectedToday")}</span>
        <span class="balance-amount">${b.expected !== null ? money(b.expected) : "—"}</span>
        <span class="muted">${account === "bank"
          ? t("accounts.howBankIsCounted", { amount: money(b.start), date: shortDate(b.start_date) })
          : t("accounts.howSavingsAreCounted", { amount: money(b.start), date: shortDate(b.start_date) })}</span>`
-    : `<span class="muted">${t("accounts.firstEnterAStartingBalance")}</span>`;
+    : html`<span class="muted">${t("accounts.firstEnterAStartingBalance")}</span>`);
   checkForm.hidden = !set;
-  $("#check-list").innerHTML = b.checks.map((c) => `
+  setHtml($("#check-list"), html`${b.checks.map((c) => html`
     <li class="${c.difference === null ? "" : c.difference === 0 ? "ok" : "off"}">
       <span class="check-date">${shortDate(c.date)}</span>
       <span class="check-actual">${money(c.actual)}</span>
       <span class="check-result">${c.difference === null ? t("accounts.beforeTheStartingBalance") : differenceText(c.difference)}</span>
       <button class="delete" data-check="${c.id}" aria-label="${t("accounts.removeThisCheck")}">×</button>
-    </li>`).join("");
+    </li>`)}`);
 }
 
 

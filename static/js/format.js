@@ -23,11 +23,19 @@ export function shiftMonth(ym, delta) {
 // 1.234,56 or 1,234.56.
 export const DATE_LOCALE = locale;
 export const cap = (text) => text.replace(/^./, (c) => c.toUpperCase());
+/**
+ * @param {string} ym "YYYY-MM"
+ * @param {"long" | "short"} [style]
+ */
 export function monthName(ym, style = "long") {
   const [y, m] = ym.split("-").map(Number);
   return new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style, year: "numeric" }).replace(".", "");
 }
 // Just the month: "October" (long) or "Oct" (short).
+/**
+ * @param {string} ym "YYYY-MM"
+ * @param {"long" | "short"} [style]
+ */
 export function monthOnly(ym, style = "short") {
   const [y, m] = ym.split("-").map(Number);
   return new Date(y, m - 1).toLocaleDateString(DATE_LOCALE, { month: style }).replace(".", "");
@@ -74,6 +82,4 @@ export function parseAmount(text) {
 // Cents for an input field, in the style shown elsewhere: 123456 -> "1234,56".
 export const inputAmount = (cents) => `${cents < 0 ? "-" : ""}${Math.floor(Math.abs(cents) / 100)}${separators().decimal}${pad(Math.abs(cents) % 100)}`;
 
-export function escapeHtml(text) {
-  return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-}
+export { escapeHtml } from "./html.js";

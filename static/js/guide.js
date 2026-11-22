@@ -9,6 +9,7 @@
 // (the server decides when, see offers() in app/api.py): turning it on, or Not now.
 import { openAccount } from "./accounts.js";
 import { monthOnly } from "./format.js";
+import { html, setHtml } from "./html.js";
 import { t } from "./i18n.js";
 import { updateSettings } from "./settings.js";
 import { isSimple, state } from "./state.js";
@@ -89,18 +90,18 @@ export async function renderGuide() {
   $("#guide-progress").textContent = t("guide.ofDone", { done, total: shown.length });
   actions = [];
   const next = shown.find((step) => !step.done(steps)); // its button stands out
-  $("#guide-steps").innerHTML = shown.map((step) => {
+  setHtml($("#guide-steps"), html`${shown.map((step) => {
     const finished = step.done(steps);
-    const buttons = finished ? "" : step.actions(steps).map((a) => {
+    const buttons = finished ? "" : step.actions().map((a) => {
       actions.push(a.run);
-      return `<button type="button" class="${a.link ? "link-btn" : step === next ? "primary-btn" : "ghost-btn"}" data-run="${actions.length - 1}">${a.label}</button>`;
-    }).join("");
-    return `<li class="guide-step ${finished ? "done" : ""}">
+      return html`<button type="button" class="${a.link ? "link-btn" : step === next ? "primary-btn" : "ghost-btn"}" data-run="${actions.length - 1}">${a.label}</button>`;
+    });
+    return html`<li class="guide-step ${finished ? "done" : ""}">
       <span class="guide-mark" aria-hidden="true"></span>
-      <div><b>${step.title()}</b>${finished ? `<span class="visually-hidden"> ${t("guide.done")}</span>` : `<span class="muted">${step.text(steps)}</span>`}</div>
+      <div><b>${step.title()}</b>${finished ? html`<span class="visually-hidden"> ${t("guide.done")}</span>` : html`<span class="muted">${step.text()}</span>`}</div>
       <span class="guide-actions">${buttons}</span>
     </li>`;
-  }).join("");
+  })}`);
 }
 
 function renderOffer(found) {
@@ -108,12 +109,12 @@ function renderOffer(found) {
   $("#offer").hidden = !offer;
   if (!offer) return;
   const o = OFFERS[offer.id](offer);
-  $("#offer").innerHTML = `
+  setHtml($("#offer"), html`
     <div class="offer-text"><b>${o.title}</b><span class="muted">${o.text}</span></div>
     <span class="offer-actions">
       <button type="button" class="link-btn" id="offer-later">${t("guide.notNow")}</button>
       <button type="button" class="ghost-btn" id="offer-accept">${o.accept}</button>
-    </span>`;
+    </span>`);
   $("#offer-accept").onclick = once(async () => {
     await o.run();
     renderGuide();

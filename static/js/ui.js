@@ -1,5 +1,6 @@
 // Small helpers shared by every part of the page: the API, toasts and modals.
 import { example } from "./format.js";
+import { html } from "./html.js";
 import { language, t } from "./i18n.js";
 
 export const $ = (sel) => document.querySelector(sel);
@@ -8,6 +9,7 @@ export const $ = (sel) => document.querySelector(sel);
 // double click can't add something twice.
 export function once(handler) {
   let busy = false;
+  /** @this {unknown} */
   return async function (e, ...rest) {
     if (busy) return e?.type === "submit" && e.preventDefault();
     busy = true;
@@ -49,6 +51,7 @@ export async function api(path, options = {}) {
 // open dialog too. It's also hidden with `hidden`, so older WebKit (which ignores the popover
 // attribute and would show an empty pill) only shows it while there's a message.
 const popovers = typeof HTMLElement.prototype.showPopover === "function";
+let toastTimer;
 export function toast(message, seconds = 2.2) {
   const el = $("#toast");
   // Inside the open modal dialog, if any: the Mac app's WebKit can put a popover shown while a
@@ -64,8 +67,8 @@ export function toast(message, seconds = 2.2) {
     if (el.matches(":popover-open")) el.hidePopover();
     el.showPopover(); // shown last, so on top of any dialog
   }
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => {
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
     el.hidden = true;
     if (popovers && el.matches(":popover-open")) el.hidePopover();
   }, seconds * 1000);
@@ -104,7 +107,7 @@ document.addEventListener("click", (e) => e.target.closest("[data-close]")?.clos
 // Table headers that explain their column when hovered or focused: tipHead() makes the
 // header, columnTips(table) shows the explanation. It floats over the page, so a table that
 // scrolls sideways can't clip it.
-export const tipHead = (label, tip) => tip ? `<th tabindex="0" data-tip="${tip}">${label}</th>` : `<th>${label}</th>`;
+export const tipHead = (label, tip) => tip ? html`<th tabindex="0" data-tip="${tip}">${label}</th>` : html`<th>${label}</th>`;
 const columnTip = document.body.appendChild(Object.assign(document.createElement("div"), { className: "col-tip", hidden: true }));
 function showColumnTip(th) {
   columnTip.textContent = th.dataset.tip;

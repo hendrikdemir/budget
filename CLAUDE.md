@@ -27,9 +27,12 @@ pywebview and PyInstaller are used for the desktop app. There is no web build st
 - `docs/`: the website (GitHub Pages, the `website` preview) and the screenshots. Its download buttons look up the newest
   release with each system's file, like the app's update check.
 - `app/web.py`: HTTP server. Routes `/api/<resource>[/<id>]` to `app/api.py` `ROUTES`,
-  everything else to `static/`. Sends `Cache-Control: no-cache`.
+  everything else to `static/`. Sends `Cache-Control: no-cache` and a strict Content-Security-Policy
+  (only the app's own scripts, nothing from elsewhere, no frames).
   It only answers the app's own page (checks Host, Origin and Content-Type), so websites open
-  in a browser can't use it; keep that when adding routes or request types.
+  in a browser can't use it; keep that when adding routes or request types. The desktop app also
+  gives its window a key at every start (`/?key=…`, swapped for an HttpOnly cookie): without it the
+  API refuses, so other programs and users on the computer can't read or change the data.
 - `app/db.py`: schema and **migrations**. The schema version is SQLite's `user_version`.
   To change the schema, append a function to `MIGRATIONS` (never edit an old one).
   Use `db.session()` for a connection (it commits and closes). A connection remembers results
@@ -95,6 +98,9 @@ pywebview and PyInstaller are used for the desktop app. There is no web build st
   a soft glow behind frosted cards, and red only for being over budget. One font everywhere: Geist,
   shipped in `static/fonts/` (SIL Open Font License), so the app looks the same on every system
   and never loads anything from the internet. Match existing components (cards, `.bl-row`, `.mgr-row`, dialogs).
+- **HTML only through `html.js`**: build it with `` html`…` `` (every value escaped, lists allowed) and
+  put it in the page with `setHtml()` or `element()`; translations with markup with `th()`. Names,
+  notes and payees come from users and bank files: never use `innerHTML` (ESLint refuses it).
 
 ## Keeping the installed app current
 
@@ -130,7 +136,11 @@ builds in a Windows VM. Paths, file names and text files must work on both (read
 Run the tests with `python3 -m unittest` (standard library only, about 2 seconds). They live in
 `tests/` and cover budgets, the outlook, bank imports, the server's protection and the language files, with made-up
 data and a fixed "today" (`tests/base.py`). Add a test when changing a calculation or adding a
-bank reader. The tests don't cover the page itself: after a change, also run the app and check the affected screens
-in the browser (light and dark, desktop and mobile width). Test the built app too when
+bank reader. `tests/test_page.py` tests the page in WebKit (every page and dialog in both languages and
+modes, at desktop and phone width; names that must stay text; a new user's first steps); it's skipped
+without Playwright. `packaging/check.sh` runs everything (tests with the page tests, ruff, the page's
+type checks and ESLint), as GitHub does for every push (`.github/workflows/checks.yml`): run it before
+committing, and extend the page tests when adding a screen or dialog. Also look at affected screens
+in the browser yourself (light and dark, desktop and mobile width). Test the built app too when
 changing `desktop.py` or packaging, with `BUDGET_DATA_DIR` pointing to a copy of the data. For changes to calculations,
 compare the numbers shown before and after the change on real data.

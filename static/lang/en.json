@@ -591,7 +591,7 @@
     "ifWindowsSaysItProtected": "If Windows says it protected your PC, click <strong>More info</strong>, then <strong>Run anyway</strong>.",
     "later": "Later",
     "openBudgetDmgAndDrag": "Open Budget.dmg and drag Budget onto the Applications folder. Choose <strong>Replace</strong>.",
-    "openBudgetIfMacosSays": "Open Budget. If macOS says it can't check the app, open System Settings › Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>.",
+    "openBudgetIfMacosSays": "Open Budget. If macOS says it can't check the app, open System Settings › Privacy & Security, scroll down and click <strong>Open Anyway</strong>.",
     "openBudgetSetupExeIt": "Open Budget-setup.exe. It closes Budget, installs the new version and opens it again.",
     "quitBudgetBudgetMenuQuit": "Quit Budget (Budget menu › Quit, or ⌘Q).",
     "skipThisVersion": "Skip this version",

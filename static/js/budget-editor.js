@@ -4,15 +4,16 @@
 // At the top it shows whether the budgets fit the income (GET /api/budget-fit), and lets the
 // user enter their monthly income there. Without any budgets yet, it suggests common ones to
 // start from: fill in an amount for the ones you need.
-import { currencySymbol, escapeHtml, example, inputAmount, money, monthName, parseAmount } from "./format.js";
+import { currencySymbol, example, inputAmount, money, monthName, parseAmount } from "./format.js";
 import { helpTip } from "./help.js";
+import { element, html, setHtml, trusted } from "./html.js";
 import { t } from "./i18n.js";
 import { load } from "./overview.js";
 import { isSimple, state } from "./state.js";
 import { $, api, confirmDialog, fieldError, once, toast } from "./ui.js";
 
 const FIRST_MONTH = "0000-01"; // budgets that have applied since the start
-const PLUS = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const PLUS = trusted(`<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`);
 const CARRY_TIP = t("budgets.carryByDefault");
 
 // A few common budgets to start from: fixed costs as one category with items, then budgets of their own.
@@ -30,17 +31,17 @@ function historyChips(line) {
   const changes = line.history;
   if (changes.length < 2 && line.budget !== null) return "";
   const current = changes.filter((h) => h.start_month <= state.month).at(-1);
-  return `<div class="history">${changes.map((h) => `
+  return html`<div class="history">${changes.map((h) => html`
     <span class="hchip ${h === current ? "current" : ""}">
       ${h.start_month === FIRST_MONTH ? t("budgets.fromTheStart") : t("common.from", { month: monthName(h.start_month, "short") })}:
       ${h.amount === null ? t("budgets.ended") : money(h.amount) + (h.rollover ? " ↪" : "")}
-      ${changes.length > 1 ? `<button type="button" class="undo" data-budget="${h.id}" aria-label="${t("common.removeThisChange")}">×</button>` : ""}
-    </span>`).join("")}</div>`;
+      ${changes.length > 1 ? html`<button type="button" class="undo" data-budget="${h.id}" aria-label="${t("common.removeThisChange")}">×</button>` : ""}
+    </span>`)}</div>`;
 }
 
 // Column headings above the list, each lined up with the text in its column. Carry over is one of
 // the features beyond the basics: hidden with only the basics, but keeping its place.
-const columnHeadings = () => `<div class="mgr-row mgr-labels">
+const columnHeadings = () => html`<div class="mgr-row mgr-labels">
   <span class="label">${t("budgets.columnName")}</span>
   <span class="label mgr-label-amount">${t("budgets.columnAmount")}</span>
   <button type="button" class="label help-label full-only" data-help="carry" title="${CARRY_TIP}">${t("common.carryOver")}</button>
@@ -49,14 +50,14 @@ const columnHeadings = () => `<div class="mgr-row mgr-labels">
 
 function lineRow(kind, line, { withBudget = true } = {}) {
   const ended = line.budget === null;
-  return `<div class="mgr-row ${kind === "category" ? "mgr-head" : "mgr-item"} ${withBudget && ended ? "ended" : ""}" data-kind="${kind}" data-id="${line.id}">
-    <input class="name" value="${escapeHtml(line.name)}" aria-label="${t("common.name")}" data-focus="${kind}${line.id}n">
-    ${withBudget ? `
+  return html`<div class="mgr-row ${kind === "category" ? "mgr-head" : "mgr-item"} ${withBudget && ended ? "ended" : ""}" data-kind="${kind}" data-id="${line.id}">
+    <input class="name" value="${line.name}" aria-label="${t("common.name")}" data-focus="${kind}${line.id}n">
+    ${withBudget ? html`
       <input class="amount" inputmode="decimal" value="${ended ? "" : inputAmount(line.budget)}" placeholder="${t("budgets.endedPlaceholder")}" aria-label="${t("budgets.monthlyBudget")}" data-focus="${kind}${line.id}a">
       <label class="carry-default full-only" title="${CARRY_TIP}">
         <input type="checkbox" class="rollover" ${line.rollover ? "checked" : ""} ${ended ? "disabled" : ""} data-focus="${kind}${line.id}r">
       </label>`
-      : "<span></span><span></span>"}
+      : html`<span></span><span></span>`}
     <button type="button" class="delete remove" aria-label="${t("budgets.remove")}">×</button>
     ${withBudget ? historyChips(line) : ""}
   </div>`;
@@ -64,20 +65,20 @@ function lineRow(kind, line, { withBudget = true } = {}) {
 
 function render() {
   $("#manager-month").textContent = monthName(state.month);
-  const focused = document.activeElement?.dataset?.focus;
+  const focused = /** @type {HTMLElement} */ (document.activeElement)?.dataset?.focus;
   const shown = state.data.categories.filter((c) => relevant(c) || c.items.some(relevant));
-  $("#manager-body").innerHTML = (shown.length ? columnHeadings() : "") +
-    shown.map((c) => `
+  setHtml($("#manager-body"), html`${shown.length ? columnHeadings() : ""}${
+    shown.map((c) => html`
         <div class="mgr-cat" data-id="${c.id}">
           ${lineRow("category", c, { withBudget: c.single || !c.items.length })}
-          ${c.items.filter(relevant).map((i) => lineRow("item", i)).join("")}
+          ${c.items.filter(relevant).map((i) => lineRow("item", i))}
           <form class="mgr-row add-item">
             <input name="name" placeholder="${c.items.length ? t("budgets.newItem") : t("budgets.splitIntoItemsEG")}" required>
             <input name="budget" inputmode="decimal" placeholder="${t("common.budget")}">
             <label class="carry-default full-only" title="${CARRY_TIP}"><input type="checkbox" name="rollover" aria-label="${t("budgets.carryLeftovers")}"></label>
             <button class="icon-btn" aria-label="${t("budgets.addItem")}">${PLUS}</button>
           </form>
-        </div>`).join("");
+        </div>`)}`);
   renderStarter(!state.data.categories.length);
   if (focused) $(`[data-focus="${focused}"]`)?.focus();
 }
@@ -90,34 +91,34 @@ async function renderFit() {
   const budgets = fit.budgets + (starting ? starterTotal() : 0);
   const left = fit.income - budgets - fit.planned;
   const incomeRow = fit.income_plans === 0
-    ? `${incomeField("fit-income-form", t("budgets.yourIncomePerMonth"), "")}
+    ? html`${incomeField("fit-income-form", t("budgets.yourIncomePerMonth"), "")}
       <p class="muted fit-why">${t("budgets.yourSalaryBenefitsOrAllowance")}</p>`
-    : `<div class="fit-row"><span>${t("budgets.incomeIn", { month: monthName(state.month) })}</span>
+    : html`<div class="fit-row"><span>${t("budgets.incomeIn", { month: monthName(state.month) })}</span>
         <span class="fit-amount">${money(fit.income)}${fit.plan
-          ? ` <button type="button" class="link-btn" id="fit-income-change">${t("budgets.change")}</button>`
-          : isSimple() ? "" : ` <a class="link-btn" href="#outlook" data-close-manager>${t("budgets.inTheOutlook")}</a>`}</span></div>`;
+          ? html` <button type="button" class="link-btn" id="fit-income-change">${t("budgets.change")}</button>`
+          : isSimple() ? "" : html` <a class="link-btn" href="#outlook" data-close-manager>${t("budgets.inTheOutlook")}</a>`}</span></div>`;
   if (fit.income_plans === 0 && !budgets) {
-    $("#budget-fit").innerHTML = incomeRow;
+    setHtml($("#budget-fit"), incomeRow);
     return bindFit();
   }
   const rows = [incomeRow,
-    `<div class="fit-row"><span>${t("common.budgets")}</span><span class="fit-amount">− ${money(budgets)}</span></div>`];
-  if (fit.planned) rows.push(`<div class="fit-row"><span>${t("budgets.plannedCostsInTheOutlook")}</span><span class="fit-amount">− ${money(fit.planned)}</span></div>`);
+    html`<div class="fit-row"><span>${t("common.budgets")}</span><span class="fit-amount">− ${money(budgets)}</span></div>`];
+  if (fit.planned) rows.push(html`<div class="fit-row"><span>${t("budgets.plannedCostsInTheOutlook")}</span><span class="fit-amount">− ${money(fit.planned)}</span></div>`);
   if (fit.income_plans > 0) {
-    rows.push(`<div class="fit-row fit-result ${left < 0 ? "short" : ""}">
+    rows.push(html`<div class="fit-row fit-result ${left < 0 ? "short" : ""}">
       <span>${left < 0 ? t("budgets.moreThanYourIncome") : t("budgets.leftToSaveOrPlan")} ${helpTip("fit")}</span>
       <span class="fit-amount">${left < 0 ? `− ${money(-left)}` : money(left)}</span></div>`);
-    if (left < 0) rows.push(`<p class="fit-note">${t("budgets.yourBudgetsAddUpTo")}</p>`);
+    if (left < 0) rows.push(html`<p class="fit-note">${t("budgets.yourBudgetsAddUpTo")}</p>`);
   }
   if (fit.spending && !fit.budgets) {
-    rows.push(`<p class="muted fit-why">${t("budgets.averageSpending", { count: fit.spending.months, amount: money(fit.spending.average) })}</p>`);
+    rows.push(html`<p class="muted fit-why">${t("budgets.averageSpending", { count: fit.spending.months, amount: money(fit.spending.average) })}</p>`);
   }
-  $("#budget-fit").innerHTML = rows.join("");
+  setHtml($("#budget-fit"), html`${rows}`);
   bindFit();
 }
 // The income field saves itself, like the budgets below it: when it's left after a change, or
 // with Enter. Without an income yet it adds one; otherwise it changes it from this month on.
-const incomeField = (id, label, value) => `<form class="fit-income" id="${id}" novalidate>
+const incomeField = (id, label, value) => html`<form class="fit-income" id="${id}" novalidate>
   <label class="field"><span class="label">${label}</span>
     <span class="money-input"><span class="currency"></span><input name="amount" inputmode="decimal" value="${value}" placeholder="${example("0.00")}"></span>
     <span class="error" data-error="amount"></span></label>
@@ -152,8 +153,8 @@ function bindFit() {
 }
 // The one monthly income, from this month on, in place.
 function changeIncome() {
-  $("#fit-income-change").closest(".fit-row").outerHTML =
-    incomeField("fit-change-form", t("budgets.incomePerMonthFrom", { month: monthName(state.month) }), inputAmount(fit.income));
+  $("#fit-income-change").closest(".fit-row").replaceWith(
+    element(incomeField("fit-change-form", t("budgets.incomePerMonthFrom", { month: monthName(state.month) }), inputAmount(fit.income))));
   bindFit();
   const form = $("#fit-change-form");
   bindIncome(form, { plan_id: fit.plan.id });
@@ -170,26 +171,26 @@ function renderStarter(empty) {
   if (!empty) return (starterShown = false);
   if (starterShown) return;
   starterShown = true;
-  $("#starter").innerHTML = `
+  setHtml($("#starter"), html`
     <p class="starter-intro"><b>${t("budgets.startWithCommonBudgets")}</b>
       <span class="muted">${t("budgets.fillInAnAmountPer")}</span></p>
-    ${STARTERS().map((group) => `<div class="starter-group">${group.items
-      ? `<div class="mgr-row mgr-head starter-head"><input class="name group-name" value="${escapeHtml(group.name)}" aria-label="${t("common.name")}"></div>
-        ${group.items.map((name) => starterRow(name, "mgr-item")).join("")}`
-      : starterRow(group.name, "mgr-head")}</div>`).join("")}
+    ${STARTERS().map((group) => html`<div class="starter-group">${group.items
+      ? html`<div class="mgr-row mgr-head starter-head"><input class="name group-name" value="${group.name}" aria-label="${t("common.name")}"></div>
+        ${group.items.map((name) => starterRow(name, "mgr-item"))}`
+      : starterRow(group.name, "mgr-head")}</div>`)}
     <div class="starter-group">${starterRow("", "mgr-head", t("budgets.somethingElseEGPets"))}</div>
     <p class="error" id="starter-error"></p>
     <div class="starter-foot">
       <button type="button" class="link-btn" id="starter-skip">${t("budgets.startEmpty")}</button>
       <span class="spacer"></span>
       <button type="button" class="primary-btn" id="starter-add" disabled>${t("budgets.addBudgets")}</button>
-    </div>`;
+    </div>`);
   updateStarter();
 }
 function starterRow(name, cls, placeholder = "") {
-  return `<div class="mgr-row ${cls} starter-row">
-    <input class="name" value="${escapeHtml(name)}" ${placeholder ? `placeholder="${escapeHtml(placeholder)}"` : ""} aria-label="${t("common.name")}">
-    <input class="amount" inputmode="decimal" placeholder="${t("common.amount")}" aria-label="${name ? t("budgets.monthlyBudgetFor", { name: escapeHtml(name) }) : t("budgets.monthlyBudget")}">
+  return html`<div class="mgr-row ${cls} starter-row">
+    <input class="name" value="${name}" placeholder="${placeholder}" aria-label="${t("common.name")}">
+    <input class="amount" inputmode="decimal" placeholder="${t("common.amount")}" aria-label="${name ? t("budgets.monthlyBudgetFor", { name }) : t("budgets.monthlyBudget")}">
   </div>`;
 }
 // The budget lines with an amount filled in: [{ name, text, group (the category's name, for an item) }].

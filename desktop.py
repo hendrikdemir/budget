@@ -4,6 +4,7 @@ Keeps the data in ~/Library/Application Support/nl.hendrikdemir.budget on a Mac,
 %APPDATA%\\Budget on Windows (or BUDGET_DATA_DIR, for testing).
 """
 import os
+import secrets
 import sys
 import threading
 from pathlib import Path
@@ -18,11 +19,11 @@ from app.web import make_server
 PREFERRED_PORT = 38517
 
 
-def start_server():
+def start_server(key):
     try:
-        return make_server(PREFERRED_PORT)
+        return make_server(PREFERRED_PORT, key)
     except OSError:
-        return make_server(0)
+        return make_server(0, key)
 
 
 def show_message(title, text):
@@ -68,10 +69,12 @@ def main():
         show_message("Budget needs an update", str(e))
         return
     db.daily_backup()
-    server = start_server()
+    # Only this window gets the key, so no other program on the computer can use the server.
+    key = secrets.token_urlsafe(32)
+    server = start_server(key)
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
-    webview.create_window("Budget", f"http://127.0.0.1:{server.server_address[1]}/",
+    webview.create_window("Budget", f"http://127.0.0.1:{server.server_address[1]}/?key={key}",
                           width=1040, height=860, min_size=(420, 600))
     webview.settings["ALLOW_DOWNLOADS"] = True  # for Export data
     webview.start(private_mode=False, storage_path=str(data_dir / "window"))  # returns when the window closes

@@ -1,6 +1,7 @@
 // Backups in Settings: creating one, restoring one, and deleting all data. Before a restore
 // or a delete, the user creates a backup of the current data first, or says no copy is needed.
-import { DATE_LOCALE, cap, escapeHtml, shortDate } from "./format.js";
+import { DATE_LOCALE, cap, shortDate } from "./format.js";
+import { html, setHtml } from "./html.js";
 import { t } from "./i18n.js";
 import { $, api, confirmDialog, toast } from "./ui.js";
 
@@ -44,10 +45,10 @@ $("#export-btn").onclick = () => toast(t("backup.keepYourBackupSomewhereSafe"), 
 const longDate = (iso) => cap(new Date(`${iso}T00:00`).toLocaleDateString(DATE_LOCALE, { weekday: "short", day: "numeric", month: "long", year: "numeric" }));
 $("#import-btn").onclick = async () => {
   const copies = await api("/api/auto-backups");
-  $("#auto-backups").innerHTML = copies.length
-    ? copies.map((c) => `<li><button type="button" class="auto-backup" data-name="${escapeHtml(c.name)}">
-        <span>${longDate(c.date)}</span><span class="muted">${t("common.transactionCount", { count: c.transactions })}</span></button></li>`).join("")
-    : `<li class="muted">${t("backup.noAutomaticBackupsYet")}</li>`;
+  setHtml($("#auto-backups"), copies.length
+    ? html`${copies.map((c) => html`<li><button type="button" class="auto-backup" data-name="${c.name}">
+        <span>${longDate(c.date)}</span><span class="muted">${t("common.transactionCount", { count: c.transactions })}</span></button></li>`)}`
+    : html`<li class="muted">${t("backup.noAutomaticBackupsYet")}</li>`);
   $("#restore-dialog").showModal();
 };
 $("#restore-file").onclick = () => $("#import-file").click();

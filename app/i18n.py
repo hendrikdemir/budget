@@ -12,7 +12,7 @@ tests/test_i18n.py checks that every key the code uses exists, in every language
 import json
 import re
 import sys
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 LANG_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent)) / "static" / "lang"
@@ -20,7 +20,7 @@ LANGUAGES = ("en", "nl")
 PLACEHOLDER = re.compile(r"\{\{\s*(\w+)\s*\}\}")
 
 
-@lru_cache(maxsize=None)
+@cache
 def strings(language):
     """A language's texts, flat: {"errors.chooseDate": "…"}."""
     if language not in LANGUAGES:

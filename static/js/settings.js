@@ -2,6 +2,7 @@
 // feature), light/dark theme, currency and how numbers are written.
 import { combobox } from "./controls.js";
 import { decimalComma, example } from "./format.js";
+import { html, setHtml } from "./html.js";
 import { LANGUAGES, language, resolveLanguage, t } from "./i18n.js";
 import { isSimple, state } from "./state.js";
 import { $, api } from "./ui.js";
@@ -51,10 +52,9 @@ $("#mode-options").onclick = (e) => e.target.dataset.mode && e.target.dataset.mo
 
 // Languages: the system language, or one chosen. Each is named in its own language. Changing it
 // reloads the page in the new language, with Settings open again.
-$("#language-select").innerHTML = [
-  `<option value="system">${t("settings.systemLanguage")} (${LANGUAGES[resolveLanguage("system")].name})</option>`,
-  ...Object.entries(LANGUAGES).map(([code, l]) => `<option value="${code}">${l.name}</option>`),
-].join("");
+setHtml($("#language-select"), html`
+  <option value="system">${t("settings.systemLanguage")} (${LANGUAGES[resolveLanguage("system")].name})</option>
+  ${Object.entries(LANGUAGES).map(([code, l]) => html`<option value="${code}">${l.name}</option>`)}`);
 $("#language-select").onchange = async (e) => {
   await api("/api/settings", { method: "POST", body: { language: e.target.value } });
   try { sessionStorage.setItem("budget.open-settings", "1"); } catch {}

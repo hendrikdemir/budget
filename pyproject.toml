@@ -1,0 +1,23 @@
+# Settings for the development checks (packaging/check.sh). The app itself needs only Python.
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+extend-exclude = ["build", "dist", ".venv-build", "node_modules"]
+
+[tool.ruff.lint]
+# Errors and likely bugs (F, E, W, B), security (S), and up-to-date Python (UP).
+select = ["F", "E", "W", "B", "S", "UP"]
+ignore = [
+  "E731",   # a short lambda assigned to a name reads fine here
+  "S101",   # assert in tests
+  "S608",   # SQL built from the app's own table and column names, never from the user
+  "S310",   # urlopen of the app's own update URL (app/updates.py checks it)
+  "B904",   # a friendly ApiError instead of the original exception is on purpose
+  "E741",   # `l` is a budget line throughout
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]
+"app/demo.py" = ["S311"]  # made-up amounts, not secrets
+"packaging/make_screenshots.py" = ["E402", "E702"]  # imports the app after adding it to the path
+"packaging/*" = ["S603", "S607"]  # the release script runs git, gh and the builds

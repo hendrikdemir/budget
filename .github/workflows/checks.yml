@@ -1,0 +1,35 @@
+# Every check for every push and pull request, on a Mac (the page tests run in WebKit, the Mac
+# app's engine): the same as packaging/check.sh. The Windows build has its own workflow.
+# Actions are pinned to a commit, so a changed tag can't change what runs here.
+name: Checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: "22"
+      - name: Install the checks
+        run: |
+          python -m pip install --quiet -r requirements-dev.txt
+          python -m playwright install webkit
+          npm ci
+      - name: Tests (with the page in WebKit)
+        run: python -m unittest
+      - name: Python lint and security (ruff)
+        run: ruff check .
+      - name: Page type checks and lint
+        run: npm run check

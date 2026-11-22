@@ -3,6 +3,7 @@
 // <button class="help-tip" data-help="...">. Clicking one shows its text under it. A heading can
 // explain itself too: <button class="help-label" data-help="..."> (underlined with dots).
 import { popup } from "./controls.js";
+import { html } from "./html.js";
 import { t } from "./i18n.js";
 
 const HELP = {
@@ -19,7 +20,7 @@ const HELP = {
 };
 
 export const helpTip = (key) =>
-  `<button type="button" class="help-tip" data-help="${key}" aria-label="${t("help.whatDoesThisMean")}">?</button>`;
+  html`<button type="button" class="help-tip" data-help="${key}" aria-label="${t("help.whatDoesThisMean")}">?</button>`;
 
 // In the capture phase, so a "?" inside a clickable row only explains and doesn't click the row.
 document.addEventListener("click", (e) => {
@@ -27,6 +28,6 @@ document.addEventListener("click", (e) => {
   if (!button) return;
   e.preventDefault();
   e.stopPropagation();
-  popup(button, `<p class="help-text">${HELP[button.dataset.help]?.() ?? ""}</p>`);
+  popup(button, html`<p class="help-text">${HELP[button.dataset.help]?.() ?? ""}</p>`);
 }, true);
 document.querySelectorAll(".help-tip").forEach((b) => b.setAttribute("aria-label", t("help.whatDoesThisMean")));

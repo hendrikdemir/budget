@@ -124,6 +124,6 @@ class BudgetExportImport(AppTest):
 
     def test_unknown_budget_stays_outside(self):
         _, data = export.transactions_csv(self.conn, "2026-11", ",")
-        data = data.replace("Household".encode(), b"Pets")
+        data = data.replace(b"Household", b"Pets")
         shop = next(t for t in bank_import.preview(self.conn, data, [])["transactions"] if t["payee"] == "=Shop")
         self.assertEqual((shop["missing"], [s["line"] for s in shop["splits"]]), (["Groceries · Pets"], [self.food]))

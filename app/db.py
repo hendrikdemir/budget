@@ -3,6 +3,7 @@
 The schema version is stored in SQLite's `user_version`. To change the schema, add a
 function to MIGRATIONS; it runs once on databases that are older, in order.
 """
+import os
 import sqlite3
 from contextlib import contextmanager
 from datetime import date
@@ -88,6 +89,8 @@ CREATE INDEX IF NOT EXISTS idx_splits_expense ON splits(expense_id);
 def use_data_dir(folder):
     global DB_PATH, BACKUP_DIR
     folder.mkdir(parents=True, exist_ok=True)
+    if os.name != "nt":
+        folder.chmod(0o700)  # financial data: for this user only (Windows keeps %APPDATA% per user)
     DB_PATH = folder / "budget.db"
     BACKUP_DIR = folder / "backups"
 

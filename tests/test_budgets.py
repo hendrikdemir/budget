@@ -109,7 +109,7 @@ class Totals(AppTest):
         self.assertEqual(self.month("2026-10")["leftover"]["rest"], 20000)
 
     def test_the_current_month_keeps_all_unspent_budget_spendable(self):
-        food = self.item(self.category("Groceries"), "Food", 30000)
+        self.item(self.category("Groceries"), "Food", 30000)
         self.add(15000, "2026-11-01", kind="save")
         self.assertEqual(self.month("2026-11")["leftover"]["rest"], 30000)
 

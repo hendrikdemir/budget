@@ -349,7 +349,8 @@ def bank_export():
         (ing(date.fromisoformat(rent["date"])), "Oakwood Rentals", "NL00BANK0123456789", "GT", "Af", euros(rent["amount_cents"]),
          "Online bankieren", "Naam: Oakwood Rentals Omschrijving: Rent IBAN: NL00BANK0123456789"),
         (ing(day), "Oranje Spaarrekening", "", "GT", "Af", "150,00", "Online bankieren", "Naar Oranje spaarrekening A12345678"),
-        (ing(day), "Studio Lumen", "NL00BANK0987654321", "IW", "Af", "64,00", "iDEAL", "Naam: Studio Lumen Omschrijving: Photo prints IBAN: NL00BANK0987654321"),
+        (ing(day), "Studio Lumen", "NL00BANK0987654321", "IW", "Af", "64,00",
+         "iDEAL", "Naam: Studio Lumen Omschrijving: Photo prints IBAN: NL00BANK0987654321"),
     ]
     header = ["Datum", "Naam / Omschrijving", "Rekening", "Tegenrekening", "Code", "Af Bij", "Bedrag (EUR)", "Mutatiesoort", "Mededelingen"]
     lines = [header] + [[r[0], r[1], "NL00INGB0000000000", *r[2:]] for r in rows]

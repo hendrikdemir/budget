@@ -1,7 +1,8 @@
 // Importing transactions from a bank export (CSV). The server reads the file and suggests
 // payees, budgets and likely duplicates; here every transaction is reviewed before any is added.
 import { combobox } from "./controls.js";
-import { DATE_LOCALE, cap, escapeHtml, money, shortDate } from "./format.js";
+import { DATE_LOCALE, cap, money, shortDate } from "./format.js";
+import { html, setHtml } from "./html.js";
 import { t as T } from "./i18n.js";
 import { load } from "./overview.js";
 import { $, api, once, toast } from "./ui.js";
@@ -25,29 +26,30 @@ function open({ bank, transactions, lines }) {
   $("#bank-title").textContent = T("import.title", { count: transactions.length, bank });
   $("#bank-hint").textContent = T("import.checkEachOneAndChoose") +
     (duplicates ? ` ${T("import.duplicates", { count: duplicates })}` : "");
-  $("#bank-list").innerHTML = transactions.map((t, i) => {
+  // Everything here comes from the file: html`…` keeps it text, whatever a payee is called.
+  setHtml($("#bank-list"), html`${transactions.map((t, i) => {
     const transfer = t.kind === "save" || t.kind === "withdraw";
     const sign = t.kind === "income" || t.kind === "withdraw" ? "+ " : "";
-    return `<li class="bank-row" data-i="${i}">
+    return html`<li class="bank-row" data-i="${i}">
       <label class="bank-include" aria-label="${T("import.addThisTransaction")}"><input type="checkbox" ${t.duplicate ? "" : "checked"}></label>
       <div class="bank-main">
         <div class="bank-top">
-          <span>${weekday(t.date)} ${shortDate(t.date)}${t.paid_date ? ` <span class="muted">· ${T("import.leftYourBank", { date: shortDate(t.paid_date) })}</span>` : ""}</span>
+          <span>${weekday(t.date)} ${shortDate(t.date)}${t.paid_date ? html` <span class="muted">· ${T("import.leftYourBank", { date: shortDate(t.paid_date) })}</span>` : ""}</span>
           <span class="bank-kind">${KINDS[t.kind]}</span>
           <span class="bank-amount">${sign}${money(t.amount)}</span>
         </div>
         <div class="bank-fields ${transfer ? "transfer" : ""}">
-          ${transfer ? "" : `<input class="bank-payee" value="${escapeHtml(t.payee)}" placeholder="${t.kind === "income" ? T("common.receivedFrom") : T("common.paidTo")}" aria-label="${t.kind === "income" ? T("common.receivedFrom") : T("common.paidTo")}">`}
-          <input class="bank-note" value="${escapeHtml(t.description)}" placeholder="${T("import.noteOptional")}" aria-label="${T("common.note")}">
-          ${transfer ? "" : t.splits ? `<span class="bank-split" title="${T("import.splitOverBudgetsYouCan")}">${
-            t.splits.map((p) => `${escapeHtml(p.label)} <b>${money(p.amount)}</b>`).join("<br>")}</span>`
-            : `<input class="bank-line" placeholder="${T("import.budgetOptional")}" aria-label="${T("common.budget")}">`}
+          ${transfer ? "" : html`<input class="bank-payee" value="${t.payee}" placeholder="${t.kind === "income" ? T("common.receivedFrom") : T("common.paidTo")}" aria-label="${t.kind === "income" ? T("common.receivedFrom") : T("common.paidTo")}">`}
+          <input class="bank-note" value="${t.description}" placeholder="${T("import.noteOptional")}" aria-label="${T("common.note")}">
+          ${transfer ? "" : t.splits ? html`<span class="bank-split" title="${T("import.splitOverBudgetsYouCan")}">${
+            t.splits.map((p, n) => html`${n ? html`<br>` : ""}${p.label} <b>${money(p.amount)}</b>`)}</span>`
+            : html`<input class="bank-line" placeholder="${T("import.budgetOptional")}" aria-label="${T("common.budget")}">`}
         </div>
-        ${t.missing?.length ? `<p class="bank-dup">${T("import.missingBudgets", { count: t.missing.length, names: t.missing.map((m) => `“${escapeHtml(m)}”`).join(", ") })}</p>` : ""}
-        ${t.duplicate ? `<p class="bank-dup">${T("import.looksLikeItsAlreadyIn", { payee: escapeHtml(t.duplicate.payee || KINDS[t.kind]), date: shortDate(t.duplicate.date) })}</p>` : ""}
+        ${t.missing?.length ? html`<p class="bank-dup">${T("import.missingBudgets", { count: t.missing.length, names: t.missing.map((m) => `“${m}”`).join(", ") })}</p>` : ""}
+        ${t.duplicate ? html`<p class="bank-dup">${T("import.looksLikeItsAlreadyIn", { payee: t.duplicate.payee || KINDS[t.kind], date: shortDate(t.duplicate.date) })}</p>` : ""}
       </div>
     </li>`;
-  }).join("");
+  })}`);
   rows = transactions.map((t, i) => {
     const el = $(`#bank-list [data-i="${i}"]`);
     const input = el.querySelector(".bank-line");

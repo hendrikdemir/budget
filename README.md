@@ -279,6 +279,14 @@ Run the tests:
 python3 -m unittest
 ```
 
+Run every check, as GitHub does for each push: the tests with the page tests in WebKit, ruff for
+the Python, and type checks and ESLint for the page. The first run installs what they need (into
+`.venv-build/` and `node_modules/`; the app itself needs none of it):
+
+```bash
+packaging/check.sh
+```
+
 Release a new version:
 
 ```bash
@@ -306,7 +314,7 @@ Update the screenshots, using made-up data:
 | `app/` | Server side: database, budgets, balances, outlook, bank imports, backups and API |
 | `static/` | The page: HTML, CSS, JavaScript modules and the language files (`lang/`) |
 | `packaging/` | App builds (Mac and Windows installer), icon, release script and screenshots |
-| `tests/` | Tests for the calculations, bank imports and the server |
+| `tests/` | Tests for the calculations, bank imports, the server, the languages and the page (in WebKit) |
 
 ## License
 
