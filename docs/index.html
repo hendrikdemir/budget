@@ -89,6 +89,13 @@
 
   /* ---- Hero ---- */
   .hero { text-align: center; padding: 88px 0 0; }
+  .nowrap { white-space: nowrap; }
+  /* The app's "?" button (static/style.css .help-tip), for text that mentions it. */
+  .help-tip {
+    display: inline-grid; place-items: center; width: 1.65em; height: 1.65em; margin: 0 2px; vertical-align: 0.15em;
+    border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--muted);
+    font-size: 0.7em; font-weight: 600; line-height: 1;
+  }
   .chip { display: inline-block; font-size: 13px; color: var(--accent); background: var(--accent-soft);
           border-radius: 999px; padding: 4px 12px; margin-bottom: 20px; }
   .hero h1 { font-size: clamp(40px, 6.4vw, 68px); font-weight: 300; line-height: 1.05; letter-spacing: -0.035em; max-width: 12em; margin: 0 auto; }
@@ -228,7 +235,7 @@
     <div class="chapter-head">
       <span class="chip">Start simple</span>
       <h2>Everything a budget needs. Nothing more.</h2>
-      <p>Plan what you spend, add what you spent, and see what's left. Small ? buttons explain every word in plain language.</p>
+      <p>Plan what you spend, add what you spent, and see what's left. Small <span class="nowrap"><span class="help-tip" title="Like this one in the app">?</span> buttons</span> explain every word in plain language.</p>
     </div>
 
     <div class="row">
