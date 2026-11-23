@@ -69,6 +69,7 @@
   .topbar { border-bottom: 1px solid var(--border); }
   .topbar .wrap { display: flex; align-items: center; gap: 16px; height: 68px; }
   .brand { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 21px; letter-spacing: -0.02em; }
+  .brand { flex: none; }  /* never squeezed: the links make room instead */
   .brand img { width: 30px; height: 30px; }
   .brand:hover { color: var(--text); }
   .topbar nav { margin-left: auto; display: flex; align-items: center; gap: 22px; font-size: 14px; }
@@ -192,12 +193,16 @@
   }
   @media (max-width: 560px) {
     .wrap { padding: 0 16px; }
+    .topbar nav { gap: 16px; }
     .topbar nav a.github { display: none; }
     .hero { padding-top: 56px; }
     .chapter { padding-top: 80px; }
     .tiles { grid-template-columns: 1fr; }
     .tile + .tile { border-left: 0; border-top: 1px solid var(--border); }
     .frame.fade { aspect-ratio: 2000 / 1700; }
+  }
+  @media (max-width: 440px) {
+    .topbar nav a[href="#install"] { display: none; }  /* the logo, Features and Download fit on a phone */
   }
 </style>
 </head>
