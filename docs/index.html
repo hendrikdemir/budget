@@ -94,8 +94,15 @@
   .help-tip {
     display: inline-grid; place-items: center; width: 1.65em; height: 1.65em; margin: 0 2px; vertical-align: 0.15em;
     border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--muted);
-    font-size: 0.7em; font-weight: 600; line-height: 1;
+    font-family: inherit; font-size: 0.7em; font-weight: 600; line-height: 1; padding: 0; cursor: pointer;
   }
+  .help-tip:hover, .help-tip:focus-visible { color: var(--accent); border-color: var(--accent); }
+  .help-pop {
+    position: fixed; inset: auto; margin: 0; width: max-content; max-width: min(320px, calc(100vw - 16px));
+    padding: 10px 14px; border: 1px solid var(--border); border-radius: 18px; background: var(--bg); color: var(--text);
+    box-shadow: var(--shot-shadow); text-align: left;
+  }
+  .help-pop p { margin: 0; font-size: 14px; line-height: 1.45; }
   .chip { display: inline-block; font-size: 13px; color: var(--accent); background: var(--accent-soft);
           border-radius: 999px; padding: 4px 12px; margin-bottom: 20px; }
   .hero h1 { font-size: clamp(40px, 6.4vw, 68px); font-weight: 300; line-height: 1.05; letter-spacing: -0.035em; max-width: 12em; margin: 0 auto; }
@@ -235,7 +242,7 @@
     <div class="chapter-head">
       <span class="chip">Start simple</span>
       <h2>Everything a budget needs. Nothing more.</h2>
-      <p>Plan what you spend, add what you spent, and see what's left. Small <span class="nowrap"><span class="help-tip" title="Like this one in the app">?</span> buttons</span> explain every word in plain language.</p>
+      <p>Plan what you spend, add what you spent, and see what's left. Small <span class="nowrap"><button type="button" class="help-tip" popovertarget="help-pop" aria-label="What does this mean?">?</button> buttons</span> explain every word in plain language.</p>
     </div>
 
     <div class="row">
@@ -361,7 +368,22 @@
   <p>Made by Hendrik Demir</p>
 </footer>
 
+<div id="help-pop" class="help-pop" popover role="tooltip">
+  <p>Just like this one. In Budget, a <strong>?</strong> sits next to words like <em>carry over</em> or <em>safety buffer</em>.
+  Click it and you get a sentence or two in everyday words, right where you need it.</p>
+</div>
+
 <script>
+  // The "?" opens its explanation under itself, like in the app (static/js/help.js).
+  const helpPop = document.getElementById("help-pop");
+  helpPop.addEventListener("toggle", (e) => {
+    if (e.newState !== "open") return;
+    const r = document.querySelector("[popovertarget=help-pop]").getBoundingClientRect();
+    helpPop.style.top = `${r.bottom + 8}px`;
+    helpPop.style.left = `${Math.max(8, Math.min(r.left + r.width / 2 - helpPop.offsetWidth / 2, innerWidth - helpPop.offsetWidth - 8))}px`;
+  });
+  addEventListener("scroll", () => helpPop.matches(":popover-open") && helpPop.hidePopover(), { passive: true });
+
   // The visitor's own system first. Without the lookup below, both buttons open the Releases page.
   const onWindows = /Windows/.test(navigator.userAgent);
   if (onWindows) {
