@@ -348,8 +348,12 @@ h1 { font-size: 21px; font-weight: 400; margin: 0; }
 .update-banner strong { font-weight: 500; }
 .update-banner .spacer { flex: 1; }
 .update-banner .icon-btn { border: 0; }
-.update-notes { white-space: pre-wrap; font-size: 13px; max-height: 160px; overflow: auto; margin: 6px 0 16px;
+.update-notes { font-size: 13px; max-height: 240px; overflow: auto; margin: 6px 0 16px;
   padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--input); }
+.update-change + .update-change, .update-notes > p { margin-top: 12px; }
+.update-change strong { display: block; font-weight: 600; margin-bottom: 2px; }
+.update-change div { white-space: pre-wrap; }
+.update-notes > p { margin-bottom: 0; }
 .update-steps { margin: 6px 0 12px; padding-left: 20px; font-size: 14px; line-height: 1.5; }
 .update-steps li + li { margin-top: 4px; }
 .update-steps strong { font-weight: 500; }

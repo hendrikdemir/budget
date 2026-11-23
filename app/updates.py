@@ -28,7 +28,8 @@ RELEASES_URL = "https://api.github.com/repos/hendrikdemir/budget/releases?per_pa
 RELEASES_PAGE = "https://github.com/hendrikdemir/budget/releases"
 CHECK_EVERY = 24 * 60 * 60  # seconds
 RETRY_AFTER_FAILURE = 60 * 60
-MAX_NOTES = 4000  # characters of release notes to show
+MAX_NOTES = 4000  # characters of release notes to show, per release
+MAX_CHANGES = 6  # releases whose notes are shown; the page says how many more there are
 
 PLATFORM = "windows" if sys.platform == "win32" else "mac"
 DOWNLOADS = {"mac": "Budget.dmg", "windows": "Budget-setup.exe"}  # a release's file for each system
@@ -68,7 +69,9 @@ def _for_this_system(data):
 
 
 def fetch_release():
-    """The newest release for this system as {version, notes, page, download, platform};
+    """The newest release for this system as {version, changes, more, page, download, platform}:
+    changes are the notes of each release newer than this one, newest first (so skipping a big
+    release doesn't hide what it brought), and more the number of newer ones left out;
     {"version": None} when GitHub answered but has none for this system; None if it can't be read."""
     url = os.environ.get("BUDGET_RELEASES_URL") or RELEASES_URL
     if "://" not in url:  # a file path, for testing
@@ -89,11 +92,15 @@ def fetch_release():
     candidates = [r for r in map(_for_this_system, data) if r]
     if not candidates:
         return {"version": None}
-    version, newest, download = max(candidates, key=lambda r: r[0])
+    candidates.sort(key=lambda r: r[0], reverse=True)
+    version, newest, download = candidates[0]
     page = _github_link(newest.get("html_url"), RELEASES_PAGE)
+    newer = [(v, data) for v, data, _ in candidates if v > parse_version(VERSION)] or [(version, newest)]
     return {
         "version": ".".join(map(str, version)),
-        "notes": str(newest.get("body") or "").strip()[:MAX_NOTES],
+        "changes": [{"version": ".".join(map(str, v)), "notes": str(data.get("body") or "").strip()[:MAX_NOTES]}
+                    for v, data in newer[:MAX_CHANGES]],
+        "more": max(0, len(newer) - MAX_CHANGES),
         "page": page,
         "download": _github_link(download, page),
         "platform": PLATFORM,

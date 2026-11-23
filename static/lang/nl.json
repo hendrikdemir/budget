@@ -595,8 +595,11 @@
     "withoutABudget": "{{amount}} zonder budget"
   },
   "updates": {
+    "andEarlierVersions_one": "En {{count}} eerdere versie, zie GitHub.",
+    "andEarlierVersions_other": "En {{count}} eerdere versies, zie GitHub.",
     "budgetCouldntCheckForA": "Budget kon nu niet kijken of er een nieuwe versie is, bijvoorbeeld zonder internet. Het probeert het later opnieuw.",
     "budgetIsAvailable": "Budget {{version}} is beschikbaar.",
+    "budgetVersion": "Budget {{version}}",
     "budgetWontLookForNew": "Budget zoekt niet naar nieuwe versies. Kijk zelf af en toe bij de releases op GitHub.",
     "clickDownloadBelowBudgetDmg": "Klik hieronder op <strong>Download</strong>. Budget.dmg komt in je map Downloads.",
     "clickDownloadBelowBudgetSetup": "Klik hieronder op <strong>Download</strong>. Budget-setup.exe komt in je map Downloads.",

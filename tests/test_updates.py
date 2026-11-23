@@ -133,9 +133,18 @@ class UpdateCheck(AppTest):
         self.publish_list(self.release("v1.3.0", files=["Budget-setup.exe"]), self.release("v1.2.0"),
                           self.release("v1.1.0", files=["Budget.dmg"]))
         result = self.check()
-        self.assertEqual((result["version"], result["notes"]), ("1.2.0", "What's new in v1.2.0."))
+        self.assertEqual(result["version"], "1.2.0")
+        # Every newer release's notes, newest first, so a big release isn't hidden by a fix after it.
+        self.assertEqual(result["changes"], [{"version": "1.2.0", "notes": "What's new in v1.2.0."},
+                                             {"version": "1.1.0", "notes": "What's new in v1.1.0."}])
         self.on("windows")
         self.assertEqual(self.check()["version"], "1.3.0")
+
+    def test_shows_a_few_releases_and_counts_the_rest(self):
+        self.publish_list(*(self.release(f"v1.{n}.0") for n in range(9, 0, -1)), self.release("v0.1.0"))
+        result = self.check()
+        self.assertEqual([c["version"] for c in result["changes"]], [f"1.{n}.0" for n in range(9, 3, -1)])
+        self.assertEqual(result["more"], 3)  # 1.3, 1.2 and 1.1; 0.1.0 is older than this version
 
     def test_drafts_and_prereleases_in_the_list_are_skipped(self):
         self.publish_list({**self.release("v2.0.0"), "draft": True}, {**self.release("v1.5.0"), "prerelease": True},

@@ -595,8 +595,11 @@
     "withoutABudget": "{{amount}} without a budget"
   },
   "updates": {
+    "andEarlierVersions_one": "And {{count}} earlier version, see GitHub.",
+    "andEarlierVersions_other": "And {{count}} earlier versions, see GitHub.",
     "budgetCouldntCheckForA": "Budget couldn't check for a new version right now, for example without internet. It tries again later.",
     "budgetIsAvailable": "Budget {{version}} is available.",
+    "budgetVersion": "Budget {{version}}",
     "budgetWontLookForNew": "Budget won't look for new versions. Check the releases on GitHub yourself now and then.",
     "clickDownloadBelowBudgetDmg": "Click <strong>Download</strong> below. Budget.dmg is saved in your Downloads folder.",
     "clickDownloadBelowBudgetSetup": "Click <strong>Download</strong> below. Budget-setup.exe is saved in your Downloads folder.",

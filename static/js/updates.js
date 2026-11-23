@@ -1,5 +1,6 @@
 // "A new version is available": a banner, a dialog with what's new and how to install it,
 // and the Updates choice in Settings. The server checks GitHub (app/updates.py); the page only shows it.
+import { html, setHtml } from "./html.js";
 import { t } from "./i18n.js";
 import { state } from "./state.js";
 import { $, api } from "./ui.js";
@@ -27,8 +28,13 @@ function render() {
 function openUpdate() {
   $("#update-title").textContent = t("updates.updateToBudget", { version: release.version });
   $("#update-current").textContent = t("updates.youHaveBudget", { version: release.current });
-  $("#update-notes").textContent = release.notes; // plain text, never HTML from the internet
-  $("#update-notes-block").hidden = !release.notes;
+  // Every version since this one, newest first; notes are plain text, never HTML from the internet.
+  const changes = (release.changes || []).filter((change) => change.notes);
+  setHtml($("#update-notes"), html`${changes.map((change) => html`<section class="update-change">
+      <strong>${t("updates.budgetVersion", { version: change.version })}</strong>
+      <div>${change.notes}</div></section>`)}${release.more
+    ? html`<p class="muted">${t("updates.andEarlierVersions", { count: release.more })}</p>` : ""}`);
+  $("#update-notes-block").hidden = !changes.length;
   $("#update-download").href = release.download;
   const platform = release.platform === "windows" ? "windows" : "mac";
   document.querySelectorAll(".update-steps").forEach((steps) => (steps.hidden = steps.dataset.platform !== platform));

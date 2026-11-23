@@ -1,3 +1,54 @@
-{"tag_name": "v1.1.0", "html_url": "https://github.com/hendrikdemir/budget/releases/tag/v1.1.0",
- "body": "- Budget tells you when a new version is out\n- Fixes a rounding issue in the outlook",
- "assets": [{"name": "Budget.dmg", "browser_download_url": "https://github.com/hendrikdemir/budget/releases/download/v1.1.0/Budget.dmg"}]}
+[
+ {
+  "tag_name": "v1.0.1",
+  "html_url": "https://github.com/hendrikdemir/budget/releases/tag/v1.0.1",
+  "body": "- Fixes the outlook showing the wrong month on the 31st",
+  "assets": [
+   {
+    "name": "Budget.dmg",
+    "browser_download_url": "https://github.com/hendrikdemir/budget/releases/download/v1.0.1/Budget.dmg"
+   },
+   {
+    "name": "Budget-setup.exe",
+    "browser_download_url": "https://github.com/hendrikdemir/budget/releases/download/v1.0.1/Budget-setup.exe"
+   }
+  ]
+ },
+ {
+  "tag_name": "v1.0.0",
+  "html_url": "https://github.com/hendrikdemir/budget/releases/tag/v1.0.0",
+  "body": "Budget 1.0 is here!\n- Shared budgets: plan together with your partner\n- Goals for your savings, with a date to reach them\n- A yearly overview of where your money went",
+  "assets": [
+   {
+    "name": "Budget.dmg",
+    "browser_download_url": "https://github.com/hendrikdemir/budget/releases/download/v1.0.0/Budget.dmg"
+   },
+   {
+    "name": "Budget-setup.exe",
+    "browser_download_url": "https://github.com/hendrikdemir/budget/releases/download/v1.0.0/Budget-setup.exe"
+   }
+  ]
+ },
+ {
+  "tag_name": "v0.12.0",
+  "html_url": "https://github.com/hendrikdemir/budget/releases/tag/v0.12.0",
+  "body": "- Budget tells you which version you need when your data is from a newer one\n- Going back to an older version keeps working more often",
+  "assets": [
+   {
+    "name": "Budget.dmg",
+    "browser_download_url": "https://github.com/hendrikdemir/budget/releases/download/v0.12.0/Budget.dmg"
+   }
+  ]
+ },
+ {
+  "tag_name": "v0.11.0",
+  "html_url": "https://github.com/hendrikdemir/budget/releases/tag/v0.11.0",
+  "body": "- Simple and Extended mode",
+  "assets": [
+   {
+    "name": "Budget.dmg",
+    "browser_download_url": "https://github.com/hendrikdemir/budget/releases/download/v0.11.0/Budget.dmg"
+   }
+  ]
+ }
+]
